@@ -168,7 +168,7 @@ export class EchoTalkApp {
     }
 
     private fetchSamples(): Promise<{ sentences: string[] }> {
-        return $.getJSON('/assets/data/sentences.json');
+        return $.getJSON('./data/sentences.json');
     }
 
     private initDB(): Promise<IDBDatabase> {
@@ -322,14 +322,14 @@ export class EchoTalkApp {
         if (similarity >= 0.6) {
             this.correctCount++;
             this.currentCount++;
-            this.playSound('./assets/sounds/correct.mp3');
+            this.playSound('./sounds/correct.mp3');
             $('#feedback').html(`<div class="correct">Correct! (${similarityPercent}% match) - (${this.currentCount}/${this.reps})</div>`);
             if (this.currentCount >= this.reps) {
                 this.currentIndex = endIndex;
                 this.currentCount = 0;
             }
         } else {
-            this.playSound('./assets/sounds/wrong.mp3');
+            this.playSound('./sounds/wrong.mp3');
             $('#feedback').html(`<div class="incorrect">Try again! (${similarityPercent}% match) <br>Detected: "${answer}"</div>`);
         }
 
@@ -374,7 +374,7 @@ export class EchoTalkApp {
         const callToActions = ["Let's Start Over!", "Go Again!", "Ready for Another Round?"];
         const callToAction = callToActions[Math.floor(Math.random() * callToActions.length)];
         ttsMsg += ` ${callToAction}`;
-        this.playSound('./assets/sounds/victory.mp3', 2);
+        this.playSound('./sounds/victory.mp3', 2);
         setTimeout(() => this.speak(ttsMsg), 1500);
         displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="location.reload(); return false;">${callToAction}</a>`;
         $('#practiceArea').html(`<h2>${displayMsg}</h2>`);
@@ -426,7 +426,7 @@ export class EchoTalkApp {
     }
 
     private playSound(src: string, speed: number = 1): void {
-        const audio = new Audio(src.replace('./', '/'));
+        const audio = new Audio(src);
         audio.playbackRate = speed;
         audio.play();
     }
