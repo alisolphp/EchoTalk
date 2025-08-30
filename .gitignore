@@ -4,3 +4,5 @@
 /.idea/deployment.xml
 /.idea/EchoTalk.iml
 /.idea/php.xml
+/dist/
+/src/node_modules/
