@@ -20,11 +20,10 @@ describe('EchoTalkApp', () => {
         // 2. Inject HTML structure into jsdom
         document.body.innerHTML = html;
 
-        // 3. Mock network call to fetch sample sentences
-        const mockData = {
+        // 3. Ensure mock is applied before app.init()
+        $.getJSON = vi.fn(() => Promise.resolve({
             sentences: ["This is a test sentence.", "Another sample for practice."]
-        };
-        $.getJSON = vi.fn(() => Promise.resolve(mockData)) as any;
+        })) as any;
 
         // 4. Create a new instance of the application class
         app = new EchoTalkApp();
