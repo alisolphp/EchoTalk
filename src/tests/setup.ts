@@ -1,4 +1,10 @@
-// Updated code for: Projects\EchoTalk\src\tests\setup.ts
+/**
+ * Setup file for Vitest.
+ * This file mocks browser-specific APIs (like MediaRecorder, SpeechRecognition, etc.)
+ * to allow unit testing in a Node environment without actual browser support.
+ */
+
+
 import { beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';

@@ -1,4 +1,3 @@
-// Updated code for: Projects\EchoTalk\src\tests\app.test.ts
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
