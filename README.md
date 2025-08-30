@@ -1,72 +1,98 @@
-# EchoTalk - Offline Shadowing Practice
+# EchoTalk – Offline Shadowing Practice 🗣️
 
-![EchoTalk App Screenshot](https://user-images.githubusercontent.com/alisolphp/echotalk/public/screenshots/demo1.png) EchoTalk is a modern, privacy-focused, offline-first Progressive Web App (PWA) designed to help language learners improve their pronunciation and fluency through the shadowing technique. It's built to work entirely in the browser, meaning your data never leaves your device.
+EchoTalk is a browser-based language training tool designed for offline shadowing practice. It uses TTS, audio recording, and sentence review to help learners improve pronunciation and fluency.
+
+![EchoTalk App Screenshot](https://user-images.githubusercontent.com/alisolphp/echotalk/public/screenshots/demo1.png)
+
+🔗 [Live Demo](https://alisol.ir/Projects/EchoTalk)
+
+---
 
 ## ✨ Features
 
-* **Offline-First:** Works completely offline after the first visit. No internet connection required.
-* **Two Practice Modes:**
-    * **Skip Mode:** Listen, repeat to yourself, and move to the next phrase at your own pace.
-    * **Check Mode:** Use your device's microphone to get a similarity score on your pronunciation.
-* **Voice Recording:** Record your practice sessions locally and compare your pronunciation against the bot's audio.
-* **Karaoke-Style Highlighting:** Words are highlighted in real-time as they are spoken, making it easy to follow along.
-* **Custom Content:** Practice with built-in random samples or paste in your own text.
-* **Playback Control:** Re-listen to phrases at a slower speed to catch difficult pronunciations.
-* **Instant Word Lookup:** Click on any word to look up its meaning in a new tab.
-* **Auto-Save Progress:** Your current sentence, position, and settings are saved automatically.
-* **100% Client-Side:** All processing and data storage happens locally in your browser, ensuring complete privacy.
+- Record your voice using MediaRecorder and store it in IndexedDB
+- Practice with random or custom sentences
+- Multiple modes: Check Mode and Skip-Only Mode
+- Slow-speed audio playback for review
+- Word-level highlighting and jump-to-word functionality
+- Click any word to look up its meaning
+- Auto-save progress and settings
+- Fully offline – no server required
 
-## 🛠️ Tech Stack
-
-* **Build Tool:** [Vite](https://vitejs.dev/)
-* **Language:** [TypeScript](https://www.typescriptlang.org/)
-* **UI Libraries:** [jQuery](https://jquery.com/) & [Bootstrap](https://getbootstrap.com/)
-* **PWA:** `vite-plugin-pwa`
-* **Browser APIs:**
-    * Web Speech API (for Text-to-Speech)
-    * MediaStream Recording API (for voice recording)
-    * IndexedDB API (for storing audio recordings)
-    * Web Storage API (for saving user state)
+---
 
 ## 🚀 Getting Started
 
-To get a local copy up and running, follow these simple steps.
+1. Enter or select a sentence
+2. Choose your practice mode
+3. Click "Start Practice"
+4. Enable microphone (optional)
+5. Listen, repeat, and review
 
-### Prerequisites
+---
 
-* Node.js (v18.x or later recommended)
-* npm or yarn
+## 🛠️ Technologies
 
-### Local Development
+- [Vite](https://vitejs.dev/)
+- TypeScript
+- PWA
+- MediaRecorder API
+- IndexedDB
+- Web Speech API (TTS)
+- Vitest (unit testing)
 
-1.  **Clone the repository:**
-    ```sh
-    git clone [https://github.com/alisolphp/echotalk.git](https://github.com/alisolphp/echotalk.git)
-    ```
-2.  **Navigate to the project directory:**
-    ```sh
-    cd echotalk
-    ```
-3.  **Install dependencies:**
-    ```sh
-    npm install
-    ```
-4.  **Run the development server:**
-    ```sh
-    npm run dev
-    ```
-    The application will be available at `http://localhost:5173`.
+---
 
-## 🐳 Running with Docker
+## 🧪 Tests
 
-You can also run the application in a containerized environment using Docker.
+Includes unit tests for key logic:
+- `calculateWordSimilarity`
+- `init` and fallback handling
 
-1.  **Build and run the container:**
-    ```sh
-    docker-compose up -d
-    ```
-2.  The application will be accessible at `http://localhost:8080`.
+---
 
-To stop the container, run:
-```sh
-docker-compose down
+## 📦 Installation
+
+```bash
+git clone https://github.com/your-username/EchoTalk.git
+cd EchoTalk
+npm install
+npm run dev
+```
+
+To run tests before build:
+
+```bash
+npm test
+```
+
+To build for production:
+
+```bash
+npm run build
+```
+
+---
+
+## 🧑‍💻 Contributing
+
+Contributions are welcome! You can:
+- Report bugs
+- Suggest new features
+- Improve code or documentation
+
+To contribute, fork the repo and submit a pull request.
+
+---
+
+## ⚠️ Limitations
+
+- No STT (speech-to-text) yet
+- Audio format support depends on browser
+- Optimized for Chrome
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
