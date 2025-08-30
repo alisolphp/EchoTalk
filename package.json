@@ -1,7 +1,15 @@
 {
   "name": "echotalk",
   "version": "1.0.0",
-  "description": "",
+  "description": "A browser-based language training app using Shadowing technique with sentence segmentation, audio recording, and user review features.",
+  "author": "AliSol <alisolphp@gmail.com> (https://alisol.ir)",
+  "homepage": "https://alisol.ir/Projects/EchoTalk/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alisol/echotalk.git"
+  },
+  "keywords": ["language learning", "speech recognition", "browser app", "audio training", "EchoTalk"],
+  "license": "MIT",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
@@ -9,9 +17,6 @@
     "preview": "vite preview",
     "test": "vitest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@testing-library/jest-dom": "^6.8.0",
     "@types/bootstrap": "^5.2.10",
