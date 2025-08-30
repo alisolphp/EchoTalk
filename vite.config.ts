@@ -3,8 +3,8 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-    base: './', // مسیر نسبی
-    root: 'src', // ریشه برنامه پوشه 'src' است
+    base: './',
+    root: 'src',
     publicDir: '../public',
     build: {
         outDir: '../dist',
@@ -19,10 +19,8 @@ export default defineConfig({
         })
     ],
     test: {
-        // حالا که پوشه tests داخل src است، مسیرها بسیار ساده هستند
         globals: true,
         environment: 'jsdom',
-        // این مسیرها اکنون نسبت به ریشه ('src') سنجیده می‌شوند
         setupFiles: './tests/setup.ts',
         include: ['./tests/**/*.test.ts'],
     },

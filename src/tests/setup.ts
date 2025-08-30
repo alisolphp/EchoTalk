@@ -3,17 +3,17 @@ import { beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
-// 1. خواندن HTML برای بارگذاری در هر تست
+// 1. Load HTML content to inject before each test
 const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
 
-// 2. تنظیمات سراسری قبل از هر تست
+// 2. Global setup before each test
 beforeEach(() => {
-    // بارگذاری ساختار HTML در jsdom
+    // Inject HTML structure into jsdom
     document.body.innerHTML = html;
 
-    // --- START: Mock کردن API های مرورگر ---
+    // --- START: Mocking browser APIs ---
 
-    // Mock برای SpeechSynthesisUtterance
+    // Mock for SpeechSynthesisUtterance
     global.SpeechSynthesisUtterance = vi.fn().mockImplementation((text = '') => {
         return {
             text,
@@ -23,10 +23,10 @@ beforeEach(() => {
         };
     });
 
-    // Mock برای speechSynthesis
+    // Mock for speechSynthesis
     window.speechSynthesis = {
         speak: vi.fn(utterance => {
-            // فراخوانی مستقیم onend برای جلوگیری از تداخل با تایمرهای ساختگی تست
+            // Directly trigger onend to avoid interference with fake timers
             if (utterance.onend) {
                 utterance.onend();
             }
@@ -34,7 +34,7 @@ beforeEach(() => {
         cancel: vi.fn(),
     } as any;
 
-    // Mock برای Audio به منظور جلوگیری از بارگذاری منابع
+    // Mock for Audio to prevent actual resource loading
     global.Audio = vi.fn().mockImplementation(() => ({
         play: vi.fn().mockResolvedValue(undefined),
         pause: vi.fn(),
@@ -43,7 +43,7 @@ beforeEach(() => {
         load: vi.fn(),
     })) as any;
 
-    // Mock برای MediaRecorder
+    // Mock for MediaRecorder
     window.MediaRecorder = vi.fn().mockImplementation(() => ({
         start: vi.fn(),
         stop: vi.fn(),
@@ -54,7 +54,7 @@ beforeEach(() => {
         onstop: vi.fn(),
     }));
 
-    // Mock برای navigator.mediaDevices
+    // Mock for navigator.mediaDevices
     Object.defineProperty(navigator, 'mediaDevices', {
         value: {
             getUserMedia: vi.fn().mockResolvedValue({
@@ -64,7 +64,7 @@ beforeEach(() => {
         writable: true
     });
 
-    // Mock کامل برای indexedDB
+    // Full mock for indexedDB
     Object.defineProperty(window, 'indexedDB', {
         value: {
             open: vi.fn().mockImplementation(() => {
@@ -93,13 +93,13 @@ beforeEach(() => {
         writable: true
     });
 
-    // --- END: Mock کردن API های مرورگر ---
+    // --- END: Mocking browser APIs ---
 });
 
-// 3. پاکسازی بعد از هر تست
+// 3. Cleanup after each test
 afterEach(() => {
-    // پاک کردن localStorage
+    // Clear localStorage
     localStorage.clear();
-    // بازگرداندن تایمرهای واقعی
+    // Restore real timers
     vi.useRealTimers();
 });

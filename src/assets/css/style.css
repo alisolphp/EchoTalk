@@ -1,37 +1,37 @@
 :root {
-  --bg-color: #212529; /* Dark theme default */
-  --text-color: #dee2e6;
-  --highlight-color: #fdd835; /* رنگ زرد برای هایلایت */
-  --current-color: #fb8c00;
+    --bg-color: #212529; /* Default dark theme background */
+    --text-color: #dee2e6;
+    --highlight-color: #fdd835; /* Yellow highlight color */
+    --current-color: #fb8c00;
 }
 
 body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
 }
 
 #sampleSentence span {
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
 }
 
 #sampleSentence span:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .current-word {
-  background-color: var(--current-color);
-  padding: 0 .25rem;
-  border-radius: 5px;
-  color: #000;
+    background-color: var(--current-color);
+    padding: 0 .25rem;
+    border-radius: 5px;
+    color: #000;
 }
 
 .correct {
-  color: #198754; /* Bootstrap success green */
+    color: #198754; /* Bootstrap success green */
 }
 
 .incorrect {
-  color: #dc3545; /* Bootstrap danger red */
+    color: #dc3545; /* Bootstrap danger red */
 }
 
 .recording-indicator {
@@ -56,26 +56,26 @@ body {
     100% { opacity: 1; }
 }
 
-/* --- START: بخش جدید برای افکت کارائوکه --- */
+/* --- START: New section for karaoke-style highlighting --- */
 
 #sentence-container {
-  line-height: 1.5;
+    line-height: 1.5;
 }
 #sentence-container .word {
-  cursor: pointer;
+    cursor: pointer;
 }
 
-/* استایل کلمات در حالت عادی */
+/* Default word styling */
 #sentence-container .word {
-  /* رنگ کلمات به صورت پیش‌فرض، رنگ متن اصلی است */
-  color: var(--text-color); 
-  /* یک ترنزیشن نرم برای تغییر رنگ */
-  transition: color 0.2s ease-in-out;
+    /* Default color matches main text color */
+    color: var(--text-color);
+    /* Smooth transition for color changes */
+    transition: color 0.2s ease-in-out;
 }
 
-/* کلاسی که برای هایلایت کردن کلمه در حال پخش اضافه می‌شود */
+/* Class added to highlight the currently playing word */
 #sentence-container .word.highlighted {
-  color: var(--highlight-color); /* رنگ زرد هایلایت */
+    color: var(--highlight-color); /* Yellow highlight color */
 }
 
-/* --- END: پایان بخش جدید --- */
+/* --- END: End of karaoke-style section --- */

@@ -3,39 +3,39 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import $ from 'jquery';
-// ایمپورت کردن کلاس اصلی برنامه
+// Import the main application class
 import { EchoTalkApp } from '../assets/js/app';
 
-// خواندن محتوای فایل HTML برای بارگذاری در jsdom
+// Load HTML content to inject into jsdom
 const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
 
 describe('EchoTalkApp', () => {
     let app: EchoTalkApp;
 
-    // این تابع قبل از اجرای هر تست فراخوانی می‌شود
+    // This function runs before each test
     beforeEach(() => {
-        // 1. پاک کردن mock های قبلی باید اولین کار باشد
+        // 1. Clear previous mocks first
         vi.clearAllMocks();
 
-        // 2. بارگذاری ساختار HTML در jsdom
+        // 2. Inject HTML structure into jsdom
         document.body.innerHTML = html;
 
-        // 3. Mock کردن فراخوانی شبکه برای دریافت جملات نمونه
+        // 3. Mock network call to fetch sample sentences
         const mockData = {
             sentences: ["This is a test sentence.", "Another sample for practice."]
         };
         $.getJSON = vi.fn(() => Promise.resolve(mockData)) as any;
 
-        // 4. ساخت یک نمونه جدید از کلاس برنامه
+        // 4. Create a new instance of the application class
         app = new EchoTalkApp();
     });
 
     afterEach(() => {
-        // پاک کردن localStorage بعد از هر تست
+        // Clear localStorage after each test
         localStorage.clear();
     });
 
-    // گروه تست برای توابع محاسباتی و خالص
+    // Test group for pure utility functions
     describe('Utility Functions', () => {
         it('calculateWordSimilarity should return 1 for identical strings', () => {
             const similarity = app.calculateWordSimilarity('hello world', 'hello world');
@@ -53,42 +53,41 @@ describe('EchoTalkApp', () => {
         });
     });
 
-    // گروه تست برای فرآیند مقداردهی اولیه
+    // Test group for initialization logic
     describe('Initialization', () => {
         it('should initialize correctly and fetch sample sentences', async () => {
             await app.init();
-            // بررسی می‌کند که آیا یک جمله نمونه در textarea قرار گرفته است یا نه
+            // Check if a sample sentence is loaded into the textarea
             const sentenceValue = $('#sentenceInput').val();
             expect(['This is a test sentence.', 'Another sample for practice.']).toContain(sentenceValue);
-            // بررسی می‌کند که آیا گزینه‌های تکرار (repetitions) ساخته شده‌اند
+            // Check if repetition options are generated
             expect($('#repsSelect option').length).toBeGreaterThan(0);
         });
 
         it('should load state from localStorage if available', async () => {
-            // ذخیره مقادیر ساختگی در localStorage
+            // Store mock values in localStorage
             localStorage.setItem('shadow_sentence', 'Stored sentence from test.');
             localStorage.setItem('shadow_reps', '10');
 
             await app.init();
 
-            // بررسی می‌کند که آیا مقادیر از localStorage خوانده شده‌اند
+            // Check if values are loaded from localStorage
             expect($('#sentenceInput').val()).toBe('Stored sentence from test.');
             expect($('#repsSelect').val()).toBe('10');
         });
     });
 
-    // گروه تست برای منطق اصلی تمرین
+    // Test group for core practice logic
     describe('Practice Logic', () => {
         it('should switch to practice view when "Start Practice" is clicked', async () => {
             await app.init();
             $('#startBtn').trigger('click');
 
-            // بررسی می‌کند که آیا بخش تنظیمات مخفی و بخش تمرین نمایش داده می‌شود
+            // Check if config area is hidden and practice area is shown
             expect($('#configArea').hasClass('d-none')).toBe(true);
             expect($('#practiceArea').hasClass('d-none')).toBe(false);
-            // بررسی می‌کند که آیا تابع speak برای خواندن اولین عبارت فراخوانی شده است
+            // Check if speak function is called to read the first sentence
             expect(speechSynthesis.speak).toHaveBeenCalledOnce();
         });
-
     });
 });
