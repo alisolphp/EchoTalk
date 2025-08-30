@@ -95,4 +95,4 @@ To contribute, fork the repo and submit a pull request.
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](./LICENSE).
