@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EchoTalk | Offline Shadowing Practice</title>
+    <meta name="theme-color" content="#ff9800">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-512.png">
+</head>
+<body class="d-flex flex-column h-100">
+<div class="container my-4">
+    <h1 class="text-center"><img src="/icons/icon-512.png" style="width: 1em;"> EchoTalk</h1>
+    <h2 class="mb-3 text-center">Offline Shadowing Practice</h2>
+
+    <details class="mb-3">
+        <summary class="d-block text-center"><div class="btn btn-outline-info">» Quick Start & Features</div></summary>
+        <div class="mt-2 p-3 border rounded">
+            <p>This tool is designed for Shadowing practice and works completely offline. To get started, you can either enter your own sentence or use one of the provided samples.</p>
+            <h5>Quick Start Guide:</h5>
+            <ol>
+                <li><strong>Enter your sentence:</strong> Type the text you want to practice into the text box.</li>
+                <li><strong>Or use a sample:</strong> Click the <strong>"Use a random Sample"</strong> button to load a random sentence.</li>
+                <li><strong>Select a Practice Mode:</strong>
+                    <ul>
+                        <li><strong>Check Mode:</strong> After listening, repeat the phrase using your keyboard's mic and press "Check" to evaluate your pronunciation.</li>
+                        <li><strong>Skip-Only Mode:</strong> Simply listen, repeat to yourself, and then press "Next Phrase" to proceed. (This is the default mode).</li>
+                    </ul>
+                </li>
+                <li>Press the <strong>"Start Practice"</strong> button to begin.</li>
+            </ol>
+            <hr>
+            <h5>Other Features:</h5>
+            <ul>
+                <li><strong>Start From Any Word:</strong> Before starting, click any word in the full sentence to set it as your starting point.</li>
+                <li><strong>Re-listen at Slow Speed:</strong> During practice, click the ▶ button at the beginning of the phrase to hear it again at a slower speed.</li>
+                <li><strong>Look Up Word Meanings:</strong> Click on any word in the phrase being displayed to search for its meaning on Google in a new tab.</li>
+                <li><strong>Record Your Voice:</strong> You can enable voice recording to save your attempts locally in your browser and compare them with the original audio later.</li>
+                <li><strong>Auto-Save Progress:</strong> Your settings and current progress are automatically saved, allowing you to easily continue your practice later.</li>
+            </ul>
+            <hr>
+            <p class="small text-muted">This tool works completely offline. No internet connection is required, and your privacy is protected as no data is sent to any server. Please ensure you have an English TTS (Text-to-Speech) engine installed on your device.</p>
+        </div>
+    </details>
+
+    <div id="configArea">
+        <div class="mb-3">
+            <label for="sentenceInput" class="form-label">Enter your sentence or
+                <button id="useSampleBtn" class="btn btn-secondary small py-0 px-2 me-1">Use a random Sample</button>:
+            </label>
+            <textarea id="sentenceInput" class="form-control" placeholder="Type or pick a sample sentence"></textarea>
+        </div>
+        <div class="mb-3">
+            <div id="sampleSentence" class="fs-5"></div>
+            <small>Click any word to set the starting point.</small>
+        </div>
+        <details class="mb-3">
+            <summary class="btn btn-outline-secondary">» Options</summary>
+            <div>
+                <div class="row mb-3">
+                    <div class="col-4">
+                        <label for="repsSelect" class="form-label">Repetitions:</label>
+                        <select id="repsSelect" class="form-select"></select>
+                    </div>
+                    <div class="col-8 d-flex align-items-end gap-2">
+                        <button id="showRecordingsBtn" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#recordingsModal">My Records</button>
+                        <button id="resetBtn" class="btn btn-outline-danger">Reset</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
+                        <label class="form-check-label" for="recordToggle">Record my voice for comparing later (completely locally)</label>
+                    </div>
+                </div>
+                <div class="card bg-dark-subtle p-3 mb-3">
+                    <label class="form-label">Practice Mode:</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="practiceMode" id="mode-skip" value="skip" checked>
+                        <label class="form-check-label" for="mode-skip">Skip-Only Mode (Listen and repeat yourself, then go next)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="practiceMode" id="mode-check" value="check">
+                        <label class="form-check-label" for="mode-check">Check Mode (Use keyboard mic to check your pronunciation)</label>
+                    </div>
+                </div>
+            </div>
+        </details>
+        <div class="row mb-3">
+            <div class="col">
+                <button id="startBtn" class="btn btn-primary d-block w-100">Start Practice</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="practiceArea" class="d-none">
+        <div class="mb-3">
+            <div class="d-none">
+                <div id="fullSentence" class="fs-5 mb-2"></div>
+            </div>
+            <button id="repeatBtn" class="btn pt-0 pb-1 px-0" style="margin-top: -0.5em;">▶</button>
+            <div id="sentence-container" class="fs-3 fw-bold mb-3 d-inline"></div>
+        </div>
+        <p id="instructionText">Now it’s your turn. Tap the mic icon on your keyboard and speak the word.</p>
+        <div class="input-group mb-3">
+            <input type="text" id="userInput" class="form-control" placeholder="Tap keyboard mic">
+        </div>
+        <div>
+            <button id="checkBtn" class="btn btn-success d-block w-100 py-3">Check/Skip</button>
+        </div>
+        <div id="feedback" class="mb-3"></div>
+    </div>
+</div>
+
+<button id="installBtn" class="btn btn-outline-primary d-none">Install App</button>
+
+<div class="modal fade" id="recordingsModal" tabindex="-1" aria-labelledby="recordingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="recordingsModalLabel">My Recordings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="recordingsList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="/assets/js/app.ts"></script>
+</body>
+</html>

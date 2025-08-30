@@ -1,0 +1,81 @@
+:root {
+  --bg-color: #212529; /* Dark theme default */
+  --text-color: #dee2e6;
+  --highlight-color: #fdd835; /* رنگ زرد برای هایلایت */
+  --current-color: #fb8c00;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+#sampleSentence span {
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+#sampleSentence span:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.current-word {
+  background-color: var(--current-color);
+  padding: 0 .25rem;
+  border-radius: 5px;
+  color: #000;
+}
+
+.correct {
+  color: #198754; /* Bootstrap success green */
+}
+
+.incorrect {
+  color: #dc3545; /* Bootstrap danger red */
+}
+
+.recording-indicator {
+    color: #0dcaf0; /* Bootstrap info cyan */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.recording-indicator .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background-color: #dc3545;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.2; }
+    100% { opacity: 1; }
+}
+
+/* --- START: بخش جدید برای افکت کارائوکه --- */
+
+#sentence-container {
+  line-height: 1.5;
+}
+#sentence-container .word {
+  cursor: pointer;
+}
+
+/* استایل کلمات در حالت عادی */
+#sentence-container .word {
+  /* رنگ کلمات به صورت پیش‌فرض، رنگ متن اصلی است */
+  color: var(--text-color); 
+  /* یک ترنزیشن نرم برای تغییر رنگ */
+  transition: color 0.2s ease-in-out;
+}
+
+/* کلاسی که برای هایلایت کردن کلمه در حال پخش اضافه می‌شود */
+#sentence-container .word.highlighted {
+  color: var(--highlight-color); /* رنگ زرد هایلایت */
+}
+
+/* --- END: پایان بخش جدید --- */
