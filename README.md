@@ -1,8 +1,12 @@
 # EchoTalk – Offline Shadowing Practice 🗣️
 
+![Build](https://img.shields.io/github/actions/workflow/status/alisolphp/EchoTalk/test.yml?label=build)
+![License](https://img.shields.io/github/license/alisolphp/EchoTalk)
+![PWA](https://img.shields.io/badge/PWA-ready-green)
+
 EchoTalk is a browser-based language training tool designed for offline shadowing practice. It uses TTS, audio recording, and sentence review to help learners improve pronunciation and fluency.
 
-![EchoTalk App Screenshot](https://user-images.githubusercontent.com/alisolphp/echotalk/public/screenshots/demo1.png)
+![EchoTalk App Screenshot](https://user-images.githubusercontent.com/alisolphp/EchoTalk/public/screenshots/demo1.png)
 
 🔗 [Live Demo](https://alisol.ir/Projects/EchoTalk)
 
@@ -10,51 +14,51 @@ EchoTalk is a browser-based language training tool designed for offline shadowin
 
 ## ✨ Features
 
-- Record your voice using MediaRecorder and store it in IndexedDB
-- Practice with random or custom sentences
-- Multiple modes: Check Mode and Skip-Only Mode
-- Slow-speed audio playback for review
-- Word-level highlighting and jump-to-word functionality
-- Click any word to look up its meaning
-- Auto-save progress and settings
-- Fully offline – no server required
+- Record your voice using MediaRecorder and store it in IndexedDB  
+- Practice with random or custom sentences  
+- Multiple modes: Check Mode and Skip-Only Mode  
+- Slow-speed audio playback for review  
+- Word-level highlighting and jump-to-word functionality  
+- Click any word to look up its meaning  
+- Auto-save progress and settings  
+- Fully offline – no server required  
 
 ---
 
 ## 🚀 Getting Started
 
-1. Enter or select a sentence
-2. Choose your practice mode
-3. Click "Start Practice"
-4. Enable microphone (optional)
-5. Listen, repeat, and review
+1. Enter or select a sentence  
+2. Choose your practice mode  
+3. Click "Start Practice"  
+4. Enable microphone (optional)  
+5. Listen, repeat, and review  
 
 ---
 
 ## 🛠️ Technologies
 
-- [Vite](https://vitejs.dev/)
-- TypeScript
-- PWA
-- MediaRecorder API
-- IndexedDB
-- Web Speech API (TTS)
-- Vitest (unit testing)
+- [Vite](https://vitejs.dev/)  
+- TypeScript  
+- PWA  
+- MediaRecorder API  
+- IndexedDB  
+- Web Speech API (TTS)  
+- Vitest (unit testing)  
 
 ---
 
 ## 🧪 Tests
 
 Includes unit tests for key logic:
-- `calculateWordSimilarity`
-- `init` and fallback handling
+- `calculateWordSimilarity`  
+- `init` and fallback handling  
 
 ---
 
 ## 📦 Installation
 
 ```bash
-git clone https://github.com/your-username/EchoTalk.git
+git clone https://github.com/alisolphp/EchoTalk.git
 cd EchoTalk
 npm install
 npm run dev
@@ -74,6 +78,25 @@ npm run build
 
 ---
 
+## ⚠️ Limitations & Browser Support
+
+- **No STT (speech-to-text) yet**  
+  This feature is planned for future versions.
+- **Audio format support depends on browser**
+- **Optimized for Chrome**  
+  Some features (e.g. audio recording, IndexedDB quota) may not work reliably in Firefox or Safari. A warning is shown in-app for unsupported browsers.
+
+---
+
+## 🧑‍🔧 Roadmap
+
+- STT integration (speech-to-text for pronunciation feedback)
+- Export/delete tools for recorded audio
+- Sentence segmentation improvements
+- Multi-language support
+
+---
+
 ## 🧑‍💻 Contributing
 
 Contributions are welcome! You can:
@@ -82,14 +105,6 @@ Contributions are welcome! You can:
 - Improve code or documentation
 
 To contribute, fork the repo and submit a pull request.
-
----
-
-## ⚠️ Limitations
-
-- No STT (speech-to-text) yet
-- Audio format support depends on browser
-- Optimized for Chrome
 
 ---
 
