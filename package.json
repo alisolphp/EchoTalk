@@ -6,7 +6,7 @@
   "homepage": "https://alisol.ir/Projects/EchoTalk/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alisol/echotalk.git"
+    "url": "https://github.com/alisolphp/EchoTalk.git"
   },
   "keywords": ["language learning", "speech recognition", "browser app", "audio training", "EchoTalk"],
   "license": "MIT",
