@@ -95,4 +95,103 @@ describe('Practice Logic', () => {
         expect($('#feedback').html()).toContain('Try again!');
     });
 
+
+    // Tests the advanceToNextPhrase method in 'skip' mode.
+    // It ensures that when a user skips, the current index is correctly moved
+    // to the start of the next phrase and the repetition count is reset.
+    it('should advance to the next phrase correctly in skip mode', async () => {
+        await app.init();
+        ($('#sentenceInput') as any).val('one two three. four five six.');
+        $('#startBtn').trigger('click'); // This initializes words array among others
+
+        // Manually set initial state for the test
+        (app as any).currentIndex = 0;
+        (app as any).currentCount = 1;
+
+        // Call the method that handles advancing
+        (app as any).advanceToNextPhrase();
+
+        // The index should now be at the start of the next phrase ('four')
+        expect((app as any).currentIndex).toBe(3);
+        // The repetition count for the new phrase should be reset to 0
+        expect((app as any).currentCount).toBe(0);
+    });
+
+
+// Tests the checkAnswer logic when the user provides a correct answer,
+// but has not completed all repetitions for the current phrase yet.
+    it('should increment counts on correct answer without advancing', async () => {
+        await app.init();
+        vi.spyOn(app as any, 'playSound');
+        ($('#sentenceInput') as any).val('This is a test');
+        ($('#repsSelect') as any).val('3'); // 3 repetitions
+        $('#mode-check').prop('checked', true);
+        $('#startBtn').trigger('click');
+
+        // current phrase is "This is a"
+        (app as any).currentCount = 0; // First attempt
+
+        // Simulate correct user input
+        ($('#userInput') as any).val('This is a');
+        await (app as any).checkAnswer();
+
+        // Correct count should go up
+        expect((app as any).correctCount).toBe(1);
+        // Current repetition count should increment
+        expect((app as any).currentCount).toBe(1);
+        // The main index should NOT advance yet
+        expect((app as any).currentIndex).toBe(0);
+        // Should play the correct sound
+        expect((app as any).playSound).toHaveBeenCalledWith('./sounds/correct.mp3');
+    });
+
+
+// Tests the checkAnswer logic for the final correct repetition of a phrase.
+// It ensures that after the last required repetition, the app advances
+// to the next phrase.
+    it('should advance to the next phrase after the last correct repetition', async () => {
+        await app.init();
+        ($('#sentenceInput') as any).val('This is a test phrase');
+        ($('#repsSelect') as any).val('2'); // 2 repetitions
+        $('#mode-check').prop('checked', true);
+        $('#startBtn').trigger('click');
+
+        // Set state to be on the last repetition
+        (app as any).currentCount = 1;
+        (app as any).currentIndex = 0;
+
+        // Simulate the final correct answer
+        ($('#userInput') as any).val('This is a');
+        await (app as any).checkAnswer();
+
+        // After the last rep, the index should advance to the next phrase (index 3)
+        expect((app as any).currentIndex).toBe(3);
+        // The repetition count should reset for the new phrase
+        expect((app as any).currentCount).toBe(0);
+    });
+
+// Tests how the application handles an empty user input in 'check' mode.
+// When the user submits nothing, it should be treated as a skip. If it's the
+// last repetition, it should advance to the next phrase.
+    it('should advance to next phrase if user input is empty on the last repetition', async () => {
+        await app.init();
+        ($('#sentenceInput') as any).val('First phrase. Second phrase.');
+        ($('#repsSelect') as any).val('2');
+        $('#mode-check').prop('checked', true);
+        $('#startBtn').trigger('click');
+
+        // Set state to be the last repetition for the first phrase
+        (app as any).currentCount = 1;
+        (app as any).currentIndex = 0;
+
+        // Simulate empty input, which acts as a "skip"
+        ($('#userInput') as any).val('');
+        await (app as any).checkAnswer();
+
+        // The index should advance to the start of the second phrase (index 2)
+        expect((app as any).currentIndex).toBe(2);
+        // Repetition count should reset
+        expect((app as any).currentCount).toBe(0);
+    });
+
 });
