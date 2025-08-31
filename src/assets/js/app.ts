@@ -3,6 +3,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import $ from 'jquery';
+import { Modal } from 'bootstrap';
 import './../css/style.css';
 
 // --- Type Definitions ---
@@ -336,11 +337,36 @@ export class EchoTalkApp {
         this.currentPhrase = this.removeJunkCharsFromText(phrase);
         // Speak the phrase and optionally start recording afterwards
         this.speakAndHighlight(phrase, this.isRecordingEnabled ? () => this.startRecording() : null, speed);
-        // Add a click event to each word to look up its meaning
-        $('#sentence-container').off('click', '.word').on('click', '.word', function() {
-            const word = $(this).text().trim().replace(/[.,!?;:"'(){}[\]]/g, '');
-            window.open(`https://www.google.com/search?q=meaning:+${encodeURIComponent(word)}`, '_blank');
+        // Add a click event to each word to look up its meaning or other options
+        $('#sentence-container').off('click', '.word').on('click', '.word', (e) => this.showWordActionsModal(e.currentTarget));
+    }
+
+    private showWordActionsModal(element: HTMLElement): void {
+        const word = $(element).text().trim().replace(/[.,!?;:"'(){}[\]]/g, '');
+        if (!word) return;
+
+        // Set the modal title to the word
+        $('#wordActionsModalLabel').text(`Word: ${word}`);
+
+        // Update the links for Google search
+        const encodedWord = encodeURIComponent(word);
+        $('#searchPronunciationLink').attr('href', `https://www.google.com/search?q=pronunciation:+${encodedWord}`);
+        $('#searchMeaningLink').attr('href', `https://www.google.com/search?q=meaning:+${encodedWord}`);
+        $('#searchExamplesLink').attr('href', `https://www.google.com/search?q=${encodedWord}+in+a+sentence`);
+
+        // Handle the "Play Word" button click
+        $('#playWordBtn').off('click').on('click', () => {
+            this.speak(word);
         });
+
+        this.speak(word);
+
+        // Show the modal
+        const modalElement = document.getElementById('wordActionsModal');
+        if (modalElement) {
+            const modal = new Modal(modalElement);
+            modal.show();
+        }
     }
 
     private async checkAnswer(): Promise<void> {
