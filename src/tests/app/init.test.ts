@@ -65,4 +65,5 @@ describe('Initialization', () => {
         // On failure, app should show an alert in the config area
         expect($('#configArea .alert').length).toBeGreaterThan(0);
     });
+
 });
