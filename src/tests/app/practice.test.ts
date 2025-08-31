@@ -261,4 +261,83 @@ describe('Practice Logic', () => {
         expect($('#fullSentence span').eq(6).hasClass('current-word')).toBe(true); // "starts"
     });
 
+
+// This test verifies that clicking the main practice button ('#checkBtn')
+// correctly triggers the 'checkAnswer' method, which is the core of the
+// practice loop for both 'check' and 'skip' modes.
+    it('should call checkAnswer when the main check/skip button is clicked', async () => {
+        await app.init();
+        $('#startBtn').trigger('click'); // Move to practice view
+
+        // Spy on the checkAnswer method to see if it gets called
+        const checkAnswerSpy = vi.spyOn(app as any, 'checkAnswer');
+
+        // Simulate a user click on the button
+        $('#checkBtn').trigger('click');
+
+        // Expect the method to have been called
+        expect(checkAnswerSpy).toHaveBeenCalled();
+    });
+
+// Tests the 'checkAnswer' logic for a specific edge case: when a user skips
+// the last repetition of a phrase (by submitting an empty answer) and the
+// total repetitions are 2 or more, it should show specific feedback.
+    it('should show "0 of X attempts" feedback on final empty skip if reps >= 2', async () => {
+        await app.init();
+        ($('#sentenceInput') as any).val('First phrase. Second phrase.');
+        ($('#repsSelect') as any).val('2'); // Set 2 repetitions
+        $('#mode-check').prop('checked', true);
+        $('#startBtn').trigger('click');
+
+        // Manually set state to the last repetition
+        (app as any).currentCount = 1;
+        (app as any).currentIndex = 0;
+
+        // Spy on the method that advances to the next phrase
+        const advanceSpy = vi.spyOn(app as any, 'advanceToNextPhrase');
+
+        // Simulate empty user input (a skip)
+        ($('#userInput') as any).val('');
+        await (app as any).checkAnswer();
+
+        // The feedback should show the special "0 of 2" message
+        expect($('#feedback').html()).toContain('(0 of 2 attempts)');
+        // The app should advance to the next phrase
+        expect(advanceSpy).toHaveBeenCalled();
+    });
+
+
+
+// This test verifies the word highlighting feature on desktop browsers.
+// It mocks the SpeechSynthesis API's 'onboundary' event, which fires as
+// each word is spoken, to ensure the corresponding UI element is highlighted.
+    it('should highlight words based on speech synthesis boundary events on desktop', async () => {
+        await app.init();
+        const sentence = 'A simple test';
+        ($('#sentenceInput') as any).val(sentence);
+
+        // We need to override the global speak mock for this specific test
+        // to simulate boundary events.
+        (window.speechSynthesis as any).speak = vi.fn((utterance: SpeechSynthesisUtterance) => {
+            if (utterance.onboundary) {
+                // Manually trigger boundary events to simulate TTS progress
+                // Event for the word 'A'
+                utterance.onboundary({ name: 'word', charIndex: 0 } as SpeechSynthesisEvent);
+                // Event for the word 'simple'
+                utterance.onboundary({ name: 'word', charIndex: 2 } as SpeechSynthesisEvent);
+            }
+            if (utterance.onend) {
+                utterance.onend({} as SpeechSynthesisEvent);
+            }
+        });
+
+        $('#startBtn').trigger('click'); // This will call speakAndHighlight
+
+        // The mock triggers the boundary events synchronously, so we can check the result right away.
+        // The last triggered boundary event was for 'simple'.
+        const highlightedWord = $('#sentence-container .highlighted');
+        expect(highlightedWord.length).toBe(1);
+        expect(highlightedWord.text()).toBe('simple');
+    });
+
 });
