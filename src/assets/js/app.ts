@@ -580,7 +580,87 @@ export class EchoTalkApp {
 
     // --- Recordings Modal Logic ---
     private async displayRecordings(): Promise<void> {
-        // ... (The full logic for displayRecordings)
+        if (!this.db) return;
+
+        const transaction = this.db.transaction(['recordings'], 'readonly');
+        const store = transaction.objectStore('recordings');
+        const allRecords: Recording[] = await new Promise((resolve, reject) => {
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result as Recording[]);
+            request.onerror = err => reject(err);
+        });
+
+        const grouped: Record<string, Recording[]> = {};
+        allRecords.forEach(rec => {
+            if (!grouped[rec.sentence]) {
+                grouped[rec.sentence] = [];
+            }
+            grouped[rec.sentence].push(rec);
+        });
+
+        window.modalRecordings = grouped;
+
+        const $list = $('#recordingsList');
+        $list.empty();
+
+        if (Object.keys(grouped).length === 0) {
+            $list.html('<p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>');
+            return;
+        }
+
+        const sortedSentences = Object.keys(grouped).sort((a, b) => {
+            const lastA = Math.max(...grouped[a].map(r => r.timestamp?.getTime() || 0));
+            const lastB = Math.max(...grouped[b].map(r => r.timestamp?.getTime() || 0));
+            return lastB - lastA;
+        });
+
+        for (const sentence of sortedSentences) {
+            const recordings = grouped[sentence].sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0));
+            const truncated = this.truncateSentence(sentence);
+            const uniqueId = sentence.hashCode();
+            const lastRecTime = recordings[0].timestamp;
+            const count = recordings.length;
+
+            const sentenceHtml = `
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading-${uniqueId}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${uniqueId}" aria-expanded="false">
+                        <div class="w-100 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
+                            <span class="fw-bold mb-1 mb-sm-0">${truncated}</span>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-secondary me-2">${count} recording${count > 1 ? 's' : ''}</span>
+                                <small class="text-muted">${lastRecTime.toLocaleString()}</small>
+                            </div>
+                        </div>
+                    </button>
+                </h2>
+                <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#recordingsList" data-sentence="${sentence.replace(/"/g, '&quot;')}">
+                    <div class="accordion-body">
+                        <ul class="list-group">
+                            ${recordings.map((rec, index) => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
+                                    <span class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-primary play-user-audio" data-sentence="${sentence}" data-index="${index}">Play Mine</button>
+                                        <button class="btn btn-sm btn-outline-secondary play-bot-audio" data-sentence="${sentence}">Play Bot</button>
+                                    </span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+            $list.append(sentenceHtml);
+        }
+    }
+
+    private truncateSentence(sentence: string): string {
+        const words = sentence.split(' ');
+        if (words.length > 4) {
+            return `${words[0]} ${words[1]} ... ${words[words.length - 2]} ${words[words.length - 1]}`;
+        }
+        return sentence;
     }
 
     private playUserAudio(element: HTMLElement): void {
