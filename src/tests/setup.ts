@@ -117,6 +117,15 @@ beforeEach(() => {
             writable: true,
         });
     }
+
+    // Mock URL methods used for handling audio blobs in the browser
+    Object.defineProperty(global, 'URL', {
+        value: {
+            createObjectURL: vi.fn(() => 'blob:mock-audio-url'),
+            revokeObjectURL: vi.fn(),
+        },
+        writable: true,
+    });
 });
 
 afterEach(() => {
