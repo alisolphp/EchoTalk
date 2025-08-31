@@ -8,7 +8,13 @@
     "type": "git",
     "url": "https://github.com/alisolphp/EchoTalk.git"
   },
-  "keywords": ["language learning", "speech recognition", "browser app", "audio training", "EchoTalk"],
+    "keywords": [
+    "language learning",
+    "speech recognition",
+    "browser app",
+    "audio training",
+    "EchoTalk"
+  ],
   "license": "MIT",
   "main": "index.js",
   "scripts": {
