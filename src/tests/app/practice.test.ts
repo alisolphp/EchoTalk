@@ -2,342 +2,305 @@ import { EchoTalkApp } from '../../assets/js/app';
 import { vi } from 'vitest';
 import $ from 'jquery';
 
-// helpers
+// Helper function to introduce a delay in async tests.
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe('Practice Logic', () => {
     let app: EchoTalkApp;
 
     beforeEach(() => {
-        vi.useRealTimers();
+        vi.useRealTimers(); // Ensure real timers are used for setTimeout/setInterval.
 
-        // Mock $.getJSON to avoid real network requests during tests
+        // Mock $.getJSON to prevent actual network requests when fetching sentences.
         ($.getJSON as any) = vi.fn(() =>
             Promise.resolve({
                 sentences: ['Practice sentence one', 'Practice sentence two'],
             })
         );
-        localStorage.clear();
+        localStorage.clear(); // Clear localStorage before each test for a clean slate.
         app = new EchoTalkApp();
     });
 
     it('should switch to practice view when "Start Practice" is clicked', async () => {
         await app.init();
-        $('#startBtn').trigger('click');
+        $('#startBtn').trigger('click'); // Simulate clicking the start practice button.
 
+        // Verify that the configuration area is hidden and the practice area is shown.
         expect($('#configArea').hasClass('d-none')).toBe(true);
         expect($('#practiceArea').hasClass('d-none')).toBe(false);
+        // Ensure that speech synthesis was initiated to speak the first sentence.
         expect((window as any).speechSynthesis.speak).toHaveBeenCalled();
     });
 
     it('should cancel speech and reload page when reset is clicked', async () => {
         await app.init();
-        $('#startBtn').trigger('click');
-        $('#resetBtn').trigger('click');
+        $('#startBtn').trigger('click'); // Start practice to get into a state where reset is relevant.
+        $('#resetBtn').trigger('click'); // Simulate clicking the reset button.
 
+        // Verify that ongoing speech is cancelled and the page is reloaded.
         expect((window as any).speechSynthesis.cancel).toHaveBeenCalled();
         expect((location as any).reload).toHaveBeenCalled();
+        // Ensure that relevant practice state is cleared from localStorage.
         expect(localStorage.getItem('shadow_sentence')).toBeNull();
     });
 
     it('should finish session and show final message when finishSession is invoked', async () => {
         await app.init();
 
-        // Direct method call to bypass UI flow and test final state
+        // Directly call the private method to finish a session, bypassing UI interaction for testing purposes.
         (app as any).finishSession();
 
+        // Verify that a final message (e.g., a heading) is displayed in the practice area.
         expect($('#practiceArea').find('h2').length).toBeGreaterThan(0);
+        // Ensure that session-specific items are cleared from localStorage.
         expect(localStorage.getItem('shadow_index')).toBeNull();
         expect(localStorage.getItem('shadow_count')).toBeNull();
     });
 
-    // Confirms that clicking "Play Bot" triggers TTS for the correct sentence
     it('should speak the correct sentence when "Play Bot" is clicked', async () => {
         await app.init();
         const sentence = 'This is a test sentence';
+        // Mock the global `modalRecordings` object which stores audio data.
         window.modalRecordings = { [sentence]: [] };
+        // Create a mock button element with the sentence to be spoken.
         const btn = $('<button>').attr('data-sentence', sentence)[0];
-        (app as any).playBotAudio(btn);
+        (app as any).playBotAudio(btn); // Call the method that handles playing bot audio.
+        // Verify that the `speechSynthesis.speak` method was called.
         expect((window as any).speechSynthesis.speak).toHaveBeenCalled();
     });
 
-    // Tests the 'checkAnswer' logic with a correct user input. It verifies that
-    // state like 'correctCount' is updated and the correct sound is played.
     it('should handle a correct answer in check mode', async () => {
         await app.init();
-        vi.spyOn(app as any, 'playSound'); // Spy on playSound to track calls
-        ($('#sentenceInput') as any).val('This is a test');
-        $('#mode-check').prop('checked', true);
+        // Spy on `playSound` to verify which sound is played.
+        vi.spyOn(app as any, 'playSound');
+        ($('#sentenceInput') as any).val('This is a test'); // Set the sentence to practice.
+        $('#mode-check').prop('checked', true); // Select 'check' practice mode.
         $('#startBtn').trigger('click');
 
-        // Simulate user typing the correct answer
-        ($('#userInput') as any).val('This is a'); // The first phrase
-        await (app as any).checkAnswer();
+        // Simulate user typing the correct first part of the sentence.
+        ($('#userInput') as any).val('This is a');
+        await (app as any).checkAnswer(); // Trigger the answer check.
 
+        // Verify that the correct answer count increments and the 'correct' sound is played.
         expect((app as any).correctCount).toBe(1);
         expect((app as any).playSound).toHaveBeenCalledWith('./sounds/correct.mp3');
     });
 
-    // Tests the 'checkAnswer' logic with an incorrect user input. It verifies
-    // that the correct sound for a wrong answer is played.
     it('should handle an incorrect answer in check mode', async () => {
         await app.init();
-        vi.spyOn(app as any, 'playSound'); // Spy on playSound
+        vi.spyOn(app as any, 'playSound');
         ($('#sentenceInput') as any).val('This is a test');
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
-        // Simulate user typing a wrong answer
+        // Simulate user typing an incorrect answer.
         ($('#userInput') as any).val('Wrong words');
         await (app as any).checkAnswer();
 
+        // Verify that the 'wrong' sound is played and appropriate feedback is shown.
         expect((app as any).playSound).toHaveBeenCalledWith('./sounds/wrong.mp3');
         expect($('#feedback').html()).toContain('Try again!');
     });
 
-
-    // Tests the advanceToNextPhrase method in 'skip' mode.
-    // It ensures that when a user skips, the current index is correctly moved
-    // to the start of the next phrase and the repetition count is reset.
     it('should advance to the next phrase correctly in skip mode', async () => {
         await app.init();
+        // Set a sentence with multiple phrases.
         ($('#sentenceInput') as any).val('one two three. four five six.');
-        $('#startBtn').trigger('click'); // This initializes words array among others
+        $('#startBtn').trigger('click');
 
-        // Manually set initial state for the test
-        (app as any).currentIndex = 0;
-        (app as any).currentCount = 1;
+        // Manually set initial state to simulate being in the middle of a session.
+        (app as any).currentIndex = 0; // Current phrase starts at index 0.
+        (app as any).currentCount = 1; // Already had one repetition.
 
-        // Call the method that handles advancing
-        (app as any).advanceToNextPhrase();
+        (app as any).advanceToNextPhrase(); // Call the method to advance to the next phrase.
 
-        // The index should now be at the start of the next phrase ('four')
+        // Verify that the `currentIndex` has moved to the start of the next phrase ("four").
         expect((app as any).currentIndex).toBe(3);
-        // The repetition count for the new phrase should be reset to 0
+        // Verify that the repetition count for the new phrase is reset.
         expect((app as any).currentCount).toBe(0);
     });
 
-
-// Tests the checkAnswer logic when the user provides a correct answer,
-// but has not completed all repetitions for the current phrase yet.
     it('should increment counts on correct answer without advancing', async () => {
         await app.init();
         vi.spyOn(app as any, 'playSound');
         ($('#sentenceInput') as any).val('This is a test');
-        ($('#repsSelect') as any).val('3'); // 3 repetitions
+        ($('#repsSelect') as any).val('3'); // Require 3 repetitions.
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
-        // current phrase is "This is a"
-        (app as any).currentCount = 0; // First attempt
+        (app as any).currentCount = 0; // Simulate first attempt for the current phrase.
 
-        // Simulate correct user input
+        // Simulate a correct user input for the current phrase.
         ($('#userInput') as any).val('This is a');
         await (app as any).checkAnswer();
 
-        // Correct count should go up
+        // Verify that correct count and current repetition count increment, but the phrase index does not advance.
         expect((app as any).correctCount).toBe(1);
-        // Current repetition count should increment
         expect((app as any).currentCount).toBe(1);
-        // The main index should NOT advance yet
         expect((app as any).currentIndex).toBe(0);
-        // Should play the correct sound
         expect((app as any).playSound).toHaveBeenCalledWith('./sounds/correct.mp3');
     });
 
-
-// Tests the checkAnswer logic for the final correct repetition of a phrase.
-// It ensures that after the last required repetition, the app advances
-// to the next phrase.
     it('should advance to the next phrase after the last correct repetition', async () => {
         await app.init();
         ($('#sentenceInput') as any).val('This is a test phrase');
-        ($('#repsSelect') as any).val('2'); // 2 repetitions
+        ($('#repsSelect') as any).val('2'); // Require 2 repetitions.
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
-        // Set state to be on the last repetition
+        // Set state to be on the last required repetition for the first phrase.
         (app as any).currentCount = 1;
         (app as any).currentIndex = 0;
 
-        // Simulate the final correct answer
+        // Simulate the final correct answer for the current phrase.
         ($('#userInput') as any).val('This is a');
         await (app as any).checkAnswer();
 
-        // After the last rep, the index should advance to the next phrase (index 3)
+        // Verify that the `currentIndex` advances to the start of the next phrase (index 3 for "test").
         expect((app as any).currentIndex).toBe(3);
-        // The repetition count should reset for the new phrase
+        // Verify that the repetition count is reset for the new phrase.
         expect((app as any).currentCount).toBe(0);
     });
 
-// Tests how the application handles an empty user input in 'check' mode.
-// When the user submits nothing, it should be treated as a skip. If it's the
-// last repetition, it should advance to the next phrase.
     it('should advance to next phrase if user input is empty on the last repetition', async () => {
         await app.init();
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
-        ($('#repsSelect') as any).val('2');
+        ($('#repsSelect') as any).val('2'); // Require 2 repetitions.
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
-        // Set state to be the last repetition for the first phrase
+        // Set state to be on the last repetition for the first phrase.
         (app as any).currentCount = 1;
         (app as any).currentIndex = 0;
 
-        // Simulate empty input, which acts as a "skip"
+        // Simulate empty input, which acts as a "skip" for the current phrase.
         ($('#userInput') as any).val('');
         await (app as any).checkAnswer();
 
-        // The index should advance to the start of the second phrase (index 2)
+        // Verify that the `currentIndex` advances to the start of the second phrase (index 2 for "Second").
         expect((app as any).currentIndex).toBe(2);
-        // Repetition count should reset
+        // Verify that the repetition count is reset.
         expect((app as any).currentCount).toBe(0);
     });
 
-    // Tests that submitting an empty answer (skipping) before all repetitions are done
-    // simply repeats the current phrase instead of advancing.
     it('should repeat the phrase on empty answer if repetitions are not complete', async () => {
         await app.init();
-        vi.spyOn(app as any, 'practiceStep');
+        vi.spyOn(app as any, 'practiceStep'); // Spy on `practiceStep` to confirm it's called again.
         ($('#sentenceInput') as any).val('This is a test');
-        ($('#repsSelect') as any).val('3'); // 3 repetitions
+        ($('#repsSelect') as any).val('3'); // Require 3 repetitions.
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
-        // Set state to be on the first repetition attempt
+        // Set state to be on the first repetition attempt.
         (app as any).currentCount = 0;
         (app as any).currentIndex = 0;
 
-        // Simulate empty input (skip)
+        // Simulate empty user input (a skip).
         ($('#userInput') as any).val('');
         await (app as any).checkAnswer();
 
-        // The repetition count should increment
+        // Verify that the repetition count increments, but the phrase index does not advance.
         expect((app as any).currentCount).toBe(1);
-        // The main index should NOT advance
         expect((app as any).currentIndex).toBe(0);
-        // The practice step should be called again to repeat the phrase
+        // Confirm that `practiceStep` was called to repeat the current phrase.
         expect((app as any).practiceStep).toHaveBeenCalled();
     });
 
-    // Verifies that the finishSession message includes the accuracy percentage when in 'check' mode.
     it('should display accuracy in the final message for check mode', async () => {
         await app.init();
-        // Set mode to 'check'
-        $('#mode-check').prop('checked', true);
+        $('#mode-check').prop('checked', true); // Ensure 'check' mode is selected.
         $('#startBtn').trigger('click');
 
-        // Manually set stats for accuracy calculation
+        // Manually set internal stats for accuracy calculation.
         (app as any).attempts = 10;
-        (app as any).correctCount = 7; // 70% accuracy
+        (app as any).correctCount = 7; // Simulate 70% accuracy.
 
-        // Call finishSession
-        (app as any).finishSession();
+        (app as any).finishSession(); // Call the method to finish the session.
 
         const finalHtml = $('#practiceArea').html();
+        // Verify that the final message includes the calculated accuracy percentage.
         expect(finalHtml).toContain('Your accuracy: 70%');
     });
 
-    // Tests that renderFullSentence correctly dims the words of previous phrases.
     it('should dim words from previous sentences in renderFullSentence', async () => {
         await app.init();
         const sentence = 'First phrase ends here. The second phrase starts now.';
         ($('#sentenceInput') as any).val(sentence);
         $('#startBtn').trigger('click');
 
-        // Set current index to a word in the second phrase ("starts")
+        // Set `currentIndex` to a word in the second phrase ("starts", which is at index 6).
         (app as any).currentIndex = 6;
 
-        // Render the full sentence view
-        (app as any).renderFullSentence();
+        (app as any).renderFullSentence(); // Call the method to render the full sentence.
 
-        const fullSentenceHtml = $('#fullSentence').html();
-
-        // Words from the first phrase should be dimmed
+        // Verify that words from the first phrase have the 'text-muted' class (dimmed).
         expect($('#fullSentence span').eq(0).hasClass('text-muted')).toBe(true); // "First"
         expect($('#fullSentence span').eq(3).hasClass('text-muted')).toBe(true); // "here."
 
-        // The current word should have the 'current-word' class
-        expect($('#fullSentence span').eq(6).hasClass('current-word')).toBe(true); // "starts"
+        // Verify that the current word ("starts") has the 'current-word' class.
+        expect($('#fullSentence span').eq(6).hasClass('current-word')).toBe(true);
     });
 
-
-// This test verifies that clicking the main practice button ('#checkBtn')
-// correctly triggers the 'checkAnswer' method, which is the core of the
-// practice loop for both 'check' and 'skip' modes.
     it('should call checkAnswer when the main check/skip button is clicked', async () => {
         await app.init();
-        $('#startBtn').trigger('click'); // Move to practice view
+        $('#startBtn').trigger('click'); // Transition to the practice view.
 
-        // Spy on the checkAnswer method to see if it gets called
+        // Spy on the `checkAnswer` method to confirm it's invoked.
         const checkAnswerSpy = vi.spyOn(app as any, 'checkAnswer');
 
-        // Simulate a user click on the button
-        $('#checkBtn').trigger('click');
+        $('#checkBtn').trigger('click'); // Simulate a user clicking the main action button.
 
-        // Expect the method to have been called
+        // Verify that `checkAnswer` was called.
         expect(checkAnswerSpy).toHaveBeenCalled();
     });
 
-// Tests the 'checkAnswer' logic for a specific edge case: when a user skips
-// the last repetition of a phrase (by submitting an empty answer) and the
-// total repetitions are 2 or more, it should show specific feedback.
     it('should show "0 of X attempts" feedback on final empty skip if reps >= 2', async () => {
         await app.init();
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
-        ($('#repsSelect') as any).val('2'); // Set 2 repetitions
+        ($('#repsSelect') as any).val('2'); // Set to require 2 repetitions.
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
-        // Manually set state to the last repetition
+        // Manually set state to be on the last repetition for the current phrase.
         (app as any).currentCount = 1;
         (app as any).currentIndex = 0;
 
-        // Spy on the method that advances to the next phrase
+        // Spy on `advanceToNextPhrase` to confirm it's called.
         const advanceSpy = vi.spyOn(app as any, 'advanceToNextPhrase');
 
-        // Simulate empty user input (a skip)
+        // Simulate an empty user input (a skip).
         ($('#userInput') as any).val('');
         await (app as any).checkAnswer();
 
-        // The feedback should show the special "0 of 2" message
+        // Verify that the feedback message includes the special "0 of 2 attempts" text.
         expect($('#feedback').html()).toContain('(0 of 2 attempts)');
-        // The app should advance to the next phrase
+        // Confirm that the app advances to the next phrase.
         expect(advanceSpy).toHaveBeenCalled();
     });
 
-
-
-// This test verifies the word highlighting feature on desktop browsers.
-// It mocks the SpeechSynthesis API's 'onboundary' event, which fires as
-// each word is spoken, to ensure the corresponding UI element is highlighted.
     it('should highlight words based on speech synthesis boundary events on desktop', async () => {
         await app.init();
         const sentence = 'A simple test';
         ($('#sentenceInput') as any).val(sentence);
 
-        // We need to override the global speak mock for this specific test
-        // to simulate boundary events.
+        // Override the global `speechSynthesis.speak` mock for this test to simulate `onboundary` events.
         (window.speechSynthesis as any).speak = vi.fn((utterance: SpeechSynthesisUtterance) => {
             if (utterance.onboundary) {
-                // Manually trigger boundary events to simulate TTS progress
-                // Event for the word 'A'
-                utterance.onboundary({ name: 'word', charIndex: 0 } as SpeechSynthesisEvent);
-                // Event for the word 'simple'
-                utterance.onboundary({ name: 'word', charIndex: 2 } as SpeechSynthesisEvent);
+                // Manually trigger `onboundary` events to simulate speech progress.
+                utterance.onboundary({ name: 'word', charIndex: 0 } as SpeechSynthesisEvent); // "A"
+                utterance.onboundary({ name: 'word', charIndex: 2 } as SpeechSynthesisEvent); // "simple"
             }
             if (utterance.onend) {
                 utterance.onend({} as SpeechSynthesisEvent);
             }
         });
 
-        $('#startBtn').trigger('click'); // This will call speakAndHighlight
+        $('#startBtn').trigger('click'); // This action initiates `speakAndHighlight`.
 
-        // The mock triggers the boundary events synchronously, so we can check the result right away.
+        // Since boundary events are triggered synchronously in the mock, we can check immediately.
         // The last triggered boundary event was for 'simple'.
         const highlightedWord = $('#sentence-container .highlighted');
         expect(highlightedWord.length).toBe(1);
         expect(highlightedWord.text()).toBe('simple');
     });
-
 });
