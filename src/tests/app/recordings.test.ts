@@ -161,4 +161,40 @@ describe('Recordings Modal Logic', () => {
         expect((window.speechSynthesis as any).cancel).not.toHaveBeenCalled();
     });
 
+    // Tests that playUserAudio handles errors gracefully if the audio fails to play.
+    it('should handle errors when playing user audio fails', async () => {
+        // Create a mock play function that will be used by the Audio mock.
+        // This function immediately returns a rejected promise.
+        const mockPlay = vi.fn().mockRejectedValue(new Error('Playback failed'));
+
+        // Mock the global Audio constructor for this specific test
+        // to return an object that uses our failing play method.
+        (global.Audio as any).mockImplementation(() => ({
+            play: mockPlay,
+            pause: vi.fn(),
+            onended: null,
+            src: ''
+        }));
+
+        // Mock the global recordings object with some test data
+        window.modalRecordings = {
+            'test': [{ sentence: 'test', audio: new Blob(), timestamp: new Date() }]
+        };
+
+        const btn = $('<button>').attr('data-sentence', 'test').attr('data-index', 0)[0];
+
+        // Spy on console.error to check if the error is logged
+        const consoleSpy = vi.spyOn(console, 'error');
+
+        // Call the method that we are testing
+        (app as any).playUserAudio(btn);
+
+        // Await a macrotask to allow the promise rejection inside playUserAudio to be processed
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        // Expect our mock play method to have been called
+        expect(mockPlay).toHaveBeenCalled();
+        // Expect that the error was caught and logged to the console
+        expect(consoleSpy).toHaveBeenCalledWith('Error playing audio:', expect.any(Error));
+    });
 });
