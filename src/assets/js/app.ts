@@ -547,7 +547,7 @@ export class EchoTalkApp {
         utterance.rate = speed;
         if (this.isMobile) {
             // For mobile, estimate word boundaries based on calculated WPM
-            const delayPerWord = 1000 / this.estimatedWordsPerSecond / speed;
+           const delayPerWord = 900 / (this.estimatedWordsPerSecond * speed)
             phraseWords.forEach((word, index) => {
                 setTimeout(() => $(wordSpans[index]).addClass('highlighted'), index * delayPerWord);
             });
