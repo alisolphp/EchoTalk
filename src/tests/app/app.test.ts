@@ -3,10 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import $ from 'jquery';
 // Import the main application class
-import { EchoTalkApp } from '../assets/js/app';
+import { EchoTalkApp } from '../../assets/js/app';
 
 // Load HTML content to inject into jsdom
-const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
+const html = fs.readFileSync(path.resolve(__dirname, '../../index.html'), 'utf8');
 
 describe('EchoTalkApp', () => {
     let app: EchoTalkApp;
