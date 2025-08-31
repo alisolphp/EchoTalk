@@ -606,7 +606,6 @@ export class EchoTalkApp {
         this.sentence = ($('#sentenceInput').val() as string).trim().replace(/([^\.\?\!\n])\n/g, '$1.\n');
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
         this.reps = parseInt(($('#repsSelect').val() as string));
-        this.currentIndex = 0;
         this.currentCount = 0;
         this.correctCount = 0;
         this.attempts = 0;
