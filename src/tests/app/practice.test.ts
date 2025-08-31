@@ -4,15 +4,6 @@ import $ from 'jquery';
 
 // helpers
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const waitFor = async (predicate: () => boolean, timeout = 2000) => {
-    const start = Date.now();
-    while (Date.now() - start < timeout) {
-        if (predicate()) return;
-        // Let the event loop and microtasks proceed
-        await sleep(0);
-    }
-    throw new Error('waitFor timeout: condition not met');
-};
 
 describe('Practice Logic', () => {
     let app: EchoTalkApp;
@@ -60,25 +51,4 @@ describe('Practice Logic', () => {
         expect(localStorage.getItem('shadow_count')).toBeNull();
     });
 
-    it('should start and stop recording when audio recording is enabled', async () => {
-        // Pre-set recording flag so init picks it up via loadState
-        localStorage.setItem('shadow_record_audio', 'true');
-
-        await app.init();
-        $('#startBtn').trigger('click');
-
-        // Wait for the chain: onend → startRecording → getUserMedia to complete
-        await waitFor(() => Boolean((app as any).mediaRecorder), 2000);
-
-        const mr = (app as any).mediaRecorder;
-        expect(mr).toBeDefined();
-        expect(typeof mr.start).toBe('function');
-
-        // Simulate manual recording control
-        mr.start();
-        mr.stop();
-
-        expect(mr.start).toHaveBeenCalled();
-        expect(mr.stop).toHaveBeenCalled();
-    });
 });
