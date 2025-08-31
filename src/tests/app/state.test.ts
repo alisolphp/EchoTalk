@@ -82,4 +82,38 @@ describe('State Management and Event Handlers', () => {
         // Also verify that the page reload was called
         expect((location as any).reload).toHaveBeenCalled();
     });
+
+    // Tests that startPractice correctly initializes the application state from UI inputs.
+    it('should initialize practice state from UI values on start', () => {
+        // 1. Set up the UI with custom values
+        const customSentence = 'This is a custom sentence for testing.';
+        ($('#sentenceInput') as any).val(customSentence);
+        ($('#repsSelect') as any).val('5');
+        $('#mode-check').prop('checked', true);
+
+        // 2. Trigger the start practice button
+        $('#startBtn').trigger('click');
+
+        // 3. Verify that the internal state of the app reflects the UI values
+        expect((app as any).sentence).toBe('This is a custom sentence for testing.');
+        expect((app as any).reps).toBe(5);
+        expect((app as any).practiceMode).toBe('check');
+        expect((app as any).words.length).toBe(7);
+    });
+
+    // Ensures that clicking an element without a data-index attribute
+    // does not change the current index.
+    it('should not change currentIndex if a clicked word has no data-index', () => {
+        // Set an initial index
+        (app as any).currentIndex = 5;
+
+        // Create a mock element without the 'data-index' attribute
+        const wordElement = $('<span>A word</span>')[0];
+
+        // Call the handler with the invalid element
+        (app as any).handleSampleWordClick(wordElement);
+
+        // Verify that the index has not changed from its initial value
+        expect((app as any).currentIndex).toBe(5);
+    });
 });

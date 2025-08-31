@@ -122,4 +122,43 @@ describe('Recordings Modal Logic', () => {
         const listHtml = $('#recordingsList').html();
         expect(listHtml).toContain('No recordings found yet.');
     });
+
+    // Tests that displayRecordings correctly renders a list of recordings
+    // when the database is not empty.
+    it('should display a list of recordings if the database has entries', async () => {
+        const mockRecordings = [
+            { sentence: 'Test sentence one', audio: new Blob(), timestamp: new Date() },
+            { sentence: 'Test sentence two', audio: new Blob(), timestamp: new Date(Date.now() - 10000) }
+        ];
+
+        // Configure the mock DB to return our test data
+        mockGetAll.mockImplementation(() => {
+            const request: any = { result: mockRecordings };
+            setTimeout(() => {
+                if (request.onsuccess) {
+                    request.onsuccess({ target: request });
+                }
+            }, 0);
+            return request;
+        });
+
+        // Trigger the method to display recordings
+        await (app as any).displayRecordings();
+
+        const listContainer = $('#recordingsList');
+        // Check that accordion items were created for the recordings
+        expect(listContainer.find('.accordion-item').length).toBe(2);
+        // Check if the sentence text is present in the output
+        expect(listContainer.html()).toContain('Test sentence one');
+    });
+
+    // Verifies that stopAllPlayback does not cancel speech synthesis when the keepTTS flag is true.
+    it('should not cancel TTS when stopAllPlayback is called with keepTTS true', () => {
+        // Call the method to stop playback but keep TTS
+        (app as any).stopAllPlayback(true);
+
+        // Verify that speech synthesis was NOT cancelled
+        expect((window.speechSynthesis as any).cancel).not.toHaveBeenCalled();
+    });
+
 });
