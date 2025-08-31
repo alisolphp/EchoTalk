@@ -194,4 +194,71 @@ describe('Practice Logic', () => {
         expect((app as any).currentCount).toBe(0);
     });
 
+    // Tests that submitting an empty answer (skipping) before all repetitions are done
+    // simply repeats the current phrase instead of advancing.
+    it('should repeat the phrase on empty answer if repetitions are not complete', async () => {
+        await app.init();
+        vi.spyOn(app as any, 'practiceStep');
+        ($('#sentenceInput') as any).val('This is a test');
+        ($('#repsSelect') as any).val('3'); // 3 repetitions
+        $('#mode-check').prop('checked', true);
+        $('#startBtn').trigger('click');
+
+        // Set state to be on the first repetition attempt
+        (app as any).currentCount = 0;
+        (app as any).currentIndex = 0;
+
+        // Simulate empty input (skip)
+        ($('#userInput') as any).val('');
+        await (app as any).checkAnswer();
+
+        // The repetition count should increment
+        expect((app as any).currentCount).toBe(1);
+        // The main index should NOT advance
+        expect((app as any).currentIndex).toBe(0);
+        // The practice step should be called again to repeat the phrase
+        expect((app as any).practiceStep).toHaveBeenCalled();
+    });
+
+    // Verifies that the finishSession message includes the accuracy percentage when in 'check' mode.
+    it('should display accuracy in the final message for check mode', async () => {
+        await app.init();
+        // Set mode to 'check'
+        $('#mode-check').prop('checked', true);
+        $('#startBtn').trigger('click');
+
+        // Manually set stats for accuracy calculation
+        (app as any).attempts = 10;
+        (app as any).correctCount = 7; // 70% accuracy
+
+        // Call finishSession
+        (app as any).finishSession();
+
+        const finalHtml = $('#practiceArea').html();
+        expect(finalHtml).toContain('Your accuracy: 70%');
+    });
+
+    // Tests that renderFullSentence correctly dims the words of previous phrases.
+    it('should dim words from previous sentences in renderFullSentence', async () => {
+        await app.init();
+        const sentence = 'First phrase ends here. The second phrase starts now.';
+        ($('#sentenceInput') as any).val(sentence);
+        $('#startBtn').trigger('click');
+
+        // Set current index to a word in the second phrase ("starts")
+        (app as any).currentIndex = 6;
+
+        // Render the full sentence view
+        (app as any).renderFullSentence();
+
+        const fullSentenceHtml = $('#fullSentence').html();
+
+        // Words from the first phrase should be dimmed
+        expect($('#fullSentence span').eq(0).hasClass('text-muted')).toBe(true); // "First"
+        expect($('#fullSentence span').eq(3).hasClass('text-muted')).toBe(true); // "here."
+
+        // The current word should have the 'current-word' class
+        expect($('#fullSentence span').eq(6).hasClass('current-word')).toBe(true); // "starts"
+    });
+
 });
