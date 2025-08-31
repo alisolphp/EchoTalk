@@ -447,6 +447,10 @@ export class EchoTalkApp {
         localStorage.removeItem(this.STORAGE_KEYS.count);
         localStorage.removeItem(this.STORAGE_KEYS.correctCount);
         localStorage.removeItem(this.STORAGE_KEYS.attempts);
+
+        // Hide the full sentence and back home button
+        $('#backHomeButton').addClass('d-none');
+        $('#backHomeButton').removeClass('d-inline-block');
     }
 
     // --- Helper & Utility Methods ---
@@ -583,6 +587,11 @@ export class EchoTalkApp {
         this.saveState();
         $('#configArea').addClass('d-none');
         $('#practiceArea').removeClass('d-none');
+
+        // Show back home button and full sentence display
+        $('#backHomeButton').removeClass('d-none');
+        $('#backHomeButton').addClass('d-inline-block');
+
         this.setupPracticeUI();
         this.renderFullSentence();
         this.practiceStep();
