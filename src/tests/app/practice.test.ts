@@ -2,7 +2,10 @@ import { EchoTalkApp } from '../../assets/js/app';
 import { vi } from 'vitest';
 import $ from 'jquery';
 
-// Helper function to introduce a delay in async tests.
+/**
+ * Helper function to introduce a delay in asynchronous tests.
+ * @param ms - The delay in milliseconds.
+ */
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 describe('Practice Logic', () => {
@@ -16,7 +19,9 @@ describe('Practice Logic', () => {
         localStorage.clear();
         app = new EchoTalkApp();
 
-        // --- این قسمت را اضافه کنید ---
+        // Mock the IndexedDB transaction and object store to prevent
+        // actual database calls during tests. This ensures a consistent
+        // and isolated test environment.
         const mockDbObject = {
             transaction: vi.fn(() => ({
                 objectStore: () => ({
@@ -26,13 +31,12 @@ describe('Practice Logic', () => {
             }))
         };
         vi.spyOn(app as any, 'initDB').mockResolvedValue(mockDbObject);
-        // -------------------------
 
         await app.init();
     });
 
     it('should switch to practice view when "Start Practice" is clicked', async () => {
-        $('#startBtn').trigger('click'); // Simulate clicking the start practice button.
+        $('#startBtn').trigger('click');
 
         // Verify that the configuration area is hidden and the practice area is shown.
         expect($('#configArea').hasClass('d-none')).toBe(true);
@@ -42,8 +46,10 @@ describe('Practice Logic', () => {
     });
 
     it('should cancel speech and reload page when reset is clicked', async () => {
-        $('#startBtn').trigger('click'); // Start practice to get into a state where reset is relevant.
-        $('#resetBtn').trigger('click'); // Simulate clicking the reset button.
+        // Start practice to get into a state where reset is relevant.
+        $('#startBtn').trigger('click');
+        // Simulate clicking the reset button.
+        $('#resetBtn').trigger('click');
 
         // Verify that ongoing speech is cancelled and the page is reloaded.
         expect((window as any).speechSynthesis.cancel).toHaveBeenCalled();
@@ -53,7 +59,6 @@ describe('Practice Logic', () => {
     });
 
     it('should finish session and show final message when finishSession is invoked', async () => {
-
         // Directly call the private method to finish a session, bypassing UI interaction for testing purposes.
         (app as any).finishSession();
 
@@ -67,10 +72,11 @@ describe('Practice Logic', () => {
     it('should speak the correct sentence when "Play Bot" is clicked', async () => {
         const sentence = 'This is a test sentence';
         // Mock the global `modalRecordings` object which stores audio data.
-        window.modalRecordings = { [sentence]: [] };
+        (window as any).modalRecordings = { [sentence]: [] };
         // Create a mock button element with the sentence to be spoken.
         const btn = $('<button>').attr('data-sentence', sentence)[0];
-        (app as any).playBotAudio(btn); // Call the method that handles playing bot audio.
+        // Call the method that handles playing bot audio.
+        (app as any).playBotAudio(btn);
         // Verify that the `speechSynthesis.speak` method was called.
         expect((window as any).speechSynthesis.speak).toHaveBeenCalled();
     });
@@ -78,13 +84,16 @@ describe('Practice Logic', () => {
     it('should handle a correct answer in check mode', async () => {
         // Spy on `playSound` to verify which sound is played.
         vi.spyOn(app as any, 'playSound');
-        ($('#sentenceInput') as any).val('This is a test'); // Set the sentence to practice.
-        $('#mode-check').prop('checked', true); // Select 'check' practice mode.
+        // Set the sentence to practice.
+        ($('#sentenceInput') as any).val('This is a test');
+        // Select 'check' practice mode.
+        $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
         // Simulate user typing the correct first part of the sentence.
         ($('#userInput') as any).val('This is a');
-        await (app as any).checkAnswer(); // Trigger the answer check.
+        // Trigger the answer check.
+        await (app as any).checkAnswer();
 
         // Verify that the correct answer count increments and the 'correct' sound is played.
         expect((app as any).correctCount).toBe(1);
@@ -112,10 +121,13 @@ describe('Practice Logic', () => {
         $('#startBtn').trigger('click');
 
         // Manually set initial state to simulate being in the middle of a session.
-        (app as any).currentIndex = 0; // Current phrase starts at index 0.
-        (app as any).currentCount = 1; // Already had one repetition.
+        // Current phrase starts at index 0.
+        (app as any).currentIndex = 0;
+        // Already had one repetition.
+        (app as any).currentCount = 1;
 
-        (app as any).advanceToNextPhrase(); // Call the method to advance to the next phrase.
+        // Call the method to advance to the next phrase.
+        (app as any).advanceToNextPhrase();
 
         // Verify that the `currentIndex` has moved to the start of the next phrase ("four").
         expect((app as any).currentIndex).toBe(3);
@@ -126,11 +138,13 @@ describe('Practice Logic', () => {
     it('should increment counts on correct answer without advancing', async () => {
         vi.spyOn(app as any, 'playSound');
         ($('#sentenceInput') as any).val('This is a test');
-        ($('#repsSelect') as any).val('3'); // Require 3 repetitions.
+        // Require 3 repetitions.
+        ($('#repsSelect') as any).val('3');
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
-        (app as any).currentCount = 0; // Simulate first attempt for the current phrase.
+        // Simulate first attempt for the current phrase.
+        (app as any).currentCount = 0;
 
         // Simulate a correct user input for the current phrase.
         ($('#userInput') as any).val('This is a');
@@ -145,7 +159,8 @@ describe('Practice Logic', () => {
 
     it('should advance to the next phrase after the last correct repetition', async () => {
         ($('#sentenceInput') as any).val('This is a test phrase');
-        ($('#repsSelect') as any).val('2'); // Require 2 repetitions.
+        // Require 2 repetitions.
+        ($('#repsSelect') as any).val('2');
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
@@ -165,7 +180,8 @@ describe('Practice Logic', () => {
 
     it('should advance to next phrase if user input is empty on the last repetition', async () => {
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
-        ($('#repsSelect') as any).val('2'); // Require 2 repetitions.
+        // Require 2 repetitions.
+        ($('#repsSelect') as any).val('2');
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
@@ -184,9 +200,11 @@ describe('Practice Logic', () => {
     });
 
     it('should repeat the phrase on empty answer if repetitions are not complete', async () => {
-        vi.spyOn(app as any, 'practiceStep'); // Spy on `practiceStep` to confirm it's called again.
+        // Spy on `practiceStep` to confirm it's called again.
+        vi.spyOn(app as any, 'practiceStep');
         ($('#sentenceInput') as any).val('This is a test');
-        ($('#repsSelect') as any).val('3'); // Require 3 repetitions.
+        // Require 3 repetitions.
+        ($('#repsSelect') as any).val('3');
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
@@ -206,14 +224,17 @@ describe('Practice Logic', () => {
     });
 
     it('should display accuracy in the final message for check mode', async () => {
-        $('#mode-check').prop('checked', true); // Ensure 'check' mode is selected.
+        // Ensure 'check' mode is selected.
+        $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
         // Manually set internal stats for accuracy calculation.
         (app as any).attempts = 10;
-        (app as any).correctCount = 7; // Simulate 70% accuracy.
+        // Simulate 70% accuracy.
+        (app as any).correctCount = 7;
 
-        (app as any).finishSession(); // Call the method to finish the session.
+        // Call the method to finish the session.
+        (app as any).finishSession();
 
         const finalHtml = $('#practiceArea').html();
         // Verify that the final message includes the calculated accuracy percentage.
@@ -228,7 +249,8 @@ describe('Practice Logic', () => {
         // Set `currentIndex` to a word in the second phrase ("starts", which is at index 6).
         (app as any).currentIndex = 6;
 
-        (app as any).renderFullSentence(); // Call the method to render the full sentence.
+        // Call the method to render the full sentence.
+        (app as any).renderFullSentence();
 
         // Verify that words from the first phrase have the 'text-muted' class (dimmed).
         expect($('#fullSentence span').eq(0).hasClass('text-muted')).toBe(true); // "First"
@@ -239,12 +261,14 @@ describe('Practice Logic', () => {
     });
 
     it('should call checkAnswer when the main check/skip button is clicked', async () => {
-        $('#startBtn').trigger('click'); // Transition to the practice view.
+        // Transition to the practice view.
+        $('#startBtn').trigger('click');
 
         // Spy on the `checkAnswer` method to confirm it's invoked.
         const checkAnswerSpy = vi.spyOn(app as any, 'checkAnswer');
 
-        $('#checkBtn').trigger('click'); // Simulate a user clicking the main action button.
+        // Simulate a user clicking the main action button.
+        $('#checkBtn').trigger('click');
 
         // Verify that `checkAnswer` was called.
         expect(checkAnswerSpy).toHaveBeenCalled();
@@ -252,7 +276,8 @@ describe('Practice Logic', () => {
 
     it('should show "0 of X attempts" feedback on final empty skip if reps >= 2', async () => {
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
-        ($('#repsSelect') as any).val('2'); // Set to require 2 repetitions.
+        // Set to require 2 repetitions.
+        ($('#repsSelect') as any).val('2');
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
@@ -289,7 +314,8 @@ describe('Practice Logic', () => {
             }
         });
 
-        $('#startBtn').trigger('click'); // This action initiates `speakAndHighlight`.
+        // This action initiates `speakAndHighlight`.
+        $('#startBtn').trigger('click');
 
         // Since boundary events are triggered synchronously in the mock, we can check immediately.
         // The last triggered boundary event was for 'simple'.

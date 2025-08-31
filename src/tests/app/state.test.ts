@@ -2,8 +2,6 @@ import { EchoTalkApp } from '../../assets/js/app';
 import { vi } from 'vitest';
 import $ from 'jquery';
 
-
-
 describe('State Management and Event Handlers', () => {
     let app: EchoTalkApp;
 
@@ -14,7 +12,7 @@ describe('State Management and Event Handlers', () => {
         localStorage.clear();
         app = new EchoTalkApp();
 
-        // --- این قسمت را اضافه کنید ---
+        // Mock the IndexedDB transaction and object store to prevent real database interactions.
         const mockDbObject = {
             transaction: vi.fn(() => ({
                 objectStore: () => ({
@@ -24,7 +22,6 @@ describe('State Management and Event Handlers', () => {
             }))
         };
         vi.spyOn(app as any, 'initDB').mockResolvedValue(mockDbObject);
-        // -------------------------
 
         await app.init();
     });
@@ -35,10 +32,10 @@ describe('State Management and Event Handlers', () => {
         (app as any).currentIndex = 5;
 
         (app as any).useSample(); // Trigger the method to load a new sample sentence.
-
         const newSentence = ($('#sentenceInput').val() as string);
         // Verify that one of the mocked sample sentences is now in the input.
-        expect(['Test sentence one', 'Test sentence two']).toContain(newSentence); // <-- جملات صحیح را چک کنید        // Verify that `currentIndex` is reset to 0 and the new sentence is saved to localStorage.
+        expect(['Test sentence one', 'Test sentence two']).toContain(newSentence);
+        // Verify that `currentIndex` is reset to 0 and the new sentence is saved to localStorage.
         expect((app as any).currentIndex).toBe(0);
         expect(localStorage.getItem('shadow_sentence')).toBe(newSentence);
     });
@@ -84,20 +81,18 @@ describe('State Management and Event Handlers', () => {
         // Verify that the specific items are cleared from localStorage.
         expect(localStorage.getItem('shadow_sentence')).toBeNull();
         expect(localStorage.getItem('shadow_index')).toBeNull();
-        // Also verify that `location.reload` was called.
+        // Also verify that `location.reload` was called to reload the page state.
         expect((location as any).reload).toHaveBeenCalled();
     });
 
     it('should initialize practice state from UI values on start', () => {
-        // Override the mock FOR THIS TEST ONLY to start with a blank slate
+        // Override the mock FOR THIS TEST ONLY to start with a blank slate.
+        // This is done to prevent `app.init()` from loading a sample sentence in `beforeEach` and ensure this test passes correctly.
         vi.spyOn($, 'getJSON').mockResolvedValueOnce({
             sentences: [],
         });
 
-        // این کار باعث می‌شود app.init() در beforeEach جمله نمونه‌ای لود نکند
-        // و این تست به درستی پاس شود.
-
-        // 1. Set up the UI with custom values...
+        // 1. Set up the UI with custom values.
         const customSentence = 'This is a custom sentence for testing.';
         ($('#sentenceInput') as any).val(customSentence);
         ($('#repsSelect') as any).val('5');
@@ -106,7 +101,7 @@ describe('State Management and Event Handlers', () => {
         // 2. Trigger the start practice button click.
         $('#startBtn').trigger('click');
 
-        // 3. Verify that the app's internal state is correctly initialized...
+        // 3. Verify that the app's internal state is correctly initialized.
         expect((app as any).sentence).toBe(customSentence);
         expect((app as any).reps).toBe(5);
         expect((app as any).practiceMode).toBe('check');

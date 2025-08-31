@@ -13,7 +13,7 @@ describe('Initialization', () => {
         localStorage.clear();
         app = new EchoTalkApp();
 
-        // --- این قسمت را اضافه کنید ---
+        // Mock the initDB method to prevent actual IndexedDB access during tests.
         const mockDbObject = {
             transaction: vi.fn(() => ({
                 objectStore: () => ({
@@ -23,7 +23,6 @@ describe('Initialization', () => {
             }))
         };
         vi.spyOn(app as any, 'initDB').mockResolvedValue(mockDbObject);
-        // -------------------------
 
         await app.init();
     });
@@ -45,7 +44,7 @@ describe('Initialization', () => {
 
         // Re-instantiate the app to trigger its state loading logic from localStorage.
         app = new EchoTalkApp();
-        await app.init(); // <-- این خط برای بارگذاری وضعیت جدید ضروری است
+        await app.init();
 
         // Verify that UI elements reflect the loaded state.
         expect($('#sentenceInput').val()).toBe('Stored sentence');
@@ -54,7 +53,6 @@ describe('Initialization', () => {
     });
 
     it('should save state to localStorage when starting practice', async () => {
-
         // Simulate user interaction by setting values in the UI.
         ($('#sentenceInput') as any).val('New test sentence');
         ($('#repsSelect') as any).val('3');
@@ -78,5 +76,4 @@ describe('Initialization', () => {
         // Verify that an alert message is displayed in the configuration area indicating the failure.
         expect($('#configArea .alert').length).toBeGreaterThan(0);
     });
-
 });

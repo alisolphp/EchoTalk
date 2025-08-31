@@ -1,47 +1,55 @@
-// Imports
+// --- Imports ---
+// Main CSS and JS files for styling and functionality
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import $ from 'jquery';
 import './../css/style.css';
 
 // --- Type Definitions ---
+// Define the structure for a recording object
 interface Recording {
     sentence: string;
     audio: Blob;
     timestamp: Date;
 }
 
-// Extend global interfaces
+// Extend global interfaces to add custom properties
 declare global {
     interface Window {
+        // Stores all recordings grouped by sentence
         modalRecordings: Record<string, Recording[]>;
+        // Stores the PWA install prompt event
         deferredPrompt: any;
     }
     interface String {
+        // A custom method to generate a hash from a string
         hashCode(): string;
     }
 }
 
 /**
- * Simple hash function to generate a unique ID from a string.
+ * A simple hash function to generate a unique ID from a string.
+ * This is added as a method to the String prototype.
  */
 String.prototype.hashCode = function(): string {
     let hash = 0, i: number, chr: number;
+    // Return a default hash for empty strings
     if (this.length === 0) return 'h0';
     for (i = 0; i < this.length; i++) {
         chr = this.charCodeAt(i);
         hash = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
+        // Convert to a 32-bit integer
+        hash |= 0;
     }
+    // Return a unique string with a prefix to avoid conflicts
     return 'h' + Math.abs(hash);
 };
-
-
 // =================================================================
 // The Main Application Class
 // =================================================================
 export class EchoTalkApp {
     // --- Constants ---
+    // Keys for storing data in localStorage to manage application state
     private readonly STORAGE_KEYS = {
         sentence: 'shadow_sentence',
         reps: 'shadow_reps',
@@ -51,7 +59,6 @@ export class EchoTalkApp {
         attempts: 'shadow_attempts',
         recordAudio: 'shadow_record_audio'
     };
-
     // --- State Properties ---
     private sentence: string = '';
     private words: string[] = [];
@@ -69,7 +76,6 @@ export class EchoTalkApp {
     private mediaRecorder: MediaRecorder | undefined;
     private db!: IDBDatabase;
     private currentlyPlayingAudioElement: HTMLAudioElement | null = null;
-
     // --- Helper Properties ---
     private readonly isMobile: boolean = /Mobi|Android/i.test(navigator.userAgent);
     private estimatedWordsPerSecond: number = 2.5;
@@ -88,7 +94,7 @@ export class EchoTalkApp {
             this.setupRepOptions();
             this.loadState();
             this.bindEvents();
-
+            // If there's no saved sentence, pick a random one from samples
             if (!this.sentence) {
                 this.sentence = this.pickSample();
             }
@@ -101,13 +107,14 @@ export class EchoTalkApp {
             this.registerServiceWorker();
         } catch (error) {
             console.error("Initialization failed:", error);
+            // Display an error message if initialization fails
             $('#configArea').html('<div class="alert alert-danger">Failed to initialize the application. Please refresh the page.</div>');
         }
     }
 
     private registerServiceWorker(): void {
         if ('serviceWorker' in navigator) {
-            // Vite PWA Plugin به صورت خودکار فایل sw.js را در ریشه خروجی build قرار می‌دهد
+            // Vite PWA Plugin automatically places the sw.js file at the root of the build output
             navigator.serviceWorker.register('/sw.js').then(registration => {
                 console.log('Service Worker registered with scope:', registration.scope);
             }).catch(error => {
@@ -117,6 +124,7 @@ export class EchoTalkApp {
     }
 
     private bindEvents(): void {
+        // Binds all UI events to their corresponding methods
         $('#startBtn').on('click', () => this.startPractice());
         $('#resetBtn').on('click', () => this.resetApp());
         $('#checkBtn').on('click', () => this.handleCheckOrNext());
@@ -129,12 +137,11 @@ export class EchoTalkApp {
         $('#sampleSentence').on('click', 'span', (e) => this.handleSampleWordClick(e.currentTarget));
         $('#repeatBtn').on('click', () => this.practiceStep(0.6));
         $('#recordToggle').on('change', (e) => this.handleRecordToggle(e.currentTarget));
-
         $('#showRecordingsBtn').on('click', () => this.displayRecordings());
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.playBotAudio(e.currentTarget));
         $('#recordingsModal').on('hidden.bs.modal', () => this.stopAllPlayback());
-
+        // Hide the install button if the app is already installed
         if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
             $('#installBtn').addClass('d-none');
         }
@@ -154,6 +161,7 @@ export class EchoTalkApp {
         });
     }
 
+    // Populates the "Reps" dropdown with specific options (1, 2, 3, 5, 10, 20)
     private setupRepOptions(): void {
         for (let i = 1; i <= 20; i++) {
             if ([1, 2, 3, 5, 10, 20].includes(i)) {
@@ -165,6 +173,7 @@ export class EchoTalkApp {
     // --- State & Data Management ---
 
     private loadState(): void {
+        // Loads application state from localStorage
         this.sentence = localStorage.getItem(this.STORAGE_KEYS.sentence) || '';
         this.reps = parseInt(localStorage.getItem(this.STORAGE_KEYS.reps) || this.reps.toString());
         this.currentIndex = parseInt(localStorage.getItem(this.STORAGE_KEYS.index) || '0');
@@ -176,6 +185,7 @@ export class EchoTalkApp {
     }
 
     private saveState(): void {
+        // Saves the current application state to localStorage
         localStorage.setItem(this.STORAGE_KEYS.sentence, this.sentence);
         localStorage.setItem(this.STORAGE_KEYS.reps, this.reps.toString());
         localStorage.setItem(this.STORAGE_KEYS.index, this.currentIndex.toString());
@@ -185,14 +195,17 @@ export class EchoTalkApp {
     }
 
     private fetchSamples(): Promise<{ sentences: string[] }> {
+        // Fetches a list of sample sentences from a JSON file
         return $.getJSON('./data/sentences.json');
     }
 
     private initDB(): Promise<IDBDatabase> {
+        // Initializes the IndexedDB for storing recordings
         return new Promise((resolve, reject) => {
             const request = indexedDB.open('EchoTalkDB', 1);
             request.onupgradeneeded = event => {
                 const db = (event.target as IDBOpenDBRequest).result;
+                // Create the 'recordings' object store if it doesn't exist
                 if (!db.objectStoreNames.contains('recordings')) {
                     const store = db.createObjectStore('recordings', { autoIncrement: true });
                     store.createIndex('sentence', 'sentence', { unique: false });
@@ -206,6 +219,7 @@ export class EchoTalkApp {
     // --- Audio and Recording ---
 
     private saveRecording(blob: Blob, sentenceText: string): void {
+        // Saves an audio blob to the IndexedDB
         if (!this.db || blob.size === 0) return;
         const transaction = this.db.transaction(['recordings'], 'readwrite');
         const store = transaction.objectStore('recordings');
@@ -216,6 +230,7 @@ export class EchoTalkApp {
     }
 
     private async startRecording(): Promise<void> {
+        // Starts the audio recording process
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             $('#feedback').html('<div class="incorrect">Your browser does not support audio recording.</div>');
             return;
@@ -224,15 +239,18 @@ export class EchoTalkApp {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             let localAudioChunks: Blob[] = [];
             const options = { mimeType: 'audio/ogg; codecs=opus' };
-            this.mediaRecorder = MediaRecorder.isTypeSupported(options.mimeType) ? new MediaRecorder(stream, options) : new MediaRecorder(stream);
+            // Check if the recommended mimeType is supported, otherwise use default
+            this.mediaRecorder = MediaRecorder.isTypeSupported(options.mimeType) ?
+                new MediaRecorder(stream, options) : new MediaRecorder(stream);
 
             this.mediaRecorder.ondataavailable = event => localAudioChunks.push(event.data);
-
             this.mediaRecorder.onstop = () => {
                 const audioBlob = new Blob(localAudioChunks, { type: this.mediaRecorder?.mimeType });
+                // Save the recording if the audio blob is not empty
                 if (audioBlob.size > 0) {
                     this.saveRecording(audioBlob, this.currentPhrase);
                 }
+                // Stop all audio tracks to release the microphone
                 this.mediaRecorder?.stream.getTracks().forEach(track => track.stop());
             };
             this.mediaRecorder.start();
@@ -244,8 +262,10 @@ export class EchoTalkApp {
     }
 
     private stopRecording(): Promise<void> {
+        // Stops the current audio recording
         return new Promise(resolve => {
             if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                // Wait for the 'stop' event to ensure all data is collected
                 this.mediaRecorder.addEventListener('stop', () => resolve(), { once: true });
                 this.mediaRecorder.stop();
             } else {
@@ -257,6 +277,7 @@ export class EchoTalkApp {
     // --- UI and Rendering ---
 
     private renderSampleSentence(): void {
+        // Renders the sentence for 'sample mode'
         $('#sampleSentence').empty();
         this.words.forEach((w, i) => {
             const cls = i === this.currentIndex ? 'current-word' : '';
@@ -265,8 +286,10 @@ export class EchoTalkApp {
     }
 
     private renderFullSentence(): void {
+        // Renders the full sentence for 'practice mode', highlighting the current section
         $('#fullSentence').empty();
         let lastPunctuationIndex = -1;
+        // Find the start of the current phrase based on punctuation
         for (let i = this.currentIndex - 1; i >= 0; i--) {
             if (/[.!?]/.test(this.words[i].slice(-1))) {
                 lastPunctuationIndex = i;
@@ -276,6 +299,7 @@ export class EchoTalkApp {
         const startIndex = lastPunctuationIndex >= 0 ? lastPunctuationIndex + 1 : 0;
         this.words.forEach((w, i) => {
             let cls = '';
+            // Dim the words that have already been practiced
             if (i < startIndex) cls = 'text-muted';
             else if (i === this.currentIndex) cls = 'current-word';
             $('#fullSentence').append(`<span class="${cls}">${w}</span> `);
@@ -284,6 +308,7 @@ export class EchoTalkApp {
 
     private setupPracticeUI(): void {
         const userInputGroup = $('#userInput').parent();
+        // Adjust the UI based on the selected practice mode ('check' or 'skip')
         if (this.practiceMode === 'check') {
             $('#instructionText').text('Now it’s your turn. Tap the mic icon on your keyboard and speak the word.').show();
             userInputGroup.show();
@@ -299,15 +324,19 @@ export class EchoTalkApp {
     // --- Core Logic Methods ---
 
     private practiceStep(speed: number = 1): void {
+        // Main function to advance the practice session
         if (this.currentIndex >= this.words.length) {
             this.finishSession();
             return;
         }
+        // Get the boundaries of the current phrase (up to 3 words or until punctuation)
         const endIndex = this.getPhraseBounds(this.currentIndex, 3);
         const startIndex = this.getStartOfCurrentPhrase();
         const phrase = this.words.slice(startIndex, endIndex).join(' ');
         this.currentPhrase = this.removeJunkCharsFromText(phrase);
+        // Speak the phrase and optionally start recording afterwards
         this.speakAndHighlight(phrase, this.isRecordingEnabled ? () => this.startRecording() : null, speed);
+        // Add a click event to each word to look up its meaning
         $('#sentence-container').off('click', '.word').on('click', '.word', function() {
             const word = $(this).text().trim().replace(/[.,!?;:"'(){}[\]]/g, '');
             window.open(`https://www.google.com/search?q=meaning:+${encodeURIComponent(word)}`, '_blank');
@@ -315,6 +344,7 @@ export class EchoTalkApp {
     }
 
     private async checkAnswer(): Promise<void> {
+        // Checks the user's spoken answer against the target phrase
         if (this.isRecordingEnabled) {
             await this.stopRecording();
         }
@@ -329,6 +359,7 @@ export class EchoTalkApp {
         this.currentCount++;
 
         if (answer === "") {
+            // Handle cases where the user just presses enter without speaking
             if (this.currentCount >= this.reps) {
                 if(this.reps >= 2){
                     $('#feedback').html(`<div class="correct">(0 of ${this.reps} attempts)</div>`);
@@ -345,6 +376,7 @@ export class EchoTalkApp {
 
         userInput.val('');
         this.attempts++;
+        // Calculate similarity to provide feedback
         const similarity = this.calculateWordSimilarity(target, answer);
         const similarityPercent = Math.round(similarity * 100);
 
@@ -353,6 +385,7 @@ export class EchoTalkApp {
             this.playSound('./sounds/correct.mp3');
             $('#feedback').html(`<div class="correct">Correct! (${similarityPercent}% match) - (${this.currentCount}/${this.reps})</div>`);
             if (this.currentCount >= this.reps) {
+                // Advance to the next phrase if the repetition count is met
                 this.currentIndex = endIndex;
                 this.currentCount = 0;
             }
@@ -373,6 +406,7 @@ export class EchoTalkApp {
     }
 
     private advanceToNextPhrase(): void {
+        // Moves the practice session to the next phrase
         if (this.isRecordingEnabled) {
             this.stopRecording();
         }
@@ -389,6 +423,7 @@ export class EchoTalkApp {
     }
 
     private finishSession(): void {
+        // Displays a celebratory message and ends the practice session
         const messages = ["You nailed it!", "That was sharp!", "Boom!", "Bravo!", "That was smooth!", "Great shadowing!", "You crushed it!", "Smart move!", "Echo mastered.", "That was fire!"];
         const emojis = ["🔥", "🎯", "💪", "🎉", "🚀", "👏", "🌟", "🧠", "🎧", "💥"];
         let ttsMsg = messages[Math.floor(Math.random() * messages.length)];
@@ -404,8 +439,10 @@ export class EchoTalkApp {
         ttsMsg += ` ${callToAction}`;
         this.playSound('./sounds/victory.mp3', 2);
         setTimeout(() => this.speak(ttsMsg), 1500);
+        // Show a button to restart the session
         displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="location.reload(); return false;">${callToAction}</a>`;
         $('#practiceArea').html(`<h2>${displayMsg}</h2>`);
+        // Clear session-specific state from localStorage
         localStorage.removeItem(this.STORAGE_KEYS.index);
         localStorage.removeItem(this.STORAGE_KEYS.count);
         localStorage.removeItem(this.STORAGE_KEYS.correctCount);
@@ -415,6 +452,7 @@ export class EchoTalkApp {
     // --- Helper & Utility Methods ---
 
     private getStartOfCurrentPhrase(): number {
+        // Finds the index of the first word in the current phrase by looking for punctuation
         let lastPuncIndex = -1;
         for (let i = this.currentIndex - 1; i >= 0; i--) {
             if (/[.!?]/.test(this.words[i].slice(-1))) {
@@ -426,6 +464,7 @@ export class EchoTalkApp {
     }
 
     private getPhraseBounds(startIndex: number, maxWords: number = 3): number {
+        // Determines the end index of the current phrase (up to maxWords or a punctuation mark)
         let endIndex = startIndex;
         let count = 0;
         while (endIndex < this.words.length && count < maxWords) {
@@ -439,10 +478,12 @@ export class EchoTalkApp {
     }
 
     private pickSample(): string {
+        // Selects a random sentence from the samples list
         return this.samples[Math.floor(Math.random() * this.samples.length)] || '';
     }
 
     private speak(text: string, onEnd?: (() => void) | null, rate: number = 1): void {
+        // Uses the SpeechSynthesis API to speak the provided text
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'en-US';
@@ -454,6 +495,7 @@ export class EchoTalkApp {
     }
 
     private playSound(src: string, speed: number = 1): void {
+        // Plays a sound from a given source
         const audio = new Audio(src);
         audio.playbackRate = speed;
         audio.play();
@@ -465,16 +507,16 @@ export class EchoTalkApp {
         speechSynthesis.cancel();
         const phraseWords = text.split(' ');
         const wordSpans: HTMLElement[] = phraseWords.map(word => $('<span></span>').text(word).addClass('word')[0]);
+        // Add each word as a span to the container
         wordSpans.forEach((span, index) => {
             container.append(span);
             if(index < wordSpans.length - 1) container.append(' ');
         });
-
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
         utterance.rate = speed;
-
         if (this.isMobile) {
+            // For mobile, estimate word boundaries based on calculated WPM
             const delayPerWord = 1000 / this.estimatedWordsPerSecond / speed;
             phraseWords.forEach((word, index) => {
                 setTimeout(() => $(wordSpans[index]).addClass('highlighted'), index * delayPerWord);
@@ -483,6 +525,7 @@ export class EchoTalkApp {
             utterance.onstart = () => { startTime = performance.now(); };
             utterance.onend = () => {
                 const duration = (performance.now() - startTime) / 1000;
+                // Recalculate estimated WPM for better accuracy
                 if (duration > 0.1) {
                     const currentWPS = phraseWords.length / duration;
                     this.estimatedWordsPerSecond = (this.estimatedWordsPerSecond * this.phrasesSpokenCount + currentWPS) / (this.phrasesSpokenCount + 1);
@@ -491,6 +534,7 @@ export class EchoTalkApp {
                 if (onEnd) onEnd();
             };
         } else {
+            // For desktop, use the onboundary event for precise highlighting
             const wordBoundaries: number[] = [];
             let charCounter = 0;
             phraseWords.forEach(word => {
@@ -499,6 +543,7 @@ export class EchoTalkApp {
             });
             utterance.onboundary = (event: SpeechSynthesisEvent) => {
                 if (event.name === 'word') {
+                    // Find the index of the word that is currently being spoken
                     let wordIndex = wordBoundaries.findIndex(boundary => event.charIndex < boundary) -1;
                     if(wordIndex === -2) wordIndex = wordBoundaries.length - 1; // Last word
                     $('.word.highlighted').removeClass('highlighted');
@@ -508,22 +553,25 @@ export class EchoTalkApp {
             utterance.onend = () => { if (onEnd) onEnd(); };
         }
         speechSynthesis.speak(utterance);
-
+        // Automatically focus the input field for the user
         const userInput = $('#userInput') as JQuery<HTMLInputElement>;
         userInput.focus();
     }
 
     private cleanText(text: string): string {
+        // Prepares text for comparison by cleaning and normalizing it
         return this.removeJunkCharsFromText(text.toLowerCase().trim().replace("&", "and"));
     }
 
     private removeJunkCharsFromText(text: string): string {
+        // Removes leading/trailing punctuation and whitespace
         return text.replace(/^[\s.,;:/\\()[\]{}"'«»!?-]+|[\s.,;:/\\()[\]{}"'«»!?-]+$/g, '');
     }
 
     // --- Event Handler Implementations ---
 
     private startPractice(): void {
+        // Handles the start of a new practice session
         this.practiceMode = ($('input[name="practiceMode"]:checked').val() as 'skip' | 'check');
         this.sentence = ($('#sentenceInput').val() as string).trim().replace(/([^\.\?\!\n])\n/g, '$1.\n');
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
@@ -541,6 +589,7 @@ export class EchoTalkApp {
     }
 
     private resetApp(): void {
+        // Resets the entire application to its initial state
         speechSynthesis.cancel();
         if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
             this.mediaRecorder.stop();
@@ -550,17 +599,12 @@ export class EchoTalkApp {
     }
 
     private handleCheckOrNext(): void {
-
+        // This method is now simplified as the commented-out logic is not used.
         this.checkAnswer();
-
-        // if (this.practiceMode === 'check') {
-        //     this.checkAnswer();
-        // } else {
-        //     this.advanceToNextPhrase();
-        // }
     }
 
     private useSample(): void {
+        // Replaces the current sentence with a random sample sentence
         this.sentence = this.pickSample();
         ($('#sentenceInput') as JQuery<HTMLTextAreaElement>).val(this.sentence);
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
@@ -570,6 +614,7 @@ export class EchoTalkApp {
     }
 
     private handleSampleWordClick(element: HTMLElement): void {
+        // Sets the current practice index to the clicked word in sample mode
         const newIndex = $(element).data('index');
         if (typeof newIndex === 'number') {
             this.currentIndex = newIndex;
@@ -579,11 +624,13 @@ export class EchoTalkApp {
     }
 
     private handleRecordToggle(element: HTMLElement): void {
+        // Toggles the recording feature and saves the preference
         this.isRecordingEnabled = $(element).is(':checked');
         localStorage.setItem(this.STORAGE_KEYS.recordAudio, String(this.isRecordingEnabled));
     }
 
     public calculateWordSimilarity(targetStr: string, answerStr: string): number {
+        // Compares two strings word by word to calculate a similarity score
         const targetWords = targetStr.split(/\s+/).filter(Boolean);
         const answerWords = answerStr.split(/\s+/).filter(Boolean);
         if (targetWords.length === 0) return answerWords.length === 0 ? 1 : 0;
@@ -597,8 +644,8 @@ export class EchoTalkApp {
 
     // --- Recordings Modal Logic ---
     private async displayRecordings(): Promise<void> {
+        // Fetches all recordings and displays them in a modal
         if (!this.db) return;
-
         const transaction = this.db.transaction(['recordings'], 'readonly');
         const store = transaction.objectStore('recordings');
         const allRecords: Recording[] = await new Promise((resolve, reject) => {
@@ -606,7 +653,7 @@ export class EchoTalkApp {
             request.onsuccess = () => resolve(request.result as Recording[]);
             request.onerror = err => reject(err);
         });
-
+        // Group recordings by their sentence text
         const grouped: Record<string, Recording[]> = {};
         allRecords.forEach(rec => {
             if (!grouped[rec.sentence]) {
@@ -614,7 +661,6 @@ export class EchoTalkApp {
             }
             grouped[rec.sentence].push(rec);
         });
-
         window.modalRecordings = grouped;
 
         const $list = $('#recordingsList');
@@ -625,19 +671,18 @@ export class EchoTalkApp {
             return;
         }
 
+        // Sort sentences by the timestamp of the last recording
         const sortedSentences = Object.keys(grouped).sort((a, b) => {
             const lastA = Math.max(...grouped[a].map(r => r.timestamp?.getTime() || 0));
             const lastB = Math.max(...grouped[b].map(r => r.timestamp?.getTime() || 0));
             return lastB - lastA;
         });
-
         for (const sentence of sortedSentences) {
             const recordings = grouped[sentence].sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0));
             const truncated = this.truncateSentence(sentence);
             const uniqueId = sentence.hashCode();
             const lastRecTime = recordings[0].timestamp;
             const count = recordings.length;
-
             const sentenceHtml = `
             <div class="accordion-item">
                 <h2 class="accordion-header" id="heading-${uniqueId}">
@@ -673,6 +718,7 @@ export class EchoTalkApp {
     }
 
     private truncateSentence(sentence: string): string {
+        // Truncates a long sentence for display purposes
         const words = sentence.split(' ');
         if (words.length > 4) {
             return `${words[0]} ${words[1]} ... ${words[words.length - 2]} ${words[words.length - 1]}`;
@@ -681,6 +727,7 @@ export class EchoTalkApp {
     }
 
     private playUserAudio(element: HTMLElement): void {
+        // Plays a specific user-recorded audio file
         this.stopAllPlayback(true);
         const sentence = $(element).data('sentence') as string;
         const index = $(element).data('index') as number;
@@ -702,12 +749,14 @@ export class EchoTalkApp {
     }
 
     private playBotAudio(element: HTMLElement): void {
+        // Plays the sentence using the text-to-speech engine
         this.stopAllPlayback(true);
         const sentence = $(element).data('sentence') as string;
         this.speak(sentence);
     }
 
     private stopAllPlayback(keepTTS: boolean = false): void {
+        // Stops all currently playing audio
         if (this.currentlyPlayingAudioElement) {
             this.currentlyPlayingAudioElement.pause();
             URL.revokeObjectURL(this.currentlyPlayingAudioElement.src);
@@ -723,6 +772,8 @@ export class EchoTalkApp {
 // =================================================================
 // Application Entry Point
 // =================================================================
+// This ensures the application is initialized when the DOM is ready,
+// but only when running outside of a test environment.
 if (import.meta.env.MODE !== 'test') {
     $(function () {
         const app = new EchoTalkApp();
