@@ -20,17 +20,47 @@ beforeAll(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-beforeEach(() => {
+// The function is now correctly marked as 'async'
+beforeEach(async () => {
     vi.useRealTimers(); // Required for setTimeout-based callbacks
 
     document.body.innerHTML = html; // Reset DOM to initial state
 
-    // Stub $.getJSON to avoid real network requests
-    ($.getJSON as any) = vi.fn(() =>
-        Promise.resolve({
-            sentences: ['dummy one', 'dummy two'],
-        })
-    );
+    // =================================================================
+    // START: Mocks for PWA and Browser-specific APIs
+    // =================================================================
+
+    // Mock window.matchMedia for PWA display-mode checks
+    Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        value: vi.fn().mockImplementation(query => ({
+            matches: false, // Default behavior simulates running in a browser tab
+            media: query,
+            onchange: null,
+            addListener: vi.fn(),
+            removeListener: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+        })),
+    });
+
+    // Mock navigator.serviceWorker for PWA offline functionality
+    if (!navigator.serviceWorker) {
+        Object.defineProperty(navigator, 'serviceWorker', {
+            writable: true,
+            value: {
+                register: vi.fn().mockImplementation(() => {
+                    return Promise.resolve({ scope: 'mock-scope' });
+                }),
+            },
+        });
+    }
+
+    // =================================================================
+    // END: Mocks for PWA and Browser-specific APIs
+    // =================================================================
+
 
     // Mock SpeechSynthesisUtterance for TTS functionality
     global.SpeechSynthesisUtterance = vi.fn().mockImplementation((text = '') => ({
@@ -49,6 +79,7 @@ beforeEach(() => {
             if (typeof utterance.onend === 'function') setTimeout(() => utterance.onend(), 0);
         }),
         cancel: vi.fn(),
+        getVoices: vi.fn().mockReturnValue([]),
     };
 
     // Prevent actual audio playback during tests
@@ -118,18 +149,14 @@ beforeEach(() => {
         });
     }
 
-    // Mock URL methods used for handling audio blobs in the browser
-    Object.defineProperty(global, 'URL', {
-        value: {
-            createObjectURL: vi.fn(() => 'blob:mock-audio-url'),
-            revokeObjectURL: vi.fn(),
-        },
-        writable: true,
-    });
+    // Mock URL class and its static methods. This requires an async beforeEach.
+    const { URL } = await import('url');
+    global.URL = URL as any;
+    global.URL.createObjectURL = vi.fn(() => 'blob:mock-audio-url');
+    global.URL.revokeObjectURL = vi.fn();
 });
 
 afterEach(() => {
     localStorage.clear(); // Reset localStorage between tests
     vi.useRealTimers();
-    vi.restoreAllMocks(); // Restore all mocked functions
 });

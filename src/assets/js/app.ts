@@ -97,9 +97,22 @@ export class EchoTalkApp {
             this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
             ($('#repsSelect') as JQuery<HTMLSelectElement>).val(this.reps.toString());
             this.renderSampleSentence();
+
+            this.registerServiceWorker();
         } catch (error) {
             console.error("Initialization failed:", error);
             $('#configArea').html('<div class="alert alert-danger">Failed to initialize the application. Please refresh the page.</div>');
+        }
+    }
+
+    private registerServiceWorker(): void {
+        if ('serviceWorker' in navigator) {
+            // Vite PWA Plugin به صورت خودکار فایل sw.js را در ریشه خروجی build قرار می‌دهد
+            navigator.serviceWorker.register('/sw.js').then(registration => {
+                console.log('Service Worker registered with scope:', registration.scope);
+            }).catch(error => {
+                console.error('Service Worker registration failed:', error);
+            });
         }
     }
 
@@ -121,6 +134,10 @@ export class EchoTalkApp {
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.playBotAudio(e.currentTarget));
         $('#recordingsModal').on('hidden.bs.modal', () => this.stopAllPlayback());
+
+        if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+            $('#installBtn').addClass('d-none');
+        }
 
         window.addEventListener('beforeinstallprompt', e => {
             e.preventDefault();
@@ -706,7 +723,9 @@ export class EchoTalkApp {
 // =================================================================
 // Application Entry Point
 // =================================================================
-$(function () {
-    const app = new EchoTalkApp();
-    app.init();
-});
+if (import.meta.env.MODE !== 'test') {
+    $(function () {
+        const app = new EchoTalkApp();
+        app.init();
+    });
+}

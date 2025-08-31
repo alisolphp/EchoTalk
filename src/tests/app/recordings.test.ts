@@ -7,6 +7,11 @@ describe('Recordings Modal Logic', () => {
     let mockGetAll: Mock; // Reference to the mock function for IndexedDB's getAll.
 
     beforeEach(async () => {
+        // Mock $.getJSON to prevent app.init() from crashing
+        vi.spyOn($, 'getJSON').mockResolvedValue({
+            sentences: ['Recording test sentence'],
+        });
+
         app = new EchoTalkApp();
 
         // Create a mock for the `getAll` method of IndexedDB's object store.

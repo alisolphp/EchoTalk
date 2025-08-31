@@ -8,21 +8,30 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 describe('Practice Logic', () => {
     let app: EchoTalkApp;
 
-    beforeEach(() => {
-        vi.useRealTimers(); // Ensure real timers are used for setTimeout/setInterval.
-
-        // Mock $.getJSON to prevent actual network requests when fetching sentences.
-        ($.getJSON as any) = vi.fn(() =>
-            Promise.resolve({
-                sentences: ['Practice sentence one', 'Practice sentence two'],
-            })
-        );
-        localStorage.clear(); // Clear localStorage before each test for a clean slate.
+    beforeEach(async () => {
+        vi.useRealTimers();
+        vi.spyOn($, 'getJSON').mockResolvedValue({
+            sentences: ['Practice sentence one', 'Practice sentence two'],
+        });
+        localStorage.clear();
         app = new EchoTalkApp();
+
+        // --- این قسمت را اضافه کنید ---
+        const mockDbObject = {
+            transaction: vi.fn(() => ({
+                objectStore: () => ({
+                    getAll: vi.fn(),
+                    add: vi.fn()
+                })
+            }))
+        };
+        vi.spyOn(app as any, 'initDB').mockResolvedValue(mockDbObject);
+        // -------------------------
+
+        await app.init();
     });
 
     it('should switch to practice view when "Start Practice" is clicked', async () => {
-        await app.init();
         $('#startBtn').trigger('click'); // Simulate clicking the start practice button.
 
         // Verify that the configuration area is hidden and the practice area is shown.
@@ -33,7 +42,6 @@ describe('Practice Logic', () => {
     });
 
     it('should cancel speech and reload page when reset is clicked', async () => {
-        await app.init();
         $('#startBtn').trigger('click'); // Start practice to get into a state where reset is relevant.
         $('#resetBtn').trigger('click'); // Simulate clicking the reset button.
 
@@ -45,7 +53,6 @@ describe('Practice Logic', () => {
     });
 
     it('should finish session and show final message when finishSession is invoked', async () => {
-        await app.init();
 
         // Directly call the private method to finish a session, bypassing UI interaction for testing purposes.
         (app as any).finishSession();
@@ -58,7 +65,6 @@ describe('Practice Logic', () => {
     });
 
     it('should speak the correct sentence when "Play Bot" is clicked', async () => {
-        await app.init();
         const sentence = 'This is a test sentence';
         // Mock the global `modalRecordings` object which stores audio data.
         window.modalRecordings = { [sentence]: [] };
@@ -70,7 +76,6 @@ describe('Practice Logic', () => {
     });
 
     it('should handle a correct answer in check mode', async () => {
-        await app.init();
         // Spy on `playSound` to verify which sound is played.
         vi.spyOn(app as any, 'playSound');
         ($('#sentenceInput') as any).val('This is a test'); // Set the sentence to practice.
@@ -87,7 +92,6 @@ describe('Practice Logic', () => {
     });
 
     it('should handle an incorrect answer in check mode', async () => {
-        await app.init();
         vi.spyOn(app as any, 'playSound');
         ($('#sentenceInput') as any).val('This is a test');
         $('#mode-check').prop('checked', true);
@@ -103,7 +107,6 @@ describe('Practice Logic', () => {
     });
 
     it('should advance to the next phrase correctly in skip mode', async () => {
-        await app.init();
         // Set a sentence with multiple phrases.
         ($('#sentenceInput') as any).val('one two three. four five six.');
         $('#startBtn').trigger('click');
@@ -121,7 +124,6 @@ describe('Practice Logic', () => {
     });
 
     it('should increment counts on correct answer without advancing', async () => {
-        await app.init();
         vi.spyOn(app as any, 'playSound');
         ($('#sentenceInput') as any).val('This is a test');
         ($('#repsSelect') as any).val('3'); // Require 3 repetitions.
@@ -142,7 +144,6 @@ describe('Practice Logic', () => {
     });
 
     it('should advance to the next phrase after the last correct repetition', async () => {
-        await app.init();
         ($('#sentenceInput') as any).val('This is a test phrase');
         ($('#repsSelect') as any).val('2'); // Require 2 repetitions.
         $('#mode-check').prop('checked', true);
@@ -163,7 +164,6 @@ describe('Practice Logic', () => {
     });
 
     it('should advance to next phrase if user input is empty on the last repetition', async () => {
-        await app.init();
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
         ($('#repsSelect') as any).val('2'); // Require 2 repetitions.
         $('#mode-check').prop('checked', true);
@@ -184,7 +184,6 @@ describe('Practice Logic', () => {
     });
 
     it('should repeat the phrase on empty answer if repetitions are not complete', async () => {
-        await app.init();
         vi.spyOn(app as any, 'practiceStep'); // Spy on `practiceStep` to confirm it's called again.
         ($('#sentenceInput') as any).val('This is a test');
         ($('#repsSelect') as any).val('3'); // Require 3 repetitions.
@@ -207,7 +206,6 @@ describe('Practice Logic', () => {
     });
 
     it('should display accuracy in the final message for check mode', async () => {
-        await app.init();
         $('#mode-check').prop('checked', true); // Ensure 'check' mode is selected.
         $('#startBtn').trigger('click');
 
@@ -223,7 +221,6 @@ describe('Practice Logic', () => {
     });
 
     it('should dim words from previous sentences in renderFullSentence', async () => {
-        await app.init();
         const sentence = 'First phrase ends here. The second phrase starts now.';
         ($('#sentenceInput') as any).val(sentence);
         $('#startBtn').trigger('click');
@@ -242,7 +239,6 @@ describe('Practice Logic', () => {
     });
 
     it('should call checkAnswer when the main check/skip button is clicked', async () => {
-        await app.init();
         $('#startBtn').trigger('click'); // Transition to the practice view.
 
         // Spy on the `checkAnswer` method to confirm it's invoked.
@@ -255,7 +251,6 @@ describe('Practice Logic', () => {
     });
 
     it('should show "0 of X attempts" feedback on final empty skip if reps >= 2', async () => {
-        await app.init();
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
         ($('#repsSelect') as any).val('2'); // Set to require 2 repetitions.
         $('#mode-check').prop('checked', true);
@@ -279,7 +274,6 @@ describe('Practice Logic', () => {
     });
 
     it('should highlight words based on speech synthesis boundary events on desktop', async () => {
-        await app.init();
         const sentence = 'A simple test';
         ($('#sentenceInput') as any).val(sentence);
 

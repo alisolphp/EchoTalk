@@ -5,21 +5,30 @@ import $ from 'jquery';
 describe('Initialization', () => {
     let app: EchoTalkApp;
 
-    beforeEach(() => {
-        // Mock $.getJSON to prevent actual network requests during tests.
-        // This can be overridden in specific tests if different data is needed.
-        ($.getJSON as any) = vi.fn(() =>
-            Promise.resolve({
-                sentences: ['Test sentence one', 'Test sentence two'],
-            })
-        );
-        localStorage.clear(); // Clear localStorage to ensure a clean state for each test.
+    beforeEach(async () => {
+        vi.spyOn($, 'getJSON').mockResolvedValue({
+            sentences: ['Test sentence one', 'Test sentence two'],
+        });
+
+        localStorage.clear();
         app = new EchoTalkApp();
+
+        // --- این قسمت را اضافه کنید ---
+        const mockDbObject = {
+            transaction: vi.fn(() => ({
+                objectStore: () => ({
+                    getAll: vi.fn(),
+                    add: vi.fn()
+                })
+            }))
+        };
+        vi.spyOn(app as any, 'initDB').mockResolvedValue(mockDbObject);
+        // -------------------------
+
+        await app.init();
     });
 
     it('should initialize correctly and fetch sample sentences', async () => {
-        await app.init();
-
         const value = $('#sentenceInput').val();
         // Verifies that one of the mocked sample sentences is loaded into the input.
         expect(['Test sentence one', 'Test sentence two']).toContain(value);
@@ -36,7 +45,7 @@ describe('Initialization', () => {
 
         // Re-instantiate the app to trigger its state loading logic from localStorage.
         app = new EchoTalkApp();
-        await app.init();
+        await app.init(); // <-- این خط برای بارگذاری وضعیت جدید ضروری است
 
         // Verify that UI elements reflect the loaded state.
         expect($('#sentenceInput').val()).toBe('Stored sentence');
@@ -45,7 +54,6 @@ describe('Initialization', () => {
     });
 
     it('should save state to localStorage when starting practice', async () => {
-        await app.init();
 
         // Simulate user interaction by setting values in the UI.
         ($('#sentenceInput') as any).val('New test sentence');
