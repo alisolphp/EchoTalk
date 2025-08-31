@@ -51,4 +51,14 @@ describe('Practice Logic', () => {
         expect(localStorage.getItem('shadow_count')).toBeNull();
     });
 
+    // Confirms that clicking "Play Bot" triggers TTS for the correct sentence
+    it('should speak the correct sentence when "Play Bot" is clicked', async () => {
+        await app.init();
+        const sentence = 'This is a test sentence';
+        window.modalRecordings = { [sentence]: [] };
+        const btn = $('<button>').attr('data-sentence', sentence)[0];
+        (app as any).playBotAudio(btn);
+        expect((window as any).speechSynthesis.speak).toHaveBeenCalled();
+    });
+
 });
