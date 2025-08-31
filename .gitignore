@@ -6,3 +6,4 @@
 /.idea/php.xml
 /dist/
 /src/node_modules/
+/src/coverage/
