@@ -273,9 +273,9 @@ export class EchoTalkApp {
             $('#userInput').trigger('focus');
             $('#checkBtn').text('Check/Skip');
         } else { // 'skip' mode
-            $('#instructionText').text('Listen, repeat to yourself, then click "Next Phrase".').show();
+            $('#instructionText').text('Listen, repeat to yourself, then click "Next Step".').show();
             userInputGroup.hide();
-            $('#checkBtn').text('Next Phrase');
+            $('#checkBtn').text('Next Step');
         }
     }
 
@@ -291,7 +291,7 @@ export class EchoTalkApp {
         const phrase = this.words.slice(startIndex, endIndex).join(' ');
         this.currentPhrase = this.removeJunkCharsFromText(phrase);
         this.speakAndHighlight(phrase, this.isRecordingEnabled ? () => this.startRecording() : null, speed);
-        $('#sentence-container').on('click', '.word', function() {
+        $('#sentence-container').off('click', '.word').on('click', '.word', function() {
             const word = $(this).text().trim().replace(/[.,!?;:"'(){}[\]]/g, '');
             window.open(`https://www.google.com/search?q=meaning:+${encodeURIComponent(word)}`, '_blank');
         });
@@ -309,8 +309,20 @@ export class EchoTalkApp {
         const userInput = $('#userInput') as JQuery<HTMLInputElement>;
         let answer = this.cleanText(userInput.val() as string);
 
+        this.currentCount++;
+
         if (answer === "") {
-            this.advanceToNextPhrase();
+            if (this.currentCount >= this.reps) {
+                if(this.reps >= 2){
+                    $('#feedback').html(`<div class="correct">(0 of ${this.reps} attempts)</div>`);
+                }
+                this.advanceToNextPhrase();
+            } else {
+                if(this.reps >= 2) {
+                    $('#feedback').html(`<div class="correct">(${this.currentCount} of ${this.reps} attempts)</div>`);
+                }
+                this.practiceStep();
+            }
             return;
         }
 
@@ -321,7 +333,6 @@ export class EchoTalkApp {
 
         if (similarity >= 0.6) {
             this.correctCount++;
-            this.currentCount++;
             this.playSound('./sounds/correct.mp3');
             $('#feedback').html(`<div class="correct">Correct! (${similarityPercent}% match) - (${this.currentCount}/${this.reps})</div>`);
             if (this.currentCount >= this.reps) {
@@ -480,6 +491,9 @@ export class EchoTalkApp {
             utterance.onend = () => { if (onEnd) onEnd(); };
         }
         speechSynthesis.speak(utterance);
+
+        const userInput = $('#userInput') as JQuery<HTMLInputElement>;
+        userInput.focus();
     }
 
     private cleanText(text: string): string {
@@ -519,11 +533,14 @@ export class EchoTalkApp {
     }
 
     private handleCheckOrNext(): void {
-        if (this.practiceMode === 'check') {
-            this.checkAnswer();
-        } else {
-            this.advanceToNextPhrase();
-        }
+
+        this.checkAnswer();
+
+        // if (this.practiceMode === 'check') {
+        //     this.checkAnswer();
+        // } else {
+        //     this.advanceToNextPhrase();
+        // }
     }
 
     private useSample(): void {
