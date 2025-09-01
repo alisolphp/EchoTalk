@@ -67,10 +67,22 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="optionsModalLabel">Practice Options</h5>
+                    <h5 class="modal-title" id="optionsModalLabel">Practice Options <small class="text-muted">(Auto save)</small></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="levelSelect" class="form-label">Select Level:</label>
+                            <select id="levelSelect" class="form-select"></select>
+                        </div>
+                        <div class="col">
+                            <label for="categorySelect" class="form-label">Select Category:</label>
+                            <select id="categorySelect" class="form-select"></select>
+                        </div>
+                    </div>
+
                     <div class="row mb-3">
                         <div class="col-12">
                             <label for="repsSelect" class="form-label">Repetitions:</label>
@@ -158,23 +170,23 @@
         </div>
     </div>
 
-</div>
-
-<button id="installBtn" class="btn btn-outline-primary d-none">Install App</button>
-
-<div class="modal fade" id="recordingsModal" tabindex="-1" aria-labelledby="recordingsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="recordingsModalLabel">My Recordings</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="accordion" id="recordingsList"></div>
+    <div class="modal fade" id="recordingsModal" tabindex="-1" aria-labelledby="recordingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="recordingsModalLabel">My Recordings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="accordion" id="recordingsList"></div>
+                </div>
             </div>
         </div>
     </div>
+
 </div>
+
+<button id="installBtn" class="btn btn-outline-primary d-none">Install App</button>
 
 <script type="module" src="assets/js/app.ts"></script>
 </body>

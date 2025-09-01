@@ -1,51 +1,221 @@
 {
-  "sentences": [
-    "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.",
-    "I believe in aligning engineering decisions with measurable business outcomes, like revenue growth or significant cost reduction.",
-    "For instance, one of my OTP security systems eliminated over $1,000 in annual fraud costs while a recommendation engine I built generated over $2,800 in new monthly revenue.",
-    "My architectural philosophy is centered on modern principles like Hexagonal Architecture to increase developer productivity and system maintainability.",
-    "I'm passionate about architecting creative solutions for tough challenges, especially in high-concurrency and high-availability environments.",
-    "One of my primary strengths is architecting for resilience and failure handling.",
-    "I design systems to withstand outages and external failures, like an alerting platform I built with automatic failover to guarantee delivery during national internet disruptions.",
-    "I enjoy architecting complex, modular platforms designed to fully decouple business logic from infrastructure.",
-    "Additionally, I am highly skilled in DevOps and automation as a means to improve developer experience.",
-    "I've orchestrated complete development environments using Docker and Makefiles, enabling a one-click, offline-ready project setup.",
-    "My approach to performance is to always measure before optimizing.",
-    "Using profiling, I once identified a database bottleneck and reduced a critical query's latency from 4 seconds to under 500 milliseconds.",
-    "I'm now focused on creating systems that are not only technically excellent but also empower the teams that use them.",
-    "I have been following your company and I'm impressed by your commitment to robust and scalable solutions.",
-    "My focus on security as a foundational layer, not a patch, seems to align perfectly with this role.",
-    "I've implemented everything from dynamic certificate pinning to prevent MITM attacks to comprehensive, role-based access control systems.",
-    "I believe in project ownership over code ownership; I will proactively resolve any blocker, technical or organizational, to ensure the project succeeds.",
-    "I've reached a point where I need new challenges, particularly in architecting mission-critical, high-traffic applications.",
-    "This position offers an excellent opportunity to apply my skills on a larger scale.",
-    "A key challenge on a past project was ensuring 100% transactional integrity in a high-concurrency e-commerce module.",
-    "My task was to design a system that could handle intense load without ever overselling a product.",
-    "I engineered a concurrent-safe system using a hybrid Redis and MySQL locking strategy with an automatic failover mechanism.",
-    "This approach guaranteed data integrity because I believe in architecting for graceful failure, not just optimal performance.",
-    "I once led the full-stack development of a high-traffic URL Shortener from the ground up.",
-    "I was responsible for architecting the entire system, from the database schema to a Redis-first caching strategy for the redirection engine.",
-    "This system successfully served millions of requests with minimal latency by leveraging various Redis data structures for real-time analytics without impacting the primary database.",
-    "This experience reinforced my belief in a caching-first mindset for high-traffic systems.",
-    "When disagreements arise, I believe they are an opportunity to find a better solution.",
-    "My approach is to focus the discussion on technical facts and data to find a solution that best serves the project's goals.",
-    "I respect my manager's experience, but I also advocate for data-driven decisions.",
-    "If I disagreed, I would gather the relevant data and present my case in a private, professional manner.",
-    "Ultimately, if the decision remains, I commit to it fully and work towards its success.",
-    "In five years, I aim to be leading the technical strategy for mission-critical applications.",
-    "I enjoy taking initiative, similar to when I took ownership of the project backlog and product roadmap in the absence of a dedicated product manager.",
-    "My biggest motivator is scaling my impact by creating documentation, guides, and reusable tools that multiply the effectiveness of the entire team.",
-    "For example, authoring extensive, onboarding-focused documentation and linking it directly in the codebase significantly accelerated new hire ramp-up time.",
-    "For me, documentation is a core deliverable, not an afterthought.",
-    "When debugging, I focus on systemic prevention, not just fixing the surface issue.",
-    "I once traced a recurring 404 error to a flawed manual process and implemented a database-level architectural fix that eliminated that entire class of bugs permanently.",
-    "My long-term goal is to grow into a principal engineer or technical leadership role where I can contribute to the company's long-term technical vision.",
-    "My dream job is one where I can solve complex architectural puzzles and mentor a talented team.",
-    "An environment that values robust engineering, developer autonomy, and clear business impact is ideal for me.",
-    "I believe in validating ideas before committing major engineering effort, using lightweight methods like surveys to prevent investment in low-ROI projects.",
-    "You're looking for someone with deep experience in building scalable, modular backend systems.",
-    "My work on building a reusable, modular backend platform with Hexagonal Architecture directly aligns with that need.",
-    "Beyond my technical skills, I bring a proactive, ownership-driven mindset and a deep understanding of how to connect engineering work to business value.",
-    "I am confident that I can bring significant and measurable value to your team from day one."
+  "levels": [
+    {
+      "name": "Beginner (A1-A2)",
+      "categories": [
+        {
+          "name": "Daily Conversations",
+          "sentences": [
+            "Hello, how are you?",
+            "I am fine, thank you. And you?",
+            "What is your name?",
+            "My name is Alex.",
+            "It's nice to meet you.",
+            "Where are you from?",
+            "I'm from Canada.",
+            "What do you do?",
+            "I am a student.",
+            "Have a nice day!",
+            "See you later.",
+            "What's the weather like today?",
+            "It's sunny and warm.",
+            "I'm sorry, I don't understand.",
+            "Could you repeat that, please?"
+          ]
+        },
+        {
+          "name": "Travel",
+          "sentences": [
+            "Where is the train station?",
+            "I would like a coffee, please.",
+            "How much does this cost?",
+            "A ticket to London, please.",
+            "Which platform does the train leave from?",
+            "Is there a restaurant near here?",
+            "Excuse me, can you help me?",
+            "I'm looking for this address.",
+            "How do I get to the airport?",
+            "I'd like to check in."
+          ]
+        },
+        {
+          "name": "Shopping",
+          "sentences": [
+            "Can I help you?",
+            "I'm just looking, thank you.",
+            "Do you have this in a different color?",
+            "I'd like to buy this.",
+            "Can I pay by credit card?",
+            "Where is the fitting room?",
+            "It's too expensive.",
+            "Do you have a smaller size?"
+          ]
+        },
+        {
+          "name": "Food & Restaurant",
+          "sentences": [
+            "A table for two, please.",
+            "Can I see the menu, please?",
+            "Are you ready to order?",
+            "I'll have the pizza.",
+            "I'm allergic to nuts.",
+            "Could we have the bill, please?",
+            "The food was delicious.",
+            "Another glass of water, please."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Intermediate (B1-B2)",
+      "categories": [
+        {
+          "name": "Interview",
+          "sentences": [
+            "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.",
+            "I believe in aligning engineering decisions with measurable business outcomes, like revenue growth or significant cost reduction.",
+            "For instance, one of my OTP security systems eliminated over $1,000 in annual fraud costs while a recommendation engine I built generated over $2,800 in new monthly revenue.",
+            "My architectural philosophy is centered on modern principles like Hexagonal Architecture to increase developer productivity and system maintainability.",
+            "I'm passionate about architecting creative solutions for tough challenges, especially in high-concurrency and high-availability environments.",
+            "One of my primary strengths is architecting for resilience and failure handling.",
+            "I design systems to withstand outages and external failures, like an alerting platform I built with automatic failover to guarantee delivery during national internet disruptions.",
+            "I enjoy architecting complex, modular platforms designed to fully decouple business logic from infrastructure.",
+            "Additionally, I am highly skilled in DevOps and automation as a means to improve developer experience.",
+            "I've orchestrated complete development environments using Docker and Makefiles, enabling a one-click, offline-ready project setup.",
+            "My approach to performance is to always measure before optimizing.",
+            "Using profiling, I once identified a database bottleneck and reduced a critical query's latency from 4 seconds to under 500 milliseconds.",
+            "I'm now focused on creating systems that are not only technically excellent but also empower the teams that use them.",
+            "I have been following your company and I'm impressed by your commitment to robust and scalable solutions.",
+            "My focus on security as a foundational layer, not a patch, seems to align perfectly with this role.",
+            "I've implemented everything from dynamic certificate pinning to prevent MITM attacks to comprehensive, role-based access control systems.",
+            "I believe in project ownership over code ownership; I will proactively resolve any blocker, technical or organizational, to ensure the project succeeds.",
+            "I've reached a point where I need new challenges, particularly in architecting mission-critical, high-traffic applications.",
+            "This position offers an excellent opportunity to apply my skills on a larger scale.",
+            "A key challenge on a past project was ensuring 100% transactional integrity in a high-concurrency e-commerce module.",
+            "My task was to design a system that could handle intense load without ever overselling a product.",
+            "I engineered a concurrent-safe system using a hybrid Redis and MySQL locking strategy with an automatic failover mechanism.",
+            "This approach guaranteed data integrity because I believe in architecting for graceful failure, not just optimal performance.",
+            "I once led the full-stack development of a high-traffic URL Shortener from the ground up.",
+            "I was responsible for architecting the entire system, from the database schema to a Redis-first caching strategy for the redirection engine.",
+            "This system successfully served millions of requests with minimal latency by leveraging various Redis data structures for real-time analytics without impacting the primary database.",
+            "This experience reinforced my belief in a caching-first mindset for high-traffic systems.",
+            "When disagreements arise, I believe they are an opportunity to find a better solution.",
+            "My approach is to focus the discussion on technical facts and data to find a solution that best serves the project's goals.",
+            "I respect my manager's experience, but I also advocate for data-driven decisions.",
+            "If I disagreed, I would gather the relevant data and present my case in a private, professional manner.",
+            "Ultimately, if the decision remains, I commit to it fully and work towards its success.",
+            "In five years, I aim to be leading the technical strategy for mission-critical applications.",
+            "I enjoy taking initiative, similar to when I took ownership of the project backlog and product roadmap in the absence of a dedicated product manager.",
+            "My biggest motivator is scaling my impact by creating documentation, guides, and reusable tools that multiply the effectiveness of the entire team.",
+            "For example, authoring extensive, onboarding-focused documentation and linking it directly in the codebase significantly accelerated new hire ramp-up time.",
+            "For me, documentation is a core deliverable, not an afterthought.",
+            "When debugging, I focus on systemic prevention, not just fixing the surface issue.",
+            "I once traced a recurring 404 error to a flawed manual process and implemented a database-level architectural fix that eliminated that entire class of bugs permanently.",
+            "My long-term goal is to grow into a principal engineer or technical leadership role where I can contribute to the company's long-term technical vision.",
+            "My dream job is one where I can solve complex architectural puzzles and mentor a talented team.",
+            "An environment that values robust engineering, developer autonomy, and clear business impact is ideal for me.",
+            "I believe in validating ideas before committing major engineering effort, using lightweight methods like surveys to prevent investment in low-ROI projects.",
+            "You're looking for someone with deep experience in building scalable, modular backend systems.",
+            "My work on building a reusable, modular backend platform with Hexagonal Architecture directly aligns with that need.",
+            "Beyond my technical skills, I bring a proactive, ownership-driven mindset and a deep understanding of how to connect engineering work to business value.",
+            "I am confident that I can bring significant and measurable value to your team from day one."
+          ]
+        },
+        {
+          "name": "Business & Workplace",
+          "sentences": [
+            "We need to schedule a meeting for next week.",
+            "Could you please send me the report by the end of the day?",
+            "I'd like to propose a new strategy for the upcoming quarter.",
+            "Let's touch base tomorrow morning to discuss the project's progress.",
+            "I'm afraid I have to disagree with that point.",
+            "What are your thoughts on this alternative approach?",
+            "Please find the attached document for your review.",
+            "I'll follow up with an email to summarize our discussion.",
+            "We need to stay on budget and meet the deadline.",
+            "Let's brainstorm some ideas to solve this issue."
+          ]
+        },
+        {
+          "name": "Idioms & Phrases",
+          "sentences": [
+            "That's a piece of cake.",
+            "Break a leg on your presentation!",
+            "I only see my cousin once in a blue moon.",
+            "We'll have to play it by ear since we don't know the schedule.",
+            "Don't worry, we're all in the same boat.",
+            "He hit the nail on the head with his analysis.",
+            "Let's not beat around the bush and get straight to the point.",
+            "I think we need to go back to the drawing board.",
+            "It's not rocket science, you'll figure it out.",
+            "He spilled the beans about the surprise party."
+          ]
+        },
+        {
+          "name": "Expressing Opinions",
+          "sentences": [
+            "In my opinion, we should invest more in marketing.",
+            "From my perspective, the new policy is a step in the right direction.",
+            "I strongly believe that customer feedback is crucial for growth.",
+            "As far as I'm concerned, the benefits outweigh the risks.",
+            "The way I see it, there are a couple of options we can consider.",
+            "I'm not entirely convinced that's the best course of action.",
+            "I see your point, but have you considered the long-term effects?",
+            "To be honest, I have some reservations about this plan."
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Advanced (C1-C2)",
+      "categories": [
+        {
+          "name": "Formal & Academic",
+          "sentences": [
+            "The geopolitical landscape has undergone a significant transformation in recent decades.",
+            "This particular methodology challenges the conventional wisdom on the subject.",
+            "One must meticulously consider the ethical ramifications of such a far-reaching decision.",
+            "The study's findings provide compelling evidence to support the initial hypothesis.",
+            "Notwithstanding the potential drawbacks, the proposed framework offers a novel solution.",
+            "The quintessential element of this argument lies in its economic feasibility.",
+            "Further research is required to fully elucidate the underlying mechanisms.",
+            "A comprehensive analysis reveals a dichotomy between theoretical models and empirical data."
+          ]
+        },
+        {
+          "name": "Complex Topics & Debate",
+          "sentences": [
+            "The advent of quantum computing poses an existential threat to modern cryptographic standards.",
+            "A nuanced analysis of the socio-economic factors influencing urban development is imperative for effective policymaking.",
+            "Exploring the philosophical underpinnings of artificial consciousness forces us to redefine what it means to be sentient.",
+            "The discourse surrounding climate change is often fraught with political inertia and economic apprehension.",
+            "Deregulation in the financial sector was a precipitating factor in the subsequent economic collapse.",
+            "The proliferation of misinformation on social media platforms presents a formidable challenge to democratic institutions."
+          ]
+        },
+        {
+          "name": "Persuasion & Negotiation",
+          "sentences": [
+            "While I understand your position, I'd urge you to consider the strategic advantages from a long-term perspective.",
+            "I believe we can find a mutually beneficial arrangement that addresses both of our primary concerns.",
+            "Perhaps we could explore a compromise that allows for greater flexibility on both sides.",
+            "Conceding on this minor point would enable us to make significant headway on the more critical issues.",
+            "The data overwhelmingly suggests that this course of action will yield a substantial return on investment.",
+            "I'm confident that with a collaborative approach, we can overcome these logistical hurdles."
+          ]
+        },
+        {
+          "name": "Figurative & Nuanced Language",
+          "sentences": [
+            "The CEO's speech was a masterclass in ambiguity, leaving everyone to read between the lines.",
+            "His argument, while eloquent, was built on a foundation of sand.",
+            "She has a proclivity for hyperbole, so I would take her story with a grain of salt.",
+            "The initial enthusiasm for the project eventually gave way to a pervasive sense of apathy.",
+            "He navigated the intricate political landscape with remarkable dexterity and foresight.",
+            "It was a Pyrrhic victory; they won the battle but ultimately lost the war."
+          ]
+        }
+      ]
+    }
   ]
 }

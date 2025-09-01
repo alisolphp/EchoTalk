@@ -14,6 +14,21 @@ interface Recording {
     timestamp: Date;
 }
 
+// Define the structure for the new sample data
+interface SentenceCategory {
+    name: string;
+    sentences: string[];
+}
+
+interface SentenceLevel {
+    name: string;
+    categories: SentenceCategory[];
+}
+
+interface SampleData {
+    levels: SentenceLevel[];
+}
+
 // Extend global interfaces to add custom properties
 declare global {
     interface Window {
@@ -68,10 +83,12 @@ export class EchoTalkApp {
     private currentCount: number = 0;
     private correctCount: number = 0;
     private attempts: number = 0;
-    private samples: string[] = [];
+    private samples: SampleData = { levels: [] };
     private currentPhrase: string = '';
     private isRecordingEnabled: boolean = false;
     private practiceMode: 'skip' | 'check' = 'skip';
+    private defaultLevelName: string = "Intermediate (B1-B2)";
+    private defaultCategoryName: string = "Interview";
 
     // --- Media & DB Properties ---
     private mediaRecorder: MediaRecorder | undefined;
@@ -89,10 +106,11 @@ export class EchoTalkApp {
     public async init(): Promise<void> {
         try {
             const sampleData = await this.fetchSamples();
-            this.samples = sampleData.sentences;
+            this.samples = sampleData;
             this.db = await this.initDB();
 
             this.setupRepOptions();
+            this.setupSampleOptions();
             this.loadState();
             this.bindEvents();
             // If there's no saved sentence, pick a random one from samples
@@ -104,6 +122,7 @@ export class EchoTalkApp {
             this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
             ($('#repsSelect') as JQuery<HTMLSelectElement>).val(this.reps.toString());
             this.renderSampleSentence();
+            ($('#sentenceInput') as JQuery<HTMLTextAreaElement>).val('');
 
             this.registerServiceWorker();
         } catch (error) {
@@ -142,6 +161,8 @@ export class EchoTalkApp {
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.playBotAudio(e.currentTarget));
         $('#recordingsModal').on('hidden.bs.modal', () => this.stopAllPlayback());
+        $('#levelSelect').on('change', () => this.populateCategories());
+        $('#categorySelect').on('change', () => this.useSample());
         // Hide the install button if the app is already installed
         if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
             $('#installBtn').addClass('d-none');
@@ -160,6 +181,60 @@ export class EchoTalkApp {
                 $('#installBtn').addClass('d-none');
             });
         });
+    }
+
+    private setupSampleOptions(): void {
+        const $levelSelect = $('#levelSelect');
+        $levelSelect.empty();
+
+        // Populate the level dropdown
+        this.samples.levels.forEach((level, index) => {
+            $levelSelect.append(`<option value="${index}">${level.name}</option>`);
+        });
+
+        const defaultLevelIndex = this.samples.levels.findIndex(l => l.name === this.defaultLevelName);
+
+        // Load saved level or set default
+        const savedLevelIndex = parseInt(localStorage.getItem('selectedLevelIndex') || '-1');
+        if (savedLevelIndex !== -1 && this.samples.levels[savedLevelIndex]) {
+            $levelSelect.val(savedLevelIndex.toString());
+        } else if (defaultLevelIndex !== -1) {
+            $levelSelect.val(defaultLevelIndex.toString());
+        } else {
+            $levelSelect.val('0'); // Fallback to first level
+        }
+
+        // Populate categories based on the selected level
+        this.populateCategories();
+    }
+
+    private populateCategories(): void {
+        const $levelSelect = $('#levelSelect') as JQuery<HTMLSelectElement>;
+        const $categorySelect = $('#categorySelect');
+        const selectedLevelIndex = parseInt($levelSelect.val() as string);
+
+        // Save the selected level
+        localStorage.setItem('selectedLevelIndex', selectedLevelIndex.toString());
+
+        $categorySelect.empty();
+        const categories = this.samples.levels[selectedLevelIndex].categories;
+        categories.forEach((category, index) => {
+            $categorySelect.append(`<option value="${index}">${category.name} (${category.sentences.length})</option>`);
+        });
+
+        const defaultCategoryIndex = categories.findIndex(c => c.name === this.defaultCategoryName);
+
+        // Load saved category or set default
+        const savedCategoryIndex = parseInt(localStorage.getItem('selectedCategoryIndex') || '-1');
+        if (savedCategoryIndex !== -1 && categories[savedCategoryIndex]) {
+            $categorySelect.val(savedCategoryIndex.toString());
+        } else if (defaultCategoryIndex !== -1) {
+            $categorySelect.val(defaultCategoryIndex.toString());
+        } else {
+            $categorySelect.val('0'); // Fallback to first category
+        }
+
+        this.useSample();
     }
 
     // Populates the "Reps" dropdown with specific options (1, 2, 3, 5, 10, 20)
@@ -183,6 +258,17 @@ export class EchoTalkApp {
         this.attempts = parseInt(localStorage.getItem(this.STORAGE_KEYS.attempts) || '0');
         this.isRecordingEnabled = localStorage.getItem(this.STORAGE_KEYS.recordAudio) === 'true';
         $('#recordToggle').prop('checked', this.isRecordingEnabled);
+
+        // Load saved level and category, or set defaults
+        const savedLevelIndex = localStorage.getItem('selectedLevelIndex');
+        const savedCategoryIndex = localStorage.getItem('selectedCategoryIndex');
+
+        if (savedLevelIndex) {
+            ($('#levelSelect') as JQuery<HTMLSelectElement>).val(savedLevelIndex);
+        }
+        if (savedCategoryIndex) {
+            ($('#categorySelect') as JQuery<HTMLSelectElement>).val(savedCategoryIndex);
+        }
     }
 
     private saveState(): void {
@@ -195,7 +281,7 @@ export class EchoTalkApp {
         localStorage.setItem(this.STORAGE_KEYS.attempts, this.attempts.toString());
     }
 
-    private fetchSamples(): Promise<{ sentences: string[] }> {
+    private fetchSamples(): Promise<SampleData> {
         // Fetches a list of sample sentences from a JSON file
         return $.getJSON('./data/sentences.json');
     }
@@ -508,8 +594,26 @@ export class EchoTalkApp {
     }
 
     private pickSample(): string {
-        // Selects a random sentence from the samples list
-        return this.samples[Math.floor(Math.random() * this.samples.length)] || '';
+        const savedLevelIndex = parseInt(localStorage.getItem('selectedLevelIndex') || '0');
+        const savedCategoryIndex = parseInt(localStorage.getItem('selectedCategoryIndex') || '0');
+
+        const levels = this.samples.levels;
+        if (levels.length === 0) return '';
+
+        const level = levels[savedLevelIndex];
+        if (!level) return '';
+
+        const categories = level.categories;
+        if (categories.length === 0) return '';
+
+        const category = categories[savedCategoryIndex];
+        if (!category) return '';
+
+        const sentences = category.sentences;
+        if (sentences.length === 0) return '';
+
+        // Selects a random sentence from the chosen category
+        return sentences[Math.floor(Math.random() * sentences.length)];
     }
 
     private speak(text: string, onEnd?: (() => void) | null, rate: number = 1): void {
@@ -638,6 +742,12 @@ export class EchoTalkApp {
     }
 
     private useSample(): void {
+        // Saves the selected category and level to localStorage
+        const selectedLevelIndex = ($('#levelSelect').val() as string);
+        const selectedCategoryIndex = ($('#categorySelect').val() as string);
+        localStorage.setItem('selectedLevelIndex', selectedLevelIndex);
+        localStorage.setItem('selectedCategoryIndex', selectedCategoryIndex);
+
         // Replaces the current sentence with a random sample sentence
         this.sentence = this.pickSample();
         ($('#sentenceInput') as JQuery<HTMLTextAreaElement>).val(this.sentence);
@@ -645,6 +755,7 @@ export class EchoTalkApp {
         this.currentIndex = 0;
         this.renderSampleSentence();
         this.saveState();
+        ($('#sentenceInput') as JQuery<HTMLTextAreaElement>).val('');
     }
 
     private handleSampleWordClick(element: HTMLElement): void {
