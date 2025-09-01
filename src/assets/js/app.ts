@@ -73,7 +73,8 @@ export class EchoTalkApp {
         count: 'shadow_count',
         correctCount: 'shadow_correct',
         attempts: 'shadow_attempts',
-        recordAudio: 'shadow_record_audio'
+        recordAudio: 'shadow_record_audio',
+        speechRate: 'shadow_speech_rate'
     };
     // --- State Properties ---
     private sentence: string = '';
@@ -98,6 +99,7 @@ export class EchoTalkApp {
     private readonly isMobile: boolean = /Mobi|Android/i.test(navigator.userAgent);
     private estimatedWordsPerSecond: number = 2.5;
     private phrasesSpokenCount: number = 0;
+    private speechRate: number = 1;
 
     constructor() {
         window.modalRecordings = {};
@@ -208,6 +210,29 @@ export class EchoTalkApp {
         });
         $('#categorySelect').on('change', () => this.useSample());
         $('#backHomeButton').on('click', () => this.resetWithoutReload());
+
+        $('#speechRateSelect').on('change', (e) => {
+            const val = parseFloat($(e.currentTarget).val() as string);
+            this.speechRate = isNaN(val) ? 1 : val;
+            localStorage.setItem(this.STORAGE_KEYS.speechRate, this.speechRate.toString());
+
+            // sample sentences for each rate:
+            const sampleSentences: Record<number, string> = {
+                0.6: "I’m taking my time… like a turtle on vacation.",
+                0.8: "Just strolling through the words—steady and clear.",
+                1.0: "This is my natural pace. Feels just right, doesn’t it?",
+                1.2: "Okay, I’m picking up the pace—keep up if you can!",
+                1.4: "Blink and you’ll miss it—I’m in turbo mode!"
+            };
+
+            // play sample sentence with selected rate:
+            const sentence = sampleSentences[val];
+            if (sentence) {
+                this.speak(sentence, null, val);
+            }
+        });
+
+
         // Hide the install button if the app is already installed
         if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
             $('#installBtn').addClass('d-none');
@@ -315,6 +340,11 @@ export class EchoTalkApp {
         const savedLevelIndex = localStorage.getItem('selectedLevelIndex');
         const savedCategoryIndex = localStorage.getItem('selectedCategoryIndex');
 
+        const savedRate = parseFloat(localStorage.getItem(this.STORAGE_KEYS.speechRate) || '1');
+        this.speechRate = isNaN(savedRate) ? 1 : savedRate;
+        $('#speechRateSelect').val(this.speechRate.toString());
+
+
         if (savedLevelIndex) {
             ($('#levelSelect') as JQuery<HTMLSelectElement>).val(savedLevelIndex);
         }
@@ -331,6 +361,7 @@ export class EchoTalkApp {
         localStorage.setItem(this.STORAGE_KEYS.count, this.currentCount.toString());
         localStorage.setItem(this.STORAGE_KEYS.correctCount, this.correctCount.toString());
         localStorage.setItem(this.STORAGE_KEYS.attempts, this.attempts.toString());
+        localStorage.setItem(this.STORAGE_KEYS.speechRate, this.speechRate.toString());
     }
 
     private fetchSamples(): Promise<SampleData> {
@@ -668,12 +699,12 @@ export class EchoTalkApp {
         return sentences[Math.floor(Math.random() * sentences.length)];
     }
 
-    private speak(text: string, onEnd?: (() => void) | null, rate: number = 1): void {
+    private speak(text: string, onEnd?: (() => void) | null, rate: null|number = null): void {
         // Uses the SpeechSynthesis API to speak the provided text
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'en-US';
-        u.rate = rate;
+        u.rate = typeof rate === 'number' ? rate : this.speechRate;
         if (onEnd) {
             u.onend = onEnd;
         }
@@ -700,7 +731,7 @@ export class EchoTalkApp {
         });
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
-        utterance.rate = speed;
+        utterance.rate = speed * this.speechRate;
         if (this.isMobile) {
             // For mobile, estimate word boundaries based on calculated WPM
            const delayPerWord = 900 / (this.estimatedWordsPerSecond * speed)
