@@ -17,15 +17,15 @@
             <div id="backHomeButton" class="d-none">
                 <button class="btn btn-outline-secondary">« Back Home</button>
             </div>
-            <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#quickStartModal">ⓘ Quick Start</button>
+            <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#quickStartModal"><i class="bi bi-info-circle-fill"></i> Quick Start</button>
         </div>
     </div>
 
     <div id="configArea">
         <div class="row mb-3">
             <div class="col text-center d-flex justify-content-center gap-2">
-                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#optionsModal">Options</button>
-                <button id="showRecordingsBtn" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#recordingsModal">My Records</button>
+                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#optionsModal"><i class="bi bi-sliders"></i> Options</button>
+                <button id="showRecordingsBtn" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#recordingsModal"><i class="bi bi-file-earmark-music"></i> My Records</button>
             </div>
         </div>
         <div class="mb-3">
@@ -41,7 +41,7 @@
 
         <div class="row mb-3">
             <div class="col">
-                <button id="startBtn" class="btn btn-primary d-block w-100">Start Practice</button>
+                <button id="startBtn" class="btn btn-primary d-block w-100"><i class="bi bi-rocket-takeoff-fill"></i> Start Practice</button>
             </div>
         </div>
     </div>
@@ -49,8 +49,8 @@
     <div id="practiceArea" class="d-none">
         <div class="mb-3">
             <div id="fullSentence" class="fs-5 mb-2 d-none"></div>
-            <button id="repeatBtn" style="margin-top: -0.3em;font-size: 20pt;text-shadow: 0px 0px 10px #59acf9;"
-                    class="btn pt-1 pb-2 px-2">▶</button>
+            <button id="repeatBtn" style="margin-top: -0.3em;font-size: 20pt; color:#8fc9ff; text-shadow: 0px 0px 10px #59acf9;"
+                    class="btn pt-1 pb-2 px-2"><i class="bi bi-play-fill"></i></button>
             <div id="sentence-container" class="fs-3 fw-bold mb-3 d-inline"></div>
         </div>
         <p id="instructionText">Now it’s your turn. Tap the mic icon on your keyboard and speak the word.</p>
@@ -77,11 +77,11 @@
                             <h6 class="card-title mb-3">Sample Sentence Selection</h6>
                             <div class="row">
                                 <div class="col">
-                                    <label for="levelSelect" class="form-label fw-bold">🎯 Select Level:</label>
+                                    <label for="levelSelect" class="form-label fw-bold"><i class="bi bi-bar-chart-line-fill" style="color: #39bc58;"></i> Select Level:</label>
                                     <select id="levelSelect" class="form-select"></select>
                                 </div>
                                 <div class="col">
-                                    <label for="categorySelect" class="form-label fw-bold">🗂️ Select Category:</label>
+                                    <label for="categorySelect" class="form-label fw-bold"><i class="bi bi-folder-fill" style="color: #ffcb00;"></i> Select Category:</label>
                                     <select id="categorySelect" class="form-select"></select>
                                 </div>
                             </div>
@@ -95,11 +95,11 @@
                                 <label class="form-label fw-bold">Practice Mode:</label>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="practiceMode" id="mode-skip" value="skip" checked>
-                                    <label class="form-check-label" for="mode-skip">⏭️ Skip-Only Mode (Listen and repeat yourself, then go next)</label>
+                                    <label class="form-check-label" for="mode-skip"><i class="bi bi-skip-forward-fill" style="color: #9adeff;"></i> Skip-Only Mode (Listen and repeat yourself, then go next)</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="practiceMode" id="mode-check" value="check">
-                                    <label class="form-check-label" for="mode-check">🎤 Check Mode (Use keyboard mic to check your pronunciation)</label>
+                                    <label class="form-check-label" for="mode-check"><i class="bi bi-check2-circle" style="color: #38ff00;"></i> Check Mode (Use keyboard mic to check your pronunciation)</label>
                                 </div>
                             </div>
 
@@ -121,20 +121,25 @@
 
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
-                                <label class="form-check-label" for="recordToggle"><strong>Record my voice</strong> for comparing later (completely locally)</label>
+                                <label class="form-check-label" for="recordToggle"><i class="bi bi-mic-fill" style="color: #ffb300;"></i> <strong>Record my voice</strong> for comparing later (completely locally)</label>
                             </div>
                         </div>
                     </div>
 
                     <div class="card border-danger p-0">
                         <details>
-                            <summary class="card-title text-danger p-2 m-0">Danger Zone</summary>
+                            <summary class="card-title text-danger small p-2 m-0">Danger Zone</summary>
                             <div class="card-body">
                                 <p class="card-text small text-muted">This will permanently delete all your data and recordings.</p>
                                 <button id="resetBtn" class="btn btn-danger w-100">Reset App</button>
                             </div>
                         </details>
                     </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -165,7 +170,7 @@
                     <h5>Other Features:</h5>
                     <ul>
                         <li><strong>Start From Any Word:</strong> Before starting, click any word in the full sentence to set it as your starting point.</li>
-                        <li><strong>Re-listen at Slow Speed:</strong> During practice, click the ▶ button at the beginning of the phrase to hear it again at a slower speed.</li>
+                        <li><strong>Re-listen at Slow Speed:</strong> During practice, click the <i class="bi bi-play-fill"></i> button at the beginning of the phrase to hear it again at a slower speed.</li>
                         <li><strong>Look Up Word Meanings:</strong> Click on any word in the phrase being displayed to search for its meaning on Google in a new tab.</li>
                         <li><strong>Record Your Voice:</strong> You can enable voice recording to save your attempts locally in your browser and compare them with the original audio later.</li>
                         <li><strong>Auto-Save Progress:</strong> Your settings and current progress are automatically saved, allowing you to easily continue your practice later.</li>
@@ -186,10 +191,11 @@
                 </div>
                 <div class="modal-body text-center">
                     <div class="d-grid gap-2">
-                        <button id="playWordBtn" class="btn btn-primary">Play Word Again</button>
-                        <a id="searchPronunciationLink" href="#" target="_blank" class="btn btn-outline-info">How to Pronounce</a>
-                        <a id="searchMeaningLink" href="#" target="_blank" class="btn btn-outline-light">Search Meaning</a>
-                        <a id="searchExamplesLink" href="#" target="_blank" class="btn btn-outline-secondary">Usage Examples</a>
+                        <button id="playWordBtn" class="btn btn-primary"><i class="bi bi-play-fill"></i> Play Word Again</button>
+                        <a id="searchPronunciationLink" href="#" target="_blank" class="btn btn-outline-info">How to Pronounce <i class="bi bi-box-arrow-up-right"></i></a>
+                        <a id="searchExamplesLink" href="#" target="_blank" class="btn btn-outline-warning">Usage Examples <i class="bi bi-box-arrow-up-right"></i></a>
+                        <a id="searchMeaningLink" href="#" target="_blank" class="btn btn-outline-light">Word Meaning <i class="bi bi-box-arrow-up-right"></i></a>
+                        <a id="searchSentenceMeaningLink" href="#" target="_blank" class="btn btn-outline-light">Whole Sentence Meaning <i class="bi bi-box-arrow-up-right"></i></a>
                     </div>
                 </div>
             </div>

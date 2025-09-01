@@ -1,6 +1,7 @@
 // --- Imports ---
 // Main CSS and JS files for styling and functionality
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import $ from 'jquery';
 import { Modal } from 'bootstrap';
@@ -487,7 +488,7 @@ export class EchoTalkApp {
         } else { // 'skip' mode
             $('#instructionText').text('Listen, repeat to yourself, then click "Next Step".').show();
             userInputGroup.hide();
-            $('#checkBtn').text('Next Step');
+            $('#checkBtn').html('<i class="bi bi-skip-forward-fill"></i> Next Step');
         }
     }
 
@@ -519,9 +520,11 @@ export class EchoTalkApp {
 
         // Update the links for Google search
         const encodedWord = encodeURIComponent(word);
+        const encodedSentence = encodeURIComponent(this.currentPhrase);
         $('#searchPronunciationLink').attr('href', `https://www.google.com/search?q=pronunciation:+${encodedWord}`);
         $('#searchMeaningLink').attr('href', `https://www.google.com/search?q=meaning:+${encodedWord}`);
         $('#searchExamplesLink').attr('href', `https://www.google.com/search?q=${encodedWord}+in+a+sentence`);
+        $('#searchSentenceMeaningLink').attr('href', `https://translate.google.com/?sl=en&text=${encodedSentence}`);
 
         // Handle the "Play Word" button click
         $('#playWordBtn').off('click').on('click', () => {
@@ -962,8 +965,8 @@ export class EchoTalkApp {
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <span>Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
                                     <span class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-primary play-user-audio" data-sentence="${sentence}" data-index="${index}">Play Mine</button>
-                                        <button class="btn btn-sm btn-outline-secondary play-bot-audio" data-sentence="${sentence}">Play Bot</button>
+                                        <button class="btn btn-sm btn-primary play-user-audio" data-sentence="${sentence}" data-index="${index}"><i class="bi bi-person-fill"></i> Play Mine</button>
+                                        <button class="btn btn-sm btn-outline-success play-bot-audio" data-sentence="${sentence}"><i class="bi bi-robot"></i> Play Bot</button>
                                     </span>
                                 </li>
                             `).join('')}
