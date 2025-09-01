@@ -161,7 +161,10 @@ export class EchoTalkApp {
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.playBotAudio(e.currentTarget));
         $('#recordingsModal').on('hidden.bs.modal', () => this.stopAllPlayback());
-        $('#levelSelect').on('change', () => this.populateCategories());
+        $('#levelSelect').on('change', () => {
+            this.populateCategories();
+            this.useSample();
+        });
         $('#categorySelect').on('change', () => this.useSample());
         // Hide the install button if the app is already installed
         if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
@@ -233,8 +236,6 @@ export class EchoTalkApp {
         } else {
             $categorySelect.val('0'); // Fallback to first category
         }
-
-        this.useSample();
     }
 
     // Populates the "Reps" dropdown with specific options (1, 2, 3, 5, 10, 20)

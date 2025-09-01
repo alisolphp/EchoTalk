@@ -14,7 +14,79 @@ describe('Practice Logic', () => {
     beforeEach(async () => {
         vi.useRealTimers();
         vi.spyOn($, 'getJSON').mockResolvedValue({
-            sentences: ['Practice sentence one', 'Practice sentence two'],
+            "levels": [
+                {
+                    "name": "Beginner (A1-A2)",
+                    "categories": [
+                        {
+                            "name": "Daily Conversations",
+                            "sentences": [
+                                "Hello, how are you?",
+                                "I am fine, thank you. And you?"
+                            ]
+                        },
+                        {
+                            "name": "Travel",
+                            "sentences": [
+                                "Where is the train station?",
+                                "I would like a coffee, please."
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Intermediate (B1-B2)",
+                    "categories": [
+                        {
+                            "name": "Interview",
+                            "sentences": [
+                                "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.",
+                                "I believe in aligning engineering decisions with measurable business outcomes, like revenue growth or significant cost reduction."
+                            ]
+                        },
+                        {
+                            "name": "Business & Workplace",
+                            "sentences": [
+                                "We need to schedule a meeting for next week.",
+                                "Could you please send me the report by the end of the day?"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Advanced (C1-C2)",
+                    "categories": [
+                        {
+                            "name": "Formal & Academic",
+                            "sentences": [
+                                "The geopolitical landscape has undergone a significant transformation in recent decades.",
+                                "This particular methodology challenges the conventional wisdom on the subject."
+                            ]
+                        },
+                        {
+                            "name": "Complex Topics & Debate",
+                            "sentences": [
+                                "The advent of quantum computing poses an existential threat to modern cryptographic standards.",
+                                "A nuanced analysis of the socio-economic factors influencing urban development is imperative for effective policymaking."
+                            ]
+                        },
+                        {
+                            "name": "Persuasion & Negotiation",
+                            "sentences": [
+                                "While I understand your position, I'd urge you to consider the strategic advantages from a long-term perspective.",
+                                "I believe we can find a mutually beneficial arrangement that addresses both of our primary concerns."
+                            ]
+                        },
+                        {
+                            "name": "Figurative & Nuanced Language",
+                            "sentences": [
+                                "The CEO's speech was a masterclass in ambiguity, leaving everyone to read between the lines.",
+                                "His argument, while eloquent, was built on a foundation of sand."
+                            ]
+                        }
+                    ]
+                }
+            ]
         });
         localStorage.clear();
         app = new EchoTalkApp();
@@ -36,6 +108,7 @@ describe('Practice Logic', () => {
     });
 
     it('should switch to practice view when "Start Practice" is clicked', async () => {
+        ($('#sentenceInput') as any).val('This is a test sentence');
         $('#startBtn').trigger('click');
 
         // Verify that the configuration area is hidden and the practice area is shown.
@@ -261,6 +334,7 @@ describe('Practice Logic', () => {
     });
 
     it('should call checkAnswer when the main check/skip button is clicked', async () => {
+        ($('#sentenceInput') as any).val('A test sentence.');
         // Transition to the practice view.
         $('#startBtn').trigger('click');
 

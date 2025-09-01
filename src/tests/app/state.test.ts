@@ -7,7 +7,79 @@ describe('State Management and Event Handlers', () => {
 
     beforeEach(async () => {
         vi.spyOn($, 'getJSON').mockResolvedValue({
-            sentences: ['Test sentence one', 'Test sentence two'],
+            "levels": [
+                {
+                    "name": "Beginner (A1-A2)",
+                    "categories": [
+                        {
+                            "name": "Daily Conversations",
+                            "sentences": [
+                                "Hello, how are you?",
+                                "I am fine, thank you. And you?"
+                            ]
+                        },
+                        {
+                            "name": "Travel",
+                            "sentences": [
+                                "Where is the train station?",
+                                "I would like a coffee, please."
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Intermediate (B1-B2)",
+                    "categories": [
+                        {
+                            "name": "Interview",
+                            "sentences": [
+                                "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.",
+                                "I believe in aligning engineering decisions with measurable business outcomes, like revenue growth or significant cost reduction."
+                            ]
+                        },
+                        {
+                            "name": "Business & Workplace",
+                            "sentences": [
+                                "We need to schedule a meeting for next week.",
+                                "Could you please send me the report by the end of the day?"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "Advanced (C1-C2)",
+                    "categories": [
+                        {
+                            "name": "Formal & Academic",
+                            "sentences": [
+                                "The geopolitical landscape has undergone a significant transformation in recent decades.",
+                                "This particular methodology challenges the conventional wisdom on the subject."
+                            ]
+                        },
+                        {
+                            "name": "Complex Topics & Debate",
+                            "sentences": [
+                                "The advent of quantum computing poses an existential threat to modern cryptographic standards.",
+                                "A nuanced analysis of the socio-economic factors influencing urban development is imperative for effective policymaking."
+                            ]
+                        },
+                        {
+                            "name": "Persuasion & Negotiation",
+                            "sentences": [
+                                "While I understand your position, I'd urge you to consider the strategic advantages from a long-term perspective.",
+                                "I believe we can find a mutually beneficial arrangement that addresses both of our primary concerns."
+                            ]
+                        },
+                        {
+                            "name": "Figurative & Nuanced Language",
+                            "sentences": [
+                                "The CEO's speech was a masterclass in ambiguity, leaving everyone to read between the lines.",
+                                "His argument, while eloquent, was built on a foundation of sand."
+                            ]
+                        }
+                    ]
+                }
+            ]
         });
         localStorage.clear();
         app = new EchoTalkApp();
@@ -32,9 +104,15 @@ describe('State Management and Event Handlers', () => {
         (app as any).currentIndex = 5;
 
         (app as any).useSample(); // Trigger the method to load a new sample sentence.
-        const newSentence = ($('#sentenceInput').val() as string);
-        // Verify that one of the mocked sample sentences is now in the input.
-        expect(['Test sentence one', 'Test sentence two']).toContain(newSentence);
+        const newSentence = (app as any).sentence;
+
+        // Verify that one of the mocked DEFAULT sample sentences is now in the app state.
+        const expectedSentences = [
+            "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.",
+            "I believe in aligning engineering decisions with measurable business outcomes, like revenue growth or significant cost reduction."
+        ];
+        expect(expectedSentences).toContain(newSentence);
+
         // Verify that `currentIndex` is reset to 0 and the new sentence is saved to localStorage.
         expect((app as any).currentIndex).toBe(0);
         expect(localStorage.getItem('shadow_sentence')).toBe(newSentence);
