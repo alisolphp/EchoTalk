@@ -101,9 +101,10 @@ export class EchoTalkApp {
 
     constructor() {
         window.modalRecordings = {};
+        (window as any).app = this;
     }
 
-    public async init(): Promise<void> {
+    public async init(selector: string, value: string): Promise<void> {
         try {
             const sampleData = await this.fetchSamples();
             this.samples = sampleData;
@@ -118,11 +119,11 @@ export class EchoTalkApp {
                 this.sentence = this.pickSample();
             }
 
-            ($('#sentenceInput') as JQuery<HTMLTextAreaElement>).val(this.sentence);
+            this.setInputValue(this.sentence);
             this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
             ($('#repsSelect') as JQuery<HTMLSelectElement>).val(this.reps.toString());
             this.renderSampleSentence();
-            ($('#sentenceInput') as JQuery<HTMLTextAreaElement>).val('');
+            this.setInputValue('');
 
             this.registerServiceWorker();
         } catch (error) {
@@ -130,6 +131,43 @@ export class EchoTalkApp {
             // Display an error message if initialization fails
             $('#configArea').html('<div class="alert alert-danger">Failed to initialize the application. Please refresh the page.</div>');
         }
+    }
+
+    private resetWithoutReload(): void {
+        // Stop all ongoing audio playback, including TTS.
+        this.stopAllPlayback();
+
+        // Reset all internal state properties to their initial values.
+        // We intentionally do not clear localStorage here.
+        this.sentence = '';
+        this.words = [];
+        this.reps = parseInt(localStorage.getItem(this.STORAGE_KEYS.reps) || this.reps.toString());
+        this.currentIndex = 0;
+        this.currentCount = 0;
+        this.correctCount = 0;
+        this.attempts = 0;
+        this.phrasesSpokenCount = 0;
+
+        // Reset the UI to the initial configuration state.
+        $('#practiceArea').addClass('d-none');
+        $('#configArea').removeClass('d-none');
+        $('#backHomeButton').addClass('d-none').removeClass('d-inline-block');
+        $('#feedback').html('');
+        $('#sentence-container').html('');
+        $('#fullSentence').html('').addClass('d-none');
+
+        // Reload the state from localStorage to use the previously saved sentence and settings.
+        this.loadState();
+
+        // Re-initialize the words array from the loaded sentence.
+        this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
+
+        // Update the UI with the loaded state and sentence.
+        this.setInputValue(this.sentence);
+        this.setInputValue('');
+        this.renderSampleSentence();
+
+        console.log("Application reset to saved state without reloading the page.");
     }
 
     private registerServiceWorker(): void {
@@ -166,6 +204,7 @@ export class EchoTalkApp {
             this.useSample();
         });
         $('#categorySelect').on('change', () => this.useSample());
+        $('#backHomeButton').on('click', () => this.resetWithoutReload());
         // Hide the install button if the app is already installed
         if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
             $('#installBtn').addClass('d-none');
@@ -184,6 +223,15 @@ export class EchoTalkApp {
                 $('#installBtn').addClass('d-none');
             });
         });
+    }
+
+    private setInputValue(value: string) {
+        const $el = $('#sentenceInput');
+        $el.val(value);
+        if (value.trim() !== '') {
+            $el.attr('data-val', value.trim());
+        }
+        $el.trigger('input');
     }
 
     private setupSampleOptions(): void {
@@ -553,7 +601,7 @@ export class EchoTalkApp {
         this.playSound('./sounds/victory.mp3', 2);
         setTimeout(() => this.speak(ttsMsg), 1500);
         // Show a button to restart the session
-        displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="location.reload(); return false;">${callToAction}</a>`;
+        displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="app.resetWithoutReload(); return false;">${callToAction}</a>`;
         $('#practiceArea').html(`<h2>${displayMsg}</h2>`);
         // Clear session-specific state from localStorage
         localStorage.removeItem(this.STORAGE_KEYS.index);
@@ -708,7 +756,8 @@ export class EchoTalkApp {
     private startPractice(): void {
         // Handles the start of a new practice session
         this.practiceMode = ($('input[name="practiceMode"]:checked').val() as 'skip' | 'check');
-        this.sentence = ($('#sentenceInput').val() as string).trim().replace(/([^\.\?\!\n])\n/g, '$1.\n');
+        const rawVal = $('#sentenceInput').attr('data-val');
+        this.sentence = (typeof rawVal === 'string' ? rawVal.trim() : '').replace(/([^\.\?\!\n])\n/g, '$1.\n');
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
         this.reps = parseInt(($('#repsSelect').val() as string));
         this.currentCount = 0;
@@ -739,7 +788,7 @@ export class EchoTalkApp {
             console.error("Database connection not available for reset.");
             // Fallback to original behavior if DB is not initialized
             localStorage.clear();
-            location.reload();
+            this.resetWithoutReload();
             return;
         }
 
@@ -780,12 +829,12 @@ export class EchoTalkApp {
 
         // Replaces the current sentence with a random sample sentence
         this.sentence = this.pickSample();
-        ($('#sentenceInput') as JQuery<HTMLTextAreaElement>).val(this.sentence);
+        this.setInputValue(this.sentence);
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
         this.currentIndex = 0;
         this.renderSampleSentence();
         this.saveState();
-        ($('#sentenceInput') as JQuery<HTMLTextAreaElement>).val('');
+        this.setInputValue('');
     }
 
     private handleSampleWordClick(element: HTMLElement): void {

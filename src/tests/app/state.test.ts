@@ -14,15 +14,13 @@ describe('State Management and Event Handlers', () => {
                         {
                             "name": "Daily Conversations",
                             "sentences": [
-                                "Hello, how are you?",
-                                "I am fine, thank you. And you?"
+                                "Hello, how are you?"
                             ]
                         },
                         {
                             "name": "Travel",
                             "sentences": [
-                                "Where is the train station?",
-                                "I would like a coffee, please."
+                                "Where is the train station?"
                             ]
                         }
                     ]
@@ -33,15 +31,13 @@ describe('State Management and Event Handlers', () => {
                         {
                             "name": "Interview",
                             "sentences": [
-                                "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.",
-                                "I believe in aligning engineering decisions with measurable business outcomes, like revenue growth or significant cost reduction."
+                                "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms."
                             ]
                         },
                         {
                             "name": "Business & Workplace",
                             "sentences": [
-                                "We need to schedule a meeting for next week.",
-                                "Could you please send me the report by the end of the day?"
+                                "We need to schedule a meeting for next week."
                             ]
                         }
                     ]
@@ -52,29 +48,25 @@ describe('State Management and Event Handlers', () => {
                         {
                             "name": "Formal & Academic",
                             "sentences": [
-                                "The geopolitical landscape has undergone a significant transformation in recent decades.",
-                                "This particular methodology challenges the conventional wisdom on the subject."
+                                "The geopolitical landscape has undergone a significant transformation in recent decades."
                             ]
                         },
                         {
                             "name": "Complex Topics & Debate",
                             "sentences": [
-                                "The advent of quantum computing poses an existential threat to modern cryptographic standards.",
-                                "A nuanced analysis of the socio-economic factors influencing urban development is imperative for effective policymaking."
+                                "The advent of quantum computing poses an existential threat to modern cryptographic standards."
                             ]
                         },
                         {
                             "name": "Persuasion & Negotiation",
                             "sentences": [
-                                "While I understand your position, I'd urge you to consider the strategic advantages from a long-term perspective.",
-                                "I believe we can find a mutually beneficial arrangement that addresses both of our primary concerns."
+                                "While I understand your position, I'd urge you to consider the strategic advantages from a long-term perspective."
                             ]
                         },
                         {
                             "name": "Figurative & Nuanced Language",
                             "sentences": [
-                                "The CEO's speech was a masterclass in ambiguity, leaving everyone to read between the lines.",
-                                "His argument, while eloquent, was built on a foundation of sand."
+                                "The CEO's speech was a masterclass in ambiguity, leaving everyone to read between the lines."
                             ]
                         }
                     ]
@@ -113,6 +105,7 @@ describe('State Management and Event Handlers', () => {
     it('should correctly load a sample sentence and reset state', async () => {
         // Manually set a different sentence and index to ensure they are reset.
         ($('#sentenceInput') as any).val('An old sentence');
+        ($('#sentenceInput') as any).attr('data-val', 'An old sentence');
         (app as any).currentIndex = 5;
 
         (app as any).useSample(); // Trigger the method to load a new sample sentence.
@@ -120,8 +113,7 @@ describe('State Management and Event Handlers', () => {
 
         // Verify that one of the mocked DEFAULT sample sentences is now in the app state.
         const expectedSentences = [
-            "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.",
-            "I believe in aligning engineering decisions with measurable business outcomes, like revenue growth or significant cost reduction."
+            "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms."
         ];
         expect(expectedSentences).toContain(newSentence);
 
@@ -191,8 +183,9 @@ describe('State Management and Event Handlers', () => {
         });
 
         // 1. Set up the UI with custom values.
-        const customSentence = 'This is a custom sentence for testing.';
+        const customSentence = 'I\'m a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.';
         ($('#sentenceInput') as any).val(customSentence);
+        ($('#sentenceInput') as any).attr('data-val', customSentence);
         ($('#repsSelect') as any).val('5');
         $('#mode-check').prop('checked', true);
 

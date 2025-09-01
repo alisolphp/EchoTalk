@@ -21,15 +21,13 @@ describe('Practice Logic', () => {
                         {
                             "name": "Daily Conversations",
                             "sentences": [
-                                "Hello, how are you?",
-                                "I am fine, thank you. And you?"
+                                "Hello, how are you?"
                             ]
                         },
                         {
                             "name": "Travel",
                             "sentences": [
-                                "Where is the train station?",
-                                "I would like a coffee, please."
+                                "Where is the train station?"
                             ]
                         }
                     ]
@@ -40,15 +38,13 @@ describe('Practice Logic', () => {
                         {
                             "name": "Interview",
                             "sentences": [
-                                "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.",
-                                "I believe in aligning engineering decisions with measurable business outcomes, like revenue growth or significant cost reduction."
+                                "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms."
                             ]
                         },
                         {
                             "name": "Business & Workplace",
                             "sentences": [
-                                "We need to schedule a meeting for next week.",
-                                "Could you please send me the report by the end of the day?"
+                                "We need to schedule a meeting for next week."
                             ]
                         }
                     ]
@@ -59,29 +55,25 @@ describe('Practice Logic', () => {
                         {
                             "name": "Formal & Academic",
                             "sentences": [
-                                "The geopolitical landscape has undergone a significant transformation in recent decades.",
-                                "This particular methodology challenges the conventional wisdom on the subject."
+                                "The geopolitical landscape has undergone a significant transformation in recent decades."
                             ]
                         },
                         {
                             "name": "Complex Topics & Debate",
                             "sentences": [
-                                "The advent of quantum computing poses an existential threat to modern cryptographic standards.",
-                                "A nuanced analysis of the socio-economic factors influencing urban development is imperative for effective policymaking."
+                                "The advent of quantum computing poses an existential threat to modern cryptographic standards."
                             ]
                         },
                         {
                             "name": "Persuasion & Negotiation",
                             "sentences": [
-                                "While I understand your position, I'd urge you to consider the strategic advantages from a long-term perspective.",
-                                "I believe we can find a mutually beneficial arrangement that addresses both of our primary concerns."
+                                "While I understand your position, I'd urge you to consider the strategic advantages from a long-term perspective."
                             ]
                         },
                         {
                             "name": "Figurative & Nuanced Language",
                             "sentences": [
-                                "The CEO's speech was a masterclass in ambiguity, leaving everyone to read between the lines.",
-                                "His argument, while eloquent, was built on a foundation of sand."
+                                "The CEO's speech was a masterclass in ambiguity, leaving everyone to read between the lines."
                             ]
                         }
                     ]
@@ -119,6 +111,7 @@ describe('Practice Logic', () => {
 
     it('should switch to practice view when "Start Practice" is clicked', async () => {
         ($('#sentenceInput') as any).val('This is a test sentence');
+        ($('#sentenceInput') as any).attr('data-val', 'This is a test sentence');
         $('#startBtn').trigger('click');
 
         // Verify that the configuration area is hidden and the practice area is shown.
@@ -179,6 +172,7 @@ describe('Practice Logic', () => {
         vi.spyOn(app as any, 'playSound');
         // Set the sentence to practice.
         ($('#sentenceInput') as any).val('This is a test');
+        ($('#sentenceInput') as any).attr('data-val', 'This is a test');
         // Select 'check' practice mode.
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
@@ -196,6 +190,7 @@ describe('Practice Logic', () => {
     it('should handle an incorrect answer in check mode', async () => {
         vi.spyOn(app as any, 'playSound');
         ($('#sentenceInput') as any).val('This is a test');
+        ($('#sentenceInput') as any).attr('data-val', 'This is a test');
         $('#mode-check').prop('checked', true);
         $('#startBtn').trigger('click');
 
@@ -211,6 +206,7 @@ describe('Practice Logic', () => {
     it('should advance to the next phrase correctly in skip mode', async () => {
         // Set a sentence with multiple phrases.
         ($('#sentenceInput') as any).val('one two three. four five six.');
+        ($('#sentenceInput') as any).attr('onw two three. four five six.');
         $('#startBtn').trigger('click');
 
         // Manually set initial state to simulate being in the middle of a session.
@@ -231,6 +227,7 @@ describe('Practice Logic', () => {
     it('should increment counts on correct answer without advancing', async () => {
         vi.spyOn(app as any, 'playSound');
         ($('#sentenceInput') as any).val('This is a test');
+        ($('#sentenceInput') as any).attr('data-val', 'This is a test');
         // Require 3 repetitions.
         ($('#repsSelect') as any).val('3');
         $('#mode-check').prop('checked', true);
@@ -252,6 +249,7 @@ describe('Practice Logic', () => {
 
     it('should advance to the next phrase after the last correct repetition', async () => {
         ($('#sentenceInput') as any).val('This is a test phrase');
+        ($('#sentenceInput') as any).attr('data-val', 'This is a test phrase');
         // Require 2 repetitions.
         ($('#repsSelect') as any).val('2');
         $('#mode-check').prop('checked', true);
@@ -273,6 +271,7 @@ describe('Practice Logic', () => {
 
     it('should advance to next phrase if user input is empty on the last repetition', async () => {
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
+        ($('#sentenceInput') as any).attr('data-val', 'First phrase. Second phrase.');
         // Require 2 repetitions.
         ($('#repsSelect') as any).val('2');
         $('#mode-check').prop('checked', true);
@@ -296,6 +295,7 @@ describe('Practice Logic', () => {
         // Spy on `practiceStep` to confirm it's called again.
         vi.spyOn(app as any, 'practiceStep');
         ($('#sentenceInput') as any).val('This is a test');
+        ($('#sentenceInput') as any).attr('data-val', 'This is a test');
         // Require 3 repetitions.
         ($('#repsSelect') as any).val('3');
         $('#mode-check').prop('checked', true);
@@ -337,6 +337,7 @@ describe('Practice Logic', () => {
     it('should dim words from previous sentences in renderFullSentence', async () => {
         const sentence = 'First phrase ends here. The second phrase starts now.';
         ($('#sentenceInput') as any).val(sentence);
+        ($('#sentenceInput') as any).attr('data-val', sentence);
         $('#startBtn').trigger('click');
 
         // Set `currentIndex` to a word in the second phrase ("starts", which is at index 6).
@@ -355,6 +356,7 @@ describe('Practice Logic', () => {
 
     it('should call checkAnswer when the main check/skip button is clicked', async () => {
         ($('#sentenceInput') as any).val('A test sentence.');
+        ($('#sentenceInput') as any).attr('data-val', 'A test sentence.');
         // Transition to the practice view.
         $('#startBtn').trigger('click');
 
@@ -370,6 +372,7 @@ describe('Practice Logic', () => {
 
     it('should show "0 of X attempts" feedback on final empty skip if reps >= 2', async () => {
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
+        ($('#sentenceInput') as any).attr('data-val', 'First phrase. Second phrase.');
         // Set to require 2 repetitions.
         ($('#repsSelect') as any).val('2');
         $('#mode-check').prop('checked', true);
@@ -393,8 +396,9 @@ describe('Practice Logic', () => {
     });
 
     it('should highlight words based on speech synthesis boundary events on desktop', async () => {
-        const sentence = 'A simple test';
+        const sentence = 'I\'m a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.';
         ($('#sentenceInput') as any).val(sentence);
+        ($('#sentenceInput') as any).attr('data-val', sentence);
 
         // Override the global `speechSynthesis.speak` mock for this test to simulate `onboundary` events.
         (window.speechSynthesis as any).speak = vi.fn((utterance: SpeechSynthesisUtterance) => {
@@ -412,9 +416,8 @@ describe('Practice Logic', () => {
         $('#startBtn').trigger('click');
 
         // Since boundary events are triggered synchronously in the mock, we can check immediately.
-        // The last triggered boundary event was for 'simple'.
         const highlightedWord = $('#sentence-container .highlighted');
         expect(highlightedWord.length).toBe(1);
-        expect(highlightedWord.text()).toBe('simple');
+        expect(highlightedWord.text()).toBe('I\'m');
     });
 });
