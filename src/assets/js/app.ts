@@ -203,6 +203,9 @@ export class EchoTalkApp {
             this.populateCategories();
             this.useSample();
         });
+        $('#sentenceInput').on('change', function () {
+            $(this).attr('data-val', $(this).val());
+        });
         $('#categorySelect').on('change', () => this.useSample());
         $('#backHomeButton').on('click', () => this.resetWithoutReload());
         // Hide the install button if the app is already installed
