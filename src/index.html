@@ -72,41 +72,54 @@
                 </div>
                 <div class="modal-body">
 
-                    <div class="row mb-3">
-                        <div class="col">
-                            <label for="levelSelect" class="form-label">Select Level:</label>
-                            <select id="levelSelect" class="form-select"></select>
-                        </div>
-                        <div class="col">
-                            <label for="categorySelect" class="form-label">Select Category:</label>
-                            <select id="categorySelect" class="form-select"></select>
+                    <div class="card bg-dark-subtle mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">Sample Sentence Selection</h6>
+                            <div class="row">
+                                <div class="col">
+                                    <label for="levelSelect" class="form-label">Select Level:</label>
+                                    <select id="levelSelect" class="form-select"></select>
+                                </div>
+                                <div class="col">
+                                    <label for="categorySelect" class="form-label">Select Category:</label>
+                                    <select id="categorySelect" class="form-select"></select>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label for="repsSelect" class="form-label">Repetitions:</label>
-                            <select id="repsSelect" class="form-select"></select>
+                    <div class="card bg-dark-subtle mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">Practice Configuration</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Practice Mode:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="practiceMode" id="mode-skip" value="skip" checked>
+                                    <label class="form-check-label" for="mode-skip">Skip-Only Mode (Listen and repeat yourself, then go next)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="practiceMode" id="mode-check" value="check">
+                                    <label class="form-check-label" for="mode-check">Check Mode (Use keyboard mic to check your pronunciation)</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="repsSelect" class="form-label">Repetitions:</label>
+                                <select id="repsSelect" class="form-select"></select>
+                            </div>
+
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
+                                <label class="form-check-label" for="recordToggle">Record my voice for comparing later (completely locally)</label>
+                            </div>
                         </div>
-                        <!--                        <div class="col-6 d-flex align-items-end">-->
-                                                    <button id="resetBtn" class="btn btn-outline-danger w-100 d-none">Reset App</button>
-                        <!--                        </div>-->
                     </div>
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
-                            <label class="form-check-label" for="recordToggle">Record my voice for comparing later (completely locally)</label>
-                        </div>
-                    </div>
-                    <div class="card bg-dark-subtle p-3 mb-3">
-                        <label class="form-label">Practice Mode:</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="practiceMode" id="mode-skip" value="skip" checked>
-                            <label class="form-check-label" for="mode-skip">Skip-Only Mode (Listen and repeat yourself, then go next)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="practiceMode" id="mode-check" value="check">
-                            <label class="form-check-label" for="mode-check">Check Mode (Use keyboard mic to check your pronunciation)</label>
+
+                    <div class="card border-danger">
+                        <div class="card-body">
+                            <h6 class="card-title text-danger">Danger Zone</h6>
+                            <p class="card-text small text-muted">This will permanently delete all your data and recordings.</p>
+                            <button id="resetBtn" class="btn btn-danger w-100">Reset App</button>
                         </div>
                     </div>
                 </div>

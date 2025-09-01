@@ -98,7 +98,17 @@ describe('Practice Logic', () => {
             transaction: vi.fn(() => ({
                 objectStore: () => ({
                     getAll: vi.fn(),
-                    add: vi.fn()
+                    add: vi.fn(),
+                    clear: vi.fn().mockImplementation(function() {
+                        const request: { onsuccess?: () => void } = {};
+                        // Simulate async success to allow .onsuccess handler to be called
+                        setTimeout(() => {
+                            if (request.onsuccess) {
+                                request.onsuccess();
+                            }
+                        }, 0);
+                        return request;
+                    })
                 })
             }))
         };
@@ -118,17 +128,27 @@ describe('Practice Logic', () => {
         expect((window as any).speechSynthesis.speak).toHaveBeenCalled();
     });
 
+    // Projects\EchoTalk\src\tests\app\practice.test.ts
+
     it('should cancel speech and reload page when reset is clicked', async () => {
+        vi.useFakeTimers();
+
         // Start practice to get into a state where reset is relevant.
         $('#startBtn').trigger('click');
         // Simulate clicking the reset button.
         $('#resetBtn').trigger('click');
+
+        // Manually advance timers to execute the setTimeout in the mock
+        await vi.runAllTimers();
 
         // Verify that ongoing speech is cancelled and the page is reloaded.
         expect((window as any).speechSynthesis.cancel).toHaveBeenCalled();
         expect((location as any).reload).toHaveBeenCalled();
         // Ensure that relevant practice state is cleared from localStorage.
         expect(localStorage.getItem('shadow_sentence')).toBeNull();
+
+        // It's a good practice to restore real timers
+        vi.useRealTimers();
     });
 
     it('should finish session and show final message when finishSession is invoked', async () => {

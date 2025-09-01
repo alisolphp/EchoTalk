@@ -89,7 +89,19 @@ describe('State Management and Event Handlers', () => {
             transaction: vi.fn(() => ({
                 objectStore: () => ({
                     getAll: vi.fn(),
-                    add: vi.fn()
+                    add: vi.fn(),
+                    // START: Added code to fix the test
+                    clear: vi.fn().mockImplementation(function() {
+                        const request: { onsuccess?: () => void } = {};
+                        // Simulate async success to allow .onsuccess handler to be called
+                        setTimeout(() => {
+                            if (request.onsuccess) {
+                                request.onsuccess();
+                            }
+                        }, 0);
+                        return request;
+                    })
+                    // END: Added code
                 })
             }))
         };
@@ -149,18 +161,26 @@ describe('State Management and Event Handlers', () => {
         expect(localStorage.getItem('shadow_record_audio')).toBe('false');
     });
 
-    it('should clear localStorage on resetApp', () => {
+    it('should clear localStorage on resetApp', async () => {
+        vi.useFakeTimers();
+
         // Set some dummy data in localStorage to be cleared.
         localStorage.setItem('shadow_sentence', 'A test sentence');
         localStorage.setItem('shadow_index', '5');
 
         (app as any).resetApp(); // Call the reset function.
 
+        // Manually advance timers to execute the setTimeout in the mock
+        await vi.runAllTimers();
+
         // Verify that the specific items are cleared from localStorage.
         expect(localStorage.getItem('shadow_sentence')).toBeNull();
         expect(localStorage.getItem('shadow_index')).toBeNull();
         // Also verify that `location.reload` was called to reload the page state.
         expect((location as any).reload).toHaveBeenCalled();
+
+        // It's a good practice to restore real timers
+        vi.useRealTimers();
     });
 
     it('should initialize practice state from UI values on start', () => {

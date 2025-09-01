@@ -733,8 +733,37 @@ export class EchoTalkApp {
         if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
             this.mediaRecorder.stop();
         }
-        localStorage.clear();
-        location.reload();
+
+        // Check if the database connection exists
+        if (!this.db) {
+            console.error("Database connection not available for reset.");
+            // Fallback to original behavior if DB is not initialized
+            localStorage.clear();
+            location.reload();
+            return;
+        }
+
+        // Create a transaction to clear the recordings object store
+        const transaction = this.db.transaction(['recordings'], 'readwrite');
+        const store = transaction.objectStore('recordings');
+        const clearRequest = store.clear();
+
+        // On successful clearing of the database
+        clearRequest.onsuccess = () => {
+            console.log("All recordings have been deleted from IndexedDB.");
+            // Now, clear localStorage and reload the page
+            localStorage.clear();
+            location.reload();
+        };
+
+        // If an error occurs during clearing
+        clearRequest.onerror = (event) => {
+            console.error("Error deleting recordings from IndexedDB:", (event.target as IDBRequest).error);
+            // As a fallback, still clear local storage and reload to reset settings
+            localStorage.clear();
+            location.reload();
+        };
+
     }
 
     private handleCheckOrNext(): void {
