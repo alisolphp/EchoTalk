@@ -184,7 +184,7 @@ describe('Practice Logic', () => {
 
         // Verify that the correct answer count increments and the 'correct' sound is played.
         expect((app as any).correctCount).toBe(1);
-        expect((app as any).playSound).toHaveBeenCalledWith('./sounds/correct.mp3');
+        expect((app as any).playSound).toHaveBeenCalledWith('./sounds/correct.mp3', 1, 0.6);
     });
 
     it('should handle an incorrect answer in check mode', async () => {
@@ -199,7 +199,7 @@ describe('Practice Logic', () => {
         await (app as any).checkAnswer();
 
         // Verify that the 'wrong' sound is played and appropriate feedback is shown.
-        expect((app as any).playSound).toHaveBeenCalledWith('./sounds/wrong.mp3');
+        expect((app as any).playSound).toHaveBeenCalledWith('./sounds/wrong.mp3', 1, 0.6);
         expect($('#feedback').html()).toContain('Try again!');
     });
 
@@ -244,7 +244,7 @@ describe('Practice Logic', () => {
         expect((app as any).correctCount).toBe(1);
         expect((app as any).currentCount).toBe(1);
         expect((app as any).currentIndex).toBe(0);
-        expect((app as any).playSound).toHaveBeenCalledWith('./sounds/correct.mp3');
+        expect((app as any).playSound).toHaveBeenCalledWith('./sounds/correct.mp3', 1, 0.6);
     });
 
     it('should advance to the next phrase after the last correct repetition', async () => {

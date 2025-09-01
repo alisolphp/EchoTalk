@@ -577,7 +577,7 @@ export class EchoTalkApp {
 
         if (similarity >= 0.6) {
             this.correctCount++;
-            this.playSound('./sounds/correct.mp3');
+            this.playSound('./sounds/correct.mp3', 1, 0.6);
             $('#feedback').html(`<div class="correct">Correct! (${similarityPercent}% match) - (${this.currentCount}/${this.reps})</div>`);
             if (this.currentCount >= this.reps) {
                 // Advance to the next phrase if the repetition count is met
@@ -585,7 +585,7 @@ export class EchoTalkApp {
                 this.currentCount = 0;
             }
         } else {
-            this.playSound('./sounds/wrong.mp3');
+            this.playSound('./sounds/wrong.mp3', 1, 0.6);
             $('#feedback').html(`<div class="incorrect">Try again! (${similarityPercent}% match) <br>Detected: "${answer}"</div>`);
         }
 
@@ -632,7 +632,7 @@ export class EchoTalkApp {
         const callToActions = ["Let's Start Over!", "Go Again!", "Ready for Another Round?"];
         const callToAction = callToActions[Math.floor(Math.random() * callToActions.length)];
         ttsMsg += ` ${callToAction}`;
-        this.playSound('./sounds/victory.mp3', 2);
+        this.playSound('./sounds/victory.mp3', 2, 0.6);
         setTimeout(() => this.speak(ttsMsg), 1500);
         // Show a button to restart the session
         displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="app.resetWithoutReload(); return false;">${callToAction}</a>`;
@@ -711,10 +711,11 @@ export class EchoTalkApp {
         speechSynthesis.speak(u);
     }
 
-    private playSound(src: string, speed: number = 1): void {
-        // Plays a sound from a given source
+    private playSound(src: string, speed: number = 1, volume: number = 1): void {
+        // Plays a sound from a given source with speed and volume control
         const audio = new Audio(src);
         audio.playbackRate = speed;
+        audio.volume = Math.max(0, Math.min(volume, 1)); // Clamp between 0 and 1
         audio.play();
     }
 
