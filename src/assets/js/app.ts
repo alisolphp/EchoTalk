@@ -170,6 +170,9 @@ export class EchoTalkApp {
     }
 
     private async resetWithoutReload(): Promise<void> {
+        // Stop any ongoing recording to release the microphone.
+        await this.stopRecording();
+
         // Stop all ongoing audio playback, including TTS.
         this.stopAllPlayback();
 
@@ -312,6 +315,18 @@ export class EchoTalkApp {
             }
         });
 
+        document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
+
+    }
+
+    private handleVisibilityChange(): void {
+        // When the tab becomes hidden (user switches apps or tabs), stop the recording.
+        if (document.visibilityState === 'hidden') {
+            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                console.log('Tab is hidden, stopping recording to release microphone.');
+                this.stopRecording();
+            }
+        }
     }
 
     private handleHashChange(): void {
@@ -610,6 +625,12 @@ export class EchoTalkApp {
     }
 
     private async startRecording(): Promise<void> {
+        // Ensure any existing recorder is stopped before starting a new one.
+        // This prevents leaving the microphone on if recording is restarted.
+        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+            await this.stopRecording();
+        }
+
         // Starts the audio recording process
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             $('#feedback').html('<div class="incorrect">Your browser does not support audio recording.</div>');
@@ -714,8 +735,20 @@ export class EchoTalkApp {
         const startIndex = this.getStartOfCurrentPhrase();
         const phrase = this.words.slice(startIndex, endIndex).join(' ');
         this.currentPhrase = this.removeJunkCharsFromText(phrase);
-        // Speak the phrase and optionally start recording afterwards
-        this.speakAndHighlight(phrase, this.isRecordingEnabled ? () => this.startRecording() : null, speed);
+
+        // This function that starts recording after a short delay
+        const startRecordingWithDelay = () => {
+            setTimeout(() => {
+                // Check again if recording is still enabled, in case the user changed it during the TTS playback
+                if (this.isRecordingEnabled) {
+                    this.startRecording();
+                }
+            }, 50); // 50ms delay is usually enough to prevent conflicts
+        };
+
+        // Pass the startRecordingWithDelay function as the callback
+        this.speakAndHighlight(phrase, this.isRecordingEnabled ? startRecordingWithDelay : null, speed);
+
         // Add a click event to each word to look up its meaning or other options
         $('#sentence-container').off('click', '.word').on('click', '.word', (e) => this.showWordActionsModal(e.currentTarget));
     }
