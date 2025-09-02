@@ -123,6 +123,13 @@ export class EchoTalkApp {
             this.setupRepOptions();
             this.setupSampleOptions();
             this.loadState();
+
+            const isLocalVoiceAvailable = await this.checkTTSVoice(this.lang);
+            if (!isLocalVoiceAvailable) {
+                // If no local voice is found, show a warning to the user.
+                this.showTTSWarning();
+            }
+
             this.updateLanguageUI();
             this.bindEvents();
             // If there's no saved sentence, pick a random one from samples
@@ -144,7 +151,7 @@ export class EchoTalkApp {
         }
     }
 
-    private resetWithoutReload(): void {
+    private async resetWithoutReload(): Promise<void> {
         // Stop all ongoing audio playback, including TTS.
         this.stopAllPlayback();
 
@@ -169,6 +176,12 @@ export class EchoTalkApp {
 
         // Reload the state from localStorage to use the previously saved sentence and settings.
         this.loadState();
+
+        const isLocalVoiceAvailable = await this.checkTTSVoice(this.lang);
+        if (!isLocalVoiceAvailable) {
+            // If no local voice is found, show a warning to the user.
+            this.showTTSWarning();
+        }
 
         this.updateLanguageUI();
 
@@ -312,6 +325,13 @@ export class EchoTalkApp {
             const $languageSelect = $('#languageSelect') as JQuery<HTMLSelectElement>;
             this.lang = $languageSelect.val() as string;
             this.saveState();
+
+            const isLocalVoiceAvailable = await this.checkTTSVoice(this.lang);
+            if (!isLocalVoiceAvailable) {
+                // If no local voice is found, show a warning to the user.
+                this.showTTSWarning();
+            }
+
             this.updateLanguageUI();
 
             // Step 2: Asynchronously fetch the sample sentences for the selected language.
@@ -338,6 +358,43 @@ export class EchoTalkApp {
 
     private updateLanguageGeneral() {
         this.langGeneral = this.languageMap[this.lang] || 'English'
+    }
+
+    /**
+     * Checks if a local (offline) TTS voice is available for the given language.
+     * @param {string} lang - The language code to check (e.g., 'en-US').
+     * @returns {Promise<boolean>} - A promise that resolves to true if a local voice is found, false otherwise.
+     */
+    private checkTTSVoice(lang: string): Promise<boolean> {
+        return new Promise((resolve) => {
+            const findVoice = () => {
+                const voices = speechSynthesis.getVoices();
+                // If the list is not empty, search for the voice
+                if (voices.length > 0) {
+                    const hasLocalVoice = voices.some(voice => voice.lang === lang && voice.localService);
+                    resolve(hasLocalVoice);
+                    return;
+                }
+                // If the list is empty, we might need to wait for it to populate.
+            };
+
+            // The 'voiceschanged' event fires when the list of voices is ready.
+            speechSynthesis.onvoiceschanged = () => findVoice();
+
+            // Also, try to run it immediately in case the list is already populated.
+            findVoice();
+        });
+    }
+
+    private showTTSWarning(): void {
+        // Make sure the language name in the modal is up-to-date
+        $('.current-language-general-name').text(this.langGeneral);
+
+        const modalElement = document.getElementById('ttsWarningModal');
+        if (modalElement) {
+            const modal = new Modal(modalElement);
+            modal.show();
+        }
     }
 
     private populateCategories(): void {

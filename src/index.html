@@ -154,7 +154,7 @@
         </div>
     </div>
 
-    <div id="quickStartModal" class="modal fade" tabindex="-1" aria-labelledby="quickStartModalLabel" aria-hidden="true">
+    <div class="modal fade" id="quickStartModal" tabindex="-1" aria-labelledby="quickStartModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
@@ -185,8 +185,7 @@
                         <li><strong>Auto-Save Progress:</strong> Your settings and current progress are automatically saved, allowing you to easily continue your practice later.</li>
                     </ul>
                     <hr>
-                    <p class="small text-muted">This tool works completely offline. No internet connection is required, and your privacy is protected as no data is sent to any server. Please ensure you have an
-<!--                        TODO: update it once this.lang is changed:-->
+                    <p class="small text-muted">This tool works completely offline. No internet connection is required, and your privacy is protected as no data is sent to any server. Please ensure you have the
                         <span class="current-language-general-name">English</span>
                         TTS (Text-to-Speech) engine installed on your device.</p>
                 </div>
@@ -228,6 +227,59 @@
         </div>
     </div>
 
+    <div class="modal fade" id="ttsWarningModal" tabindex="-1" aria-labelledby="ttsWarningModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ttsWarningModalLabel"><i class="bi bi-exclamation-triangle-fill text-warning"></i> TTS Engine Warning</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>It appears the Text-to-Speech (TTS) engine for <strong class="current-language-general-name">English</strong> language is not installed on your device.</p>
+                    <p>The app will still function, but it may require an internet connection to play audio, which could result in slower performance and delays.</p>
+                    <hr>
+                    <div class="mt-3">
+                        <p class="fw-bold">Recommended Solution:</p>
+                        <p>For the best offline experience, please install the required voice engine from your device's settings:</p>
+
+                        <details class="card bg-dark-subtle border-secondary mb-2">
+                            <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
+                                › On Mobile
+                            </summary>
+                            <div class="card-body pt-0">
+                                <p>Check your device's <code>Accessibility</code> or <code>Text-to-speech</code> settings.</p>
+                                <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
+                            </div>
+                        </details>
+
+                        <details class="card bg-dark-subtle border-secondary mb-2">
+                            <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
+                                › On Windows
+                            </summary>
+                            <div class="card-body pt-0">
+                                <p>Go to <code>Settings > Time & Language > Speech</code> and click "Add voices".</p>
+                                <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
+                            </div>
+                        </details>
+
+                        <details class="card bg-dark-subtle border-secondary">
+                            <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
+                                › On macOS
+                            </summary>
+                            <div class="card-body pt-0">
+                                <p>Go to <code>System Settings > Accessibility > Spoken Content</code> and select "Manage Voices...".</p>
+                                <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
+                            </div>
+                        </details>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <button id="installBtn" class="btn btn-outline-primary d-none">Install App</button>

@@ -79,7 +79,10 @@ beforeEach(async () => {
             if (typeof utterance.onend === 'function') setTimeout(() => utterance.onend(), 0);
         }),
         cancel: vi.fn(),
-        getVoices: vi.fn().mockReturnValue([]),
+        getVoices: vi.fn().mockReturnValue([
+            { name: 'Mock Voice English', lang: 'en-US', localService: true, default: true },
+            { name: 'Mock Voice Dutch', lang: 'nl-NL', localService: true, default: false }
+        ]),
     };
 
     // Prevent actual audio playback during tests
