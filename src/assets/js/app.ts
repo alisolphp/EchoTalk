@@ -124,11 +124,12 @@ export class EchoTalkApp {
             this.setupSampleOptions();
             this.loadState();
 
-            const isLocalVoiceAvailable = await this.checkTTSVoice(this.lang);
-            if (!isLocalVoiceAvailable) {
-                // If no local voice is found, show a warning to the user.
-                this.showTTSWarning();
-            }
+            // Note: Disabled temporary because it's problematic in many devices:
+            // const isLocalVoiceAvailable = await this.checkTTSVoice(this.lang);
+            // if (!isLocalVoiceAvailable) {
+            //     // If no local voice is found, show a warning to the user.
+            //     this.showTTSWarning();
+            // }
 
             this.updateLanguageUI();
             this.bindEvents();
@@ -177,11 +178,12 @@ export class EchoTalkApp {
         // Reload the state from localStorage to use the previously saved sentence and settings.
         this.loadState();
 
-        const isLocalVoiceAvailable = await this.checkTTSVoice(this.lang);
-        if (!isLocalVoiceAvailable) {
-            // If no local voice is found, show a warning to the user.
-            this.showTTSWarning();
-        }
+        // Note: Disabled temporary because it's problematic in many devices:
+        // const isLocalVoiceAvailable = await this.checkTTSVoice(this.lang);
+        // if (!isLocalVoiceAvailable) {
+        //     // If no local voice is found, show a warning to the user.
+        //     this.showTTSWarning();
+        // }
 
         this.updateLanguageUI();
 
@@ -326,11 +328,12 @@ export class EchoTalkApp {
             this.lang = $languageSelect.val() as string;
             this.saveState();
 
-            const isLocalVoiceAvailable = await this.checkTTSVoice(this.lang);
-            if (!isLocalVoiceAvailable) {
-                // If no local voice is found, show a warning to the user.
-                this.showTTSWarning();
-            }
+            // Note: Disabled temporary because it's problematic in many devices:
+            // const isLocalVoiceAvailable = await this.checkTTSVoice(this.lang);
+            // if (!isLocalVoiceAvailable) {
+            //     // If no local voice is found, show a warning to the user.
+            //     this.showTTSWarning();
+            // }
 
             this.updateLanguageUI();
 
@@ -362,27 +365,53 @@ export class EchoTalkApp {
 
     /**
      * Checks if a local (offline) TTS voice is available for the given language.
+     * This version includes a timeout to avoid false negatives on slow-loading voice lists.
      * @param {string} lang - The language code to check (e.g., 'en-US').
      * @returns {Promise<boolean>} - A promise that resolves to true if a local voice is found, false otherwise.
      */
     private checkTTSVoice(lang: string): Promise<boolean> {
         return new Promise((resolve) => {
+            let timeoutId: number | null = null;
+
             const findVoice = () => {
+                // If this function is triggered (e.g., by onvoiceschanged), clear the fallback timeout
+                // to prevent it from resolving the promise prematurely.
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+
                 const voices = speechSynthesis.getVoices();
-                // If the list is not empty, search for the voice
+
+                // If the voice list is populated, we can perform a definitive check and resolve the promise.
                 if (voices.length > 0) {
                     const hasLocalVoice = voices.some(voice => voice.lang === lang && voice.localService);
                     resolve(hasLocalVoice);
                     return;
                 }
-                // If the list is empty, we might need to wait for it to populate.
+                // If the list is still empty, we wait for the 'onvoiceschanged' event to call this function again.
             };
 
-            // The 'voiceschanged' event fires when the list of voices is ready.
+            // The 'onvoiceschanged' event fires when the list of TTS voices has been loaded and is ready.
             speechSynthesis.onvoiceschanged = () => findVoice();
 
-            // Also, try to run it immediately in case the list is already populated.
+            // Attempt an immediate check in case the voices are already available in the browser cache.
             findVoice();
+
+            // Set a fallback timeout. This handles browsers or situations where 'onvoiceschanged' may not fire reliably.
+            timeoutId = setTimeout(() => {
+                const voices = speechSynthesis.getVoices();
+                if (voices.length === 0) {
+                    // If the list is still empty after the delay, resolve with 'true' to avoid a false-negative warning.
+                    // This assumes a voice is available, preventing a poor user experience due to a race condition.
+                    console.warn('TTS voice list did not populate in time, assuming a voice is available.');
+                    resolve(true);
+                } else {
+                    // If the list populated within the timeout window, perform the final, definitive check.
+                    const hasLocalVoice = voices.some(voice => voice.lang === lang && voice.localService);
+                    resolve(hasLocalVoice);
+                }
+            }, 500);
         });
     }
 
