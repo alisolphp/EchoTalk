@@ -90,8 +90,6 @@ export class EchoTalkApp {
     private currentPhrase: string = '';
     private isRecordingEnabled: boolean = false;
     private practiceMode: 'skip' | 'check' = 'skip';
-    private defaultLevelName: string = "Intermediate (B1-B2)";
-    private defaultCategoryName: string = "Interview";
 
     // --- Media & DB Properties ---
     private mediaRecorder: MediaRecorder | undefined;
@@ -103,13 +101,27 @@ export class EchoTalkApp {
     private phrasesSpokenCount: number = 0;
     private speechRate: number = 1;
     private readonly languageMap: Record<string, string> = {
-        'en-US': 'English',
-        'nl-NL': 'Dutch'
+        'en-US': 'English (US)',
+        'da-DK': 'Danish (DK)',
+        'nl-NL': 'Dutch (NL)',
+        'fr-FR': 'French (FR)',
+        'de-DE': 'German (DE)',
+        'it-IT': 'Italian (IT)',
+        'es-ES': 'Spanish (ES)',
+        'sv-SE': 'Swedish (SE)',
+        'no-NO': 'Norwegian (NO)',
+        'tr-TR': 'Turkish (TR)'
     };
-    private lang: string = 'en-US'; // (; or 'nl-NL' for the Netherlands' Dutch Language)
-    private langGeneral: string = 'English'; // (; or 'Dutch')
+    private lang: string; // Default: First in map (e.g., 'en-US')
+    private langGeneral: string; // Default: First in map (e.g., 'English (US)')
+    private defaultLevelName: string = "Intermediate (B1-B2)";
+    private defaultCategoryName: string = "Interview";
 
     constructor() {
+        const firstLangKey = Object.keys(this.languageMap)[0];
+        this.lang = firstLangKey;
+        this.langGeneral = this.languageMap[firstLangKey];
+
         window.modalRecordings = {};
         (window as any).app = this;
     }
@@ -120,6 +132,7 @@ export class EchoTalkApp {
             this.samples = sampleData;
             this.db = await this.initDB();
 
+            this.setupLanguageOptions();
             this.setupRepOptions();
             this.setupSampleOptions();
             this.loadState();
@@ -314,6 +327,17 @@ export class EchoTalkApp {
 
         // Populate categories based on the selected level
         this.populateCategories();
+    }
+
+    private setupLanguageOptions(): void {
+        const $languageSelect = $('#languageSelect');
+        $languageSelect.empty();
+
+        for (const [code, name] of Object.entries(this.languageMap)) {
+            $languageSelect.append(`<option value="${code}">${name}</option>`);
+        }
+
+        $languageSelect.val(this.lang);
     }
 
     /**
