@@ -146,6 +146,8 @@ export class EchoTalkApp {
 
             this.updateLanguageUI();
             this.bindEvents();
+            this.displayAppVersion();
+
             // If there's no saved sentence, pick a random one from samples
             if (!this.sentence) {
                 this.sentence = this.pickSample();
@@ -1237,6 +1239,12 @@ export class EchoTalkApp {
             speechSynthesis.cancel();
         }
     }
+
+    private displayAppVersion(): void {
+        const buildDate = __APP_BUILD_DATE__;
+        $('#app-version').text(`Build: ${buildDate}`);
+    }
+
 }
 
 
@@ -1250,4 +1258,5 @@ if (import.meta.env.MODE !== 'test') {
         const app = new EchoTalkApp();
         app.init();
     });
+
 }
