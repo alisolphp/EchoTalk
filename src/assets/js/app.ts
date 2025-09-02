@@ -93,6 +93,7 @@ export class EchoTalkApp {
 
     // --- Media & DB Properties ---
     private mediaRecorder: MediaRecorder | undefined;
+    private stream: MediaStream | null = null;
     private db!: IDBDatabase;
     private currentlyPlayingAudioElement: HTMLAudioElement | null = null;
     // --- Helper Properties ---
@@ -172,6 +173,8 @@ export class EchoTalkApp {
     private async resetWithoutReload(): Promise<void> {
         // Stop any ongoing recording to release the microphone.
         await this.stopRecording();
+
+        this.terminateMicrophoneStream();
 
         // Stop all ongoing audio playback, including TTS.
         this.stopAllPlayback();
@@ -325,6 +328,7 @@ export class EchoTalkApp {
             if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
                 console.log('Tab is hidden, stopping recording to release microphone.');
                 this.stopRecording();
+                this.terminateMicrophoneStream();
             }
         }
     }
@@ -613,6 +617,62 @@ export class EchoTalkApp {
 
     // --- Audio and Recording ---
 
+    private async initializeMicrophoneStream(): Promise<void> {
+        if (!this.isRecordingEnabled || this.stream) {
+            return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            $('#feedback').html('<div class="incorrect">Your browser does not support audio recording.</div>');
+            console.error("Audio recording is not supported.");
+            return;
+        }
+
+        try {
+            const constraints: MediaStreamConstraints = {
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            };
+            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            const options = { mimeType: 'audio/ogg; codecs=opus' };
+            this.mediaRecorder = MediaRecorder.isTypeSupported(options.mimeType) ?
+                new MediaRecorder(this.stream, options) : new MediaRecorder(this.stream);
+
+            let localAudioChunks: Blob[] = [];
+
+            this.mediaRecorder.ondataavailable = event => {
+                localAudioChunks.push(event.data);
+            };
+
+            this.mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(localAudioChunks, { type: this.mediaRecorder?.mimeType });
+                if (audioBlob.size > 0) {
+                    this.saveRecording(audioBlob, this.currentPhrase);
+                }
+                localAudioChunks = [];
+            };
+
+        } catch (err) {
+            console.error('Error accessing microphone:', err);
+            $('#feedback').html('<div class="incorrect">Could not access microphone. Please grant permission.</div>');
+            this.isRecordingEnabled = false;
+            $('#recordToggle').prop('checked', false);
+        }
+    }
+
+    private terminateMicrophoneStream(): void {
+        if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+            this.stream = null;
+            this.mediaRecorder = undefined;
+            console.log("Microphone stream terminated.");
+        }
+    }
+
     private saveRecording(blob: Blob, sentenceText: string): void {
         // Saves an audio blob to the IndexedDB
         if (!this.db || blob.size === 0) return;
@@ -625,48 +685,15 @@ export class EchoTalkApp {
     }
 
     private async startRecording(): Promise<void> {
-        // Ensure any existing recorder is stopped before starting a new one.
-        // This prevents leaving the microphone on if recording is restarted.
-        if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-            await this.stopRecording();
-        }
-
-        // Starts the audio recording process
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            $('#feedback').html('<div class="incorrect">Your browser does not support audio recording.</div>');
-            return;
-        }
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            let localAudioChunks: Blob[] = [];
-            const options = { mimeType: 'audio/ogg; codecs=opus' };
-            // Check if the recommended mimeType is supported, otherwise use default
-            this.mediaRecorder = MediaRecorder.isTypeSupported(options.mimeType) ?
-                new MediaRecorder(stream, options) : new MediaRecorder(stream);
-
-            this.mediaRecorder.ondataavailable = event => localAudioChunks.push(event.data);
-            this.mediaRecorder.onstop = () => {
-                const audioBlob = new Blob(localAudioChunks, { type: this.mediaRecorder?.mimeType });
-                // Save the recording if the audio blob is not empty
-                if (audioBlob.size > 0) {
-                    this.saveRecording(audioBlob, this.currentPhrase);
-                }
-                // Stop all audio tracks to release the microphone
-                this.mediaRecorder?.stream.getTracks().forEach(track => track.stop());
-            };
+        if (this.mediaRecorder && this.mediaRecorder.state === 'inactive') {
             this.mediaRecorder.start();
             $('#feedback').html('<div class="recording-indicator">Recording... <span class="dot"></span></div>');
-        } catch (err) {
-            console.error('Error accessing microphone:', err);
-            $('#feedback').html('<div class="incorrect">Could not access microphone. Please grant permission.</div>');
         }
     }
 
     private stopRecording(): Promise<void> {
-        // Stops the current audio recording
         return new Promise(resolve => {
             if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-                // Wait for the 'stop' event to ensure all data is collected
                 this.mediaRecorder.addEventListener('stop', () => resolve(), { once: true });
                 this.mediaRecorder.stop();
             } else {
@@ -736,18 +763,29 @@ export class EchoTalkApp {
         const phrase = this.words.slice(startIndex, endIndex).join(' ');
         this.currentPhrase = this.removeJunkCharsFromText(phrase);
 
-        // This function that starts recording after a short delay
-        const startRecordingWithDelay = () => {
-            setTimeout(() => {
-                // Check again if recording is still enabled, in case the user changed it during the TTS playback
-                if (this.isRecordingEnabled) {
+        if (this.isRecordingEnabled) {
+            const listeningMessages = [
+                'Listen closely... 👂',
+                'Hear that? Get ready!',
+                'Tuning in...',
+                'Ears open! 🎧',
+                'Absorb the sound...'
+            ];
+            const randomMessage = listeningMessages[Math.floor(Math.random() * listeningMessages.length)];
+            $('#feedback').html(`<div class="listening-indicator">${randomMessage}</div>`);
+        } else {
+            $('#feedback').html('');
+        }
+
+        const startRecordingCallback = () => {
+            if (this.isRecordingEnabled) {
+                setTimeout(() => {
                     this.startRecording();
-                }
-            }, 50); // 50ms delay is usually enough to prevent conflicts
+                }, 50);
+            }
         };
 
-        // Pass the startRecordingWithDelay function as the callback
-        this.speakAndHighlight(phrase, this.isRecordingEnabled ? startRecordingWithDelay : null, speed);
+        this.speakAndHighlight(phrase, this.isRecordingEnabled ? startRecordingCallback : null, speed);
 
         // Add a click event to each word to look up its meaning or other options
         $('#sentence-container').off('click', '.word').on('click', '.word', (e) => this.showWordActionsModal(e.currentTarget));
@@ -801,10 +839,14 @@ export class EchoTalkApp {
         if (answer === "") {
             // Handle cases where the user just presses enter without speaking
             if (this.currentCount >= this.reps) {
-                if(this.reps >= 2){
-                    $('#feedback').html(`<div class="correct">(0 of ${this.reps} attempts)</div>`);
+                if (this.practiceMode === 'check') {
+                    if (this.reps >= 2) {
+                        $('#feedback').html(`<div class="correct">(0 of ${this.reps} attempts)</div>`);
+                    }
+                    setTimeout(() => this.advanceToNextPhrase(), 1200); // Delay only in check mode
+                } else {
+                    this.advanceToNextPhrase(); // Instant in skip mode
                 }
-                this.advanceToNextPhrase();
             } else {
                 if(this.reps >= 2) {
                     $('#feedback').html(`<div class="correct">(${this.currentCount} of ${this.reps} attempts)</div>`);
@@ -863,6 +905,8 @@ export class EchoTalkApp {
     }
 
     private finishSession(): void {
+        this.terminateMicrophoneStream();
+
         // Displays a celebratory message and ends the practice session
         const messages = ["You nailed it!", "That was sharp!", "Boom!", "Bravo!", "That was smooth!", "Great shadowing!", "You crushed it!", "Smart move!", "Echo mastered.", "That was fire!"];
         const emojis = ["🔥", "🎯", "💪", "🎉", "🚀", "👏", "🌟", "🧠", "🎧", "💥"];
@@ -1033,7 +1077,7 @@ export class EchoTalkApp {
 
     // --- Event Handler Implementations ---
 
-    private startPractice(): void {
+    private async startPractice(): Promise<void> {
         // Handles the start of a new practice session
         this.practiceMode = ($('input[name="practiceMode"]:checked').val() as 'skip' | 'check');
         const rawVal = $('#sentenceInput').attr('data-val');
@@ -1051,6 +1095,7 @@ export class EchoTalkApp {
         $('#backHomeButton').removeClass('d-none');
         $('#backHomeButton').addClass('d-inline-block');
 
+        await this.initializeMicrophoneStream();
         this.setupPracticeUI();
         this.renderFullSentence();
         this.practiceStep();
@@ -1061,9 +1106,7 @@ export class EchoTalkApp {
     private resetApp(): void {
         // Resets the entire application to its initial state
         speechSynthesis.cancel();
-        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
-            this.mediaRecorder.stop();
-        }
+        this.terminateMicrophoneStream();
 
         // Check if the database connection exists
         if (!this.db) {

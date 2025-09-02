@@ -112,7 +112,7 @@ describe('Practice Logic', () => {
     it('should switch to practice view when "Start Practice" is clicked', async () => {
         ($('#sentenceInput') as any).val('This is a test sentence');
         ($('#sentenceInput') as any).attr('data-val', 'This is a test sentence');
-        $('#startBtn').trigger('click');
+        await (app as any).startPractice();
 
         // Verify that the configuration area is hidden and the practice area is shown.
         expect($('#configArea').hasClass('d-none')).toBe(true);
@@ -188,19 +188,22 @@ describe('Practice Logic', () => {
     });
 
     it('should handle an incorrect answer in check mode', async () => {
+        vi.useFakeTimers();
         vi.spyOn(app as any, 'playSound');
+
         ($('#sentenceInput') as any).val('This is a test');
         ($('#sentenceInput') as any).attr('data-val', 'This is a test');
         $('#mode-check').prop('checked', true);
-        $('#startBtn').trigger('click');
 
-        // Simulate user typing an incorrect answer.
+        await (app as any).startPractice();
+
         ($('#userInput') as any).val('Wrong words');
         await (app as any).checkAnswer();
 
-        // Verify that the 'wrong' sound is played and appropriate feedback is shown.
         expect((app as any).playSound).toHaveBeenCalledWith('./sounds/wrong.mp3', 1, 0.6);
         expect($('#feedback').html()).toContain('Try again!');
+
+        vi.useRealTimers();
     });
 
     it('should advance to the next phrase correctly in skip mode', async () => {
@@ -270,25 +273,27 @@ describe('Practice Logic', () => {
     });
 
     it('should advance to next phrase if user input is empty on the last repetition', async () => {
+        vi.useFakeTimers();
+
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
         ($('#sentenceInput') as any).attr('data-val', 'First phrase. Second phrase.');
-        // Require 2 repetitions.
         ($('#repsSelect') as any).val('2');
         $('#mode-check').prop('checked', true);
-        $('#startBtn').trigger('click');
 
-        // Set state to be on the last repetition for the first phrase.
+        await (app as any).startPractice();
+
         (app as any).currentCount = 1;
         (app as any).currentIndex = 0;
 
-        // Simulate empty input, which acts as a "skip" for the current phrase.
         ($('#userInput') as any).val('');
         await (app as any).checkAnswer();
 
-        // Verify that the `currentIndex` advances to the start of the second phrase (index 2 for "Second").
+        await vi.runAllTimers();
+
         expect((app as any).currentIndex).toBe(2);
-        // Verify that the repetition count is reset.
         expect((app as any).currentCount).toBe(0);
+
+        vi.useRealTimers();
     });
 
     it('should repeat the phrase on empty answer if repetitions are not complete', async () => {
@@ -371,28 +376,29 @@ describe('Practice Logic', () => {
     });
 
     it('should show "0 of X attempts" feedback on final empty skip if reps >= 2', async () => {
+        vi.useFakeTimers();
+
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
         ($('#sentenceInput') as any).attr('data-val', 'First phrase. Second phrase.');
-        // Set to require 2 repetitions.
         ($('#repsSelect') as any).val('2');
         $('#mode-check').prop('checked', true);
-        $('#startBtn').trigger('click');
 
-        // Manually set state to be on the last repetition for the current phrase.
+        await (app as any).startPractice();
+
         (app as any).currentCount = 1;
         (app as any).currentIndex = 0;
 
-        // Spy on `advanceToNextPhrase` to confirm it's called.
         const advanceSpy = vi.spyOn(app as any, 'advanceToNextPhrase');
 
-        // Simulate an empty user input (a skip).
         ($('#userInput') as any).val('');
         await (app as any).checkAnswer();
 
-        // Verify that the feedback message includes the special "0 of 2 attempts" text.
         expect($('#feedback').html()).toContain('(0 of 2 attempts)');
-        // Confirm that the app advances to the next phrase.
+
+        await vi.runAllTimers();
+
         expect(advanceSpy).toHaveBeenCalled();
+        vi.useRealTimers();
     });
 
     it('should highlight words based on speech synthesis boundary events on desktop', async () => {
@@ -413,7 +419,7 @@ describe('Practice Logic', () => {
         });
 
         // This action initiates `speakAndHighlight`.
-        $('#startBtn').trigger('click');
+        await (app as any).startPractice();
 
         // Since boundary events are triggered synchronously in the mock, we can check immediately.
         const highlightedWord = $('#sentence-container .highlighted');

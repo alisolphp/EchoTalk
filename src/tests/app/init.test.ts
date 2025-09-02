@@ -129,7 +129,7 @@ describe('Initialization', () => {
         ($('#repsSelect') as any).val('3');
 
         // Trigger the 'start' button click, which should internally call the save state logic.
-        $('#startBtn').trigger('click');
+        await (app as any).startPractice();
 
         // Verify that the new state is persisted in localStorage.
         expect(localStorage.getItem('shadow_sentence')).toBe('New test sentence');
