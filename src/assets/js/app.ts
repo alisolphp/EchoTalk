@@ -158,6 +158,8 @@ export class EchoTalkApp {
             this.setInputValue('');
 
             this.registerServiceWorker();
+
+            this.handleHashChange();
         } catch (error) {
             console.error("Initialization failed:", error);
             // Display an error message if initialization fails
@@ -251,7 +253,7 @@ export class EchoTalkApp {
             $(this).attr('data-val', $(this).val());
         });
         $('#categorySelect').on('change', () => this.useSample());
-        $('#backHomeButton').on('click', () => this.resetWithoutReload());
+        $('#backHomeButton').on('click', () => history.back());
 
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
@@ -293,6 +295,46 @@ export class EchoTalkApp {
                 $('#installBtn').addClass('d-none');
             });
         });
+
+        window.addEventListener('hashchange', () => this.handleHashChange());
+
+        document.addEventListener('show.bs.modal', () => {
+            if (window.location.hash !== '#modal') {
+                window.location.hash = 'modal';
+            }
+        });
+
+        document.addEventListener('hidden.bs.modal', () => {
+            if (window.location.hash === '#modal') {
+                history.back();
+            }
+        });
+
+    }
+
+    private handleHashChange(): void {
+        const hash = window.location.hash;
+        const openModal = document.querySelector('.modal.show') as HTMLElement;
+        const isPracticeVisible = !$('#practiceArea').hasClass('d-none');
+
+        if (hash !== '#modal' && openModal) {
+            const modalInstance = Modal.getInstance(openModal);
+            if (modalInstance) {
+                openModal.addEventListener('hidden.bs.modal', () => {
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }, { once: true });
+                modalInstance.hide();
+            }
+        }
+        else if (hash !== '#practice' && isPracticeVisible && hash !== '#modal') {
+            this.resetWithoutReload();
+        }
     }
 
     private setInputValue(value: string) {
@@ -977,6 +1019,8 @@ export class EchoTalkApp {
         this.setupPracticeUI();
         this.renderFullSentence();
         this.practiceStep();
+
+        location.hash = 'practice';
     }
 
     private resetApp(): void {
