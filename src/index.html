@@ -74,7 +74,16 @@
 
                     <div class="card bg-dark-subtle mb-3">
                         <div class="card-body">
-                            <h6 class="card-title mb-3">Sample Sentence Selection</h6>
+                            <h6 class="card-title mb-3">Select Content to Practice</h6>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="languageSelect" class="form-label fw-bold"><i class="bi bi-translate" style="color: #677fff;"></i> Select Language:</label>
+                                    <select id="languageSelect" class="form-select">
+                                        <option value="en-US">English (en-US)</option>
+                                        <option value="nl-NL">Dutch (nl-NL)</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="row">
                                 <div class="col">
                                     <label for="levelSelect" class="form-label fw-bold"><i class="bi bi-bar-chart-line-fill" style="color: #39bc58;"></i> Select Level:</label>
@@ -176,7 +185,10 @@
                         <li><strong>Auto-Save Progress:</strong> Your settings and current progress are automatically saved, allowing you to easily continue your practice later.</li>
                     </ul>
                     <hr>
-                    <p class="small text-muted">This tool works completely offline. No internet connection is required, and your privacy is protected as no data is sent to any server. Please ensure you have an English TTS (Text-to-Speech) engine installed on your device.</p>
+                    <p class="small text-muted">This tool works completely offline. No internet connection is required, and your privacy is protected as no data is sent to any server. Please ensure you have an
+<!--                        TODO: update it once this.lang is changed:-->
+                        <span class="current-language-general-name">English</span>
+                        TTS (Text-to-Speech) engine installed on your device.</p>
                 </div>
             </div>
         </div>

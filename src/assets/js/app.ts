@@ -75,7 +75,8 @@ export class EchoTalkApp {
         correctCount: 'shadow_correct',
         attempts: 'shadow_attempts',
         recordAudio: 'shadow_record_audio',
-        speechRate: 'shadow_speech_rate'
+        speechRate: 'shadow_speech_rate',
+        lang: 'shadow_language'
     };
     // --- State Properties ---
     private sentence: string = '';
@@ -101,6 +102,12 @@ export class EchoTalkApp {
     private estimatedWordsPerSecond: number = 2.5;
     private phrasesSpokenCount: number = 0;
     private speechRate: number = 1;
+    private readonly languageMap: Record<string, string> = {
+        'en-US': 'English',
+        'nl-NL': 'Dutch'
+    };
+    private lang: string = 'en-US'; // (; or 'nl-NL' for the Netherlands' Dutch Language)
+    private langGeneral: string = 'English'; // (; or 'Dutch')
 
     constructor() {
         window.modalRecordings = {};
@@ -116,6 +123,7 @@ export class EchoTalkApp {
             this.setupRepOptions();
             this.setupSampleOptions();
             this.loadState();
+            this.updateLanguageUI();
             this.bindEvents();
             // If there's no saved sentence, pick a random one from samples
             if (!this.sentence) {
@@ -162,6 +170,8 @@ export class EchoTalkApp {
         // Reload the state from localStorage to use the previously saved sentence and settings.
         this.loadState();
 
+        this.updateLanguageUI();
+
         // Re-initialize the words array from the loaded sentence.
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
 
@@ -202,6 +212,9 @@ export class EchoTalkApp {
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.playBotAudio(e.currentTarget));
         $('#recordingsModal').on('hidden.bs.modal', () => this.stopAllPlayback());
+        $('#languageSelect').on('change', () => {
+            this.handleLanguageChange();
+        });
         $('#levelSelect').on('change', () => {
             this.populateCategories();
             this.useSample();
@@ -288,6 +301,45 @@ export class EchoTalkApp {
         this.populateCategories();
     }
 
+    /**
+     * Handles the entire process of switching the application's practice language.
+     * This is triggered when the user selects a new language from the dropdown in the options modal.
+     * The process involves fetching new data, updating the UI, and loading a new sample sentence.
+     */
+    private async handleLanguageChange(): Promise<void> {
+        try {
+            // Step 1: Get the newly selected language, save it to the state, and update the UI.
+            const $languageSelect = $('#languageSelect') as JQuery<HTMLSelectElement>;
+            this.lang = $languageSelect.val() as string;
+            this.saveState();
+            this.updateLanguageUI();
+
+            // Step 2: Asynchronously fetch the sample sentences for the selected language.
+            // This replaces the existing `this.samples` with the new content (e.g., from 'sentences-nl-NL.json').
+            this.samples = await this.fetchSamples();
+
+            // Step 3: Re-populate the level and category dropdowns based on the newly fetched data.
+            this.setupSampleOptions();
+
+            // Step 4: Pick and display a new random sample sentence to immediately reflect the language change.
+            this.useSample();
+
+        } catch (error) {
+            console.error("Failed to load new language data:", error);
+            // In case of a network or file error, display a user-friendly message.
+            $('#configArea').html('<div class="alert alert-danger">Failed to load language data. Please refresh the page.</div>');
+        }
+    }
+
+    private updateLanguageUI() {
+        this.updateLanguageGeneral();
+        $('.current-language-general-name').text(this.langGeneral);
+    }
+
+    private updateLanguageGeneral() {
+        this.langGeneral = this.languageMap[this.lang] || 'English'
+    }
+
     private populateCategories(): void {
         const $levelSelect = $('#levelSelect') as JQuery<HTMLSelectElement>;
         const $categorySelect = $('#categorySelect');
@@ -336,6 +388,8 @@ export class EchoTalkApp {
         this.attempts = parseInt(localStorage.getItem(this.STORAGE_KEYS.attempts) || '0');
         this.isRecordingEnabled = localStorage.getItem(this.STORAGE_KEYS.recordAudio) === 'true';
         $('#recordToggle').prop('checked', this.isRecordingEnabled);
+        this.lang = localStorage.getItem(this.STORAGE_KEYS.lang) || 'en-US';
+        ($('#languageSelect') as JQuery<HTMLSelectElement>).val(this.lang);
 
         // Load saved level and category, or set defaults
         const savedLevelIndex = localStorage.getItem('selectedLevelIndex');
@@ -363,11 +417,12 @@ export class EchoTalkApp {
         localStorage.setItem(this.STORAGE_KEYS.correctCount, this.correctCount.toString());
         localStorage.setItem(this.STORAGE_KEYS.attempts, this.attempts.toString());
         localStorage.setItem(this.STORAGE_KEYS.speechRate, this.speechRate.toString());
+        localStorage.setItem(this.STORAGE_KEYS.lang, this.lang.toString());
     }
 
     private fetchSamples(): Promise<SampleData> {
         // Fetches a list of sample sentences from a JSON file
-        return $.getJSON('./data/sentences.json');
+        return $.getJSON(`./data/sentences/sentences-${this.lang}.json`);
     }
 
     private initDB(): Promise<IDBDatabase> {
@@ -524,7 +579,7 @@ export class EchoTalkApp {
         $('#searchPronunciationLink').attr('href', `https://www.google.com/search?q=pronunciation:+${encodedWord}`);
         $('#searchMeaningLink').attr('href', `https://www.google.com/search?q=meaning:+${encodedWord}`);
         $('#searchExamplesLink').attr('href', `https://www.google.com/search?q=${encodedWord}+in+a+sentence`);
-        $('#searchSentenceMeaningLink').attr('href', `https://translate.google.com/?sl=en&text=${encodedSentence}`);
+        $('#searchSentenceMeaningLink').attr('href', `https://translate.google.com/?sl=auto&text=${encodedSentence}`);
 
         // Handle the "Play Word" button click
         $('#playWordBtn').off('click').on('click', () => {
@@ -706,7 +761,7 @@ export class EchoTalkApp {
         // Uses the SpeechSynthesis API to speak the provided text
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US';
+        u.lang = this.lang;
         u.rate = typeof rate === 'number' ? rate : this.speechRate;
         if (onEnd) {
             u.onend = onEnd;
@@ -734,7 +789,7 @@ export class EchoTalkApp {
             if(index < wordSpans.length - 1) container.append(' ');
         });
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
+        utterance.lang = this.lang;
         utterance.rate = speed * this.speechRate;
         if (this.isMobile) {
             // For mobile, estimate word boundaries based on calculated WPM
