@@ -992,7 +992,6 @@ export class EchoTalkApp {
 
     private finishSession(): void {
         this.terminateMicrophoneStream();
-
         // Displays a celebratory message and ends the practice session
         const messages = ["You nailed it!", "That was sharp!", "Boom!", "Bravo!", "That was smooth!", "Great shadowing!", "You crushed it!", "Smart move!", "Echo mastered.", "That was fire!"];
         const emojis = ["🔥", "🎯", "💪", "🎉", "🚀", "👏", "🌟", "🧠", "🎧", "💥"];
@@ -1000,7 +999,8 @@ export class EchoTalkApp {
         const emoji = emojis[Math.floor(Math.random() * emojis.length)];
         let displayMsg = `${emoji} ${ttsMsg}`;
         if (this.practiceMode === 'check') {
-            const accuracy = this.attempts ? Math.round((this.correctCount / this.attempts) * 100) : 100;
+            const accuracy = this.attempts ?
+                Math.round((this.correctCount / this.attempts) * 100) : 100;
             displayMsg += ` Your accuracy: ${accuracy}%.`;
             ttsMsg += ` Your accuracy: ${accuracy}%.`;
         }
@@ -1011,14 +1011,17 @@ export class EchoTalkApp {
         setTimeout(() => this.speak(ttsMsg), 1500);
         // Show a button to restart the session
         displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="app.resetWithoutReload(); return false;">${callToAction}</a>`;
-        $('#practiceArea').html(`<h2>${displayMsg}</h2>`);
+
+        // Hide the practice UI and show the completion message
+        $('#practice-ui-container').addClass('d-none');
+        $('#session-complete-container').html(`<h2>${displayMsg}</h2>`).removeClass('d-none');
+
         // Clear session-specific state from localStorage
         localStorage.removeItem(this.STORAGE_KEYS.index);
         localStorage.removeItem(this.STORAGE_KEYS.count);
         localStorage.removeItem(this.STORAGE_KEYS.correctCount);
         localStorage.removeItem(this.STORAGE_KEYS.attempts);
-
-        // Hide the full sentence and back home button
+        // Hide the back home button
         $('#backHomeButton').addClass('d-none');
         $('#backHomeButton').removeClass('d-inline-block');
     }
@@ -1174,6 +1177,11 @@ export class EchoTalkApp {
         this.correctCount = 0;
         this.attempts = 0;
         this.saveState();
+
+        // Reset UI visibility before showing the practice area
+        $('#session-complete-container').addClass('d-none').empty();
+        $('#practice-ui-container').removeClass('d-none');
+
         $('#configArea').addClass('d-none');
         $('#practiceArea').removeClass('d-none');
 

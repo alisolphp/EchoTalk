@@ -47,26 +47,29 @@
     </div>
 
     <div id="practiceArea" class="d-none">
-        <div class="mb-3">
-            <div id="fullSentence" class="fs-5 mb-2 d-none"></div>
-            <button id="repeatBtn" style="margin-top: -0.3em;font-size: 20pt; color:#8fc9ff; text-shadow: 0px 0px 10px #59acf9;"
-                    class="btn pt-1 pb-2 px-2"><i class="bi bi-play-fill"></i></button>
-            <div id="sentence-container" class="fs-3 fw-bold mb-3 d-inline"></div>
+        <div id="practice-ui-container">
+            <div class="mb-3">
+                <div id="fullSentence" class="fs-5 mb-2 d-none"></div>
+                <button id="repeatBtn" style="margin-top: -0.3em;font-size: 20pt; color:#8fc9ff; text-shadow: 0px 0px 10px #59acf9;"
+                        class="btn pt-1 pb-2 px-2"><i class="bi bi-play-fill"></i></button>
+                <div id="sentence-container" class="fs-3 fw-bold mb-3 d-inline"></div>
+            </div>
+            <p id="instructionText">Now it’s your turn. Tap the mic icon on your keyboard and speak the word.</p>
+            <div class="input-group mb-3">
+                <input type="text" id="userInput" class="form-control" placeholder="Tap keyboard mic">
+            </div>
+            <div>
+                <button id="checkBtn" class="btn btn-success d-block w-100 py-3">Check/Skip</button>
+            </div>
+            <div class="visualizer-container">
+                <img src="images/sound-wave-animation.webp" id="soundWaveVisualizer" alt="Sound Wave Animation">
+            </div>
+            <div id="feedback" class="mb-3" style="min-height: 60px;">
+                <canvas id="audio-visualizer" class="d-none" height="50"></canvas>
+                <div id="feedback-text" class="fs-5"></div>
+            </div>
         </div>
-        <p id="instructionText">Now it’s your turn. Tap the mic icon on your keyboard and speak the word.</p>
-        <div class="input-group mb-3">
-            <input type="text" id="userInput" class="form-control" placeholder="Tap keyboard mic">
-        </div>
-        <div>
-            <button id="checkBtn" class="btn btn-success d-block w-100 py-3">Check/Skip</button>
-        </div>
-        <div class="visualizer-container">
-            <img src="images/sound-wave-animation.webp" id="soundWaveVisualizer" alt="Sound Wave Animation">
-        </div>
-        <div id="feedback" class="mb-3" style="min-height: 60px;">
-            <canvas id="audio-visualizer" class="d-none" height="50"></canvas>
-            <div id="feedback-text" class="fs-5"></div>
-        </div>
+        <div id="session-complete-container" class="d-none"></div>
     </div>
 
     <div id="optionsModal" class="modal fade" tabindex="-1" aria-labelledby="optionsModalLabel" aria-hidden="true">
