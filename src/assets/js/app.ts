@@ -96,6 +96,13 @@ export class EchoTalkApp {
     private stream: MediaStream | null = null;
     private db!: IDBDatabase;
     private currentlyPlayingAudioElement: HTMLAudioElement | null = null;
+
+    // --- Audio Visualization Properties ---
+    private audioContext: AudioContext | null = null;
+    private analyser: AnalyserNode | null = null;
+    private visualizerFrameId: number | null = null;
+    private visualizerActive: boolean = false;
+
     // --- Helper Properties ---
     private readonly isMobile: boolean = /Mobi|Android/i.test(navigator.userAgent);
     private estimatedWordsPerSecond: number = 2.5;
@@ -194,7 +201,7 @@ export class EchoTalkApp {
         $('#practiceArea').addClass('d-none');
         $('#configArea').removeClass('d-none');
         $('#backHomeButton').addClass('d-none').removeClass('d-inline-block');
-        $('#feedback').html('');
+        $('#feedback-text').html('');
         $('#sentence-container').html('');
         $('#fullSentence').html('').addClass('d-none');
 
@@ -623,7 +630,7 @@ export class EchoTalkApp {
         }
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            $('#feedback').html('<div class="incorrect">Your browser does not support audio recording.</div>');
+            $('#feedback-text').html('<div class="incorrect">Your browser does not support audio recording.</div>');
             console.error("Audio recording is not supported.");
             return;
         }
@@ -633,17 +640,25 @@ export class EchoTalkApp {
                 audio: {
                     echoCancellation: false,
                     noiseSuppression: true,
+
                     autoGainControl: true
                 }
             };
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            // --- Setup for audio visualization ---
+            this.audioContext = new AudioContext();
+            const source = this.audioContext.createMediaStreamSource(this.stream);
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.fftSize = 256;
+            source.connect(this.analyser);
+            // We don't connect analyser to destination to avoid feedback
 
             const options = { mimeType: 'audio/ogg; codecs=opus' };
             this.mediaRecorder = MediaRecorder.isTypeSupported(options.mimeType) ?
                 new MediaRecorder(this.stream, options) : new MediaRecorder(this.stream);
 
             let localAudioChunks: Blob[] = [];
-
             this.mediaRecorder.ondataavailable = event => {
                 localAudioChunks.push(event.data);
             };
@@ -655,10 +670,9 @@ export class EchoTalkApp {
                 }
                 localAudioChunks = [];
             };
-
         } catch (err) {
             console.error('Error accessing microphone:', err);
-            $('#feedback').html('<div class="incorrect">Could not access microphone. Please grant permission.</div>');
+            $('#feedback-text').html('<div class="incorrect">Could not access microphone. Please grant permission.</div>');
             this.isRecordingEnabled = false;
             $('#recordToggle').prop('checked', false);
         }
@@ -669,6 +683,17 @@ export class EchoTalkApp {
             this.stream.getTracks().forEach(track => track.stop());
             this.stream = null;
             this.mediaRecorder = undefined;
+
+            // Stop animation and close AudioContext
+            if (this.visualizerFrameId) {
+                cancelAnimationFrame(this.visualizerFrameId);
+                this.visualizerFrameId = null;
+            }
+            if (this.audioContext && this.audioContext.state !== 'closed') {
+                this.audioContext.close();
+                this.audioContext = null;
+            }
+
             console.log("Microphone stream terminated.");
         }
     }
@@ -687,11 +712,29 @@ export class EchoTalkApp {
     private async startRecording(): Promise<void> {
         if (this.mediaRecorder && this.mediaRecorder.state === 'inactive') {
             this.mediaRecorder.start();
-            $('#feedback').html('<div class="recording-indicator">Recording... <span class="dot"></span></div>');
+            $('#feedback-text').html('Speak aloud...').addClass('recording-text-indicator');
+            this.monitorAudioLevel();
         }
     }
 
     private stopRecording(): Promise<void> {
+        // Stop the visualizer animation loop
+        if (this.visualizerFrameId) {
+            cancelAnimationFrame(this.visualizerFrameId);
+            this.visualizerFrameId = null;
+        }
+
+        // Reset visualizer state immediately
+        const visualizerElement = document.getElementById('soundWaveVisualizer');
+        if (visualizerElement) {
+            visualizerElement.classList.remove('active');
+            const randomHeight = 0;
+            visualizerElement.style.height = `${randomHeight}vh`;
+        }
+        this.visualizerActive = false;
+
+        $('#feedback-text').html('').removeClass('recording-text-indicator');
+
         return new Promise(resolve => {
             if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
                 this.mediaRecorder.addEventListener('stop', () => resolve(), { once: true });
@@ -703,6 +746,46 @@ export class EchoTalkApp {
     }
 
     // --- UI and Rendering ---
+
+    private monitorAudioLevel(): void {
+        if (!this.analyser) return;
+
+        const visualizerElement = document.getElementById('soundWaveVisualizer');
+        if (!visualizerElement) return;
+
+        const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+        const threshold = 20; // Sensitivity threshold for detecting sound
+
+        const checkSound = () => {
+            if (!this.analyser) return;
+            this.analyser.getByteFrequencyData(dataArray);
+
+            // Calculate average energy
+            const energy = dataArray.reduce((acc, val) => acc + val, 0) / dataArray.length;
+
+            if (energy > threshold) {
+                // Sound detected: transition to active state
+                if (!this.visualizerActive) {
+                    this.visualizerActive = true;
+                    visualizerElement.classList.add('active');
+
+                    // Set random height as requested
+                    const randomHeight = 40 + Math.random() * 10; // Random height between 30vh and 40vh
+                    visualizerElement.style.height = `${randomHeight}vh`;
+                }
+            } else {
+                // No sound detected: transition back to idle state
+                if (this.visualizerActive) {
+                    this.visualizerActive = false;
+                    visualizerElement.classList.remove('active');
+                    const randomHeight = 0;
+                    visualizerElement.style.height = `${randomHeight}vh`;
+                }
+            }
+            this.visualizerFrameId = requestAnimationFrame(checkSound);
+        };
+        checkSound();
+    }
 
     private renderSampleSentence(): void {
         // Renders the sentence for 'sample mode'
@@ -765,16 +848,19 @@ export class EchoTalkApp {
 
         if (this.isRecordingEnabled) {
             const listeningMessages = [
-                'Listen closely... 👂',
-                'Hear that? Get ready!',
-                'Tuning in...',
-                'Ears open! 🎧',
-                'Absorb the sound...'
+                '👂 Listen carefully...',
+                '🎧 Time to focus and listen!',
+                '🔊 Pay close attention...',
+                '👀 Just listen...',
+                '🌊 Let the sound flow in...',
+                '🧘 Stay calm, stay focused...',
+                '📡 Receiving the signal...',
+                '🎶 Tune in to the rhythm...'
             ];
             const randomMessage = listeningMessages[Math.floor(Math.random() * listeningMessages.length)];
-            $('#feedback').html(`<div class="listening-indicator">${randomMessage}</div>`);
+            $('#feedback-text').html(`<div class="listening-indicator">${randomMessage}</div>`);
         } else {
-            $('#feedback').html('');
+            $('#feedback-text').html('');
         }
 
         const startRecordingCallback = () => {
@@ -841,7 +927,7 @@ export class EchoTalkApp {
             if (this.currentCount >= this.reps) {
                 if (this.practiceMode === 'check') {
                     if (this.reps >= 2) {
-                        $('#feedback').html(`<div class="correct">(0 of ${this.reps} attempts)</div>`);
+                        $('#feedback-text').html(`<div class="correct">(0 of ${this.reps} attempts)</div>`);
                     }
                     setTimeout(() => this.advanceToNextPhrase(), 1200); // Delay only in check mode
                 } else {
@@ -849,7 +935,7 @@ export class EchoTalkApp {
                 }
             } else {
                 if(this.reps >= 2) {
-                    $('#feedback').html(`<div class="correct">(${this.currentCount} of ${this.reps} attempts)</div>`);
+                    $('#feedback-text').html(`<div class="correct">(${this.currentCount} of ${this.reps} attempts)</div>`);
                 }
                 this.practiceStep();
             }
@@ -865,7 +951,7 @@ export class EchoTalkApp {
         if (similarity >= 0.6) {
             this.correctCount++;
             this.playSound('./sounds/correct.mp3', 1, 0.6);
-            $('#feedback').html(`<div class="correct">Correct! (${similarityPercent}% match) - (${this.currentCount}/${this.reps})</div>`);
+            $('#feedback-text').html(`<div class="correct">Correct! (${similarityPercent}% match) - (${this.currentCount}/${this.reps})</div>`);
             if (this.currentCount >= this.reps) {
                 // Advance to the next phrase if the repetition count is met
                 this.currentIndex = endIndex;
@@ -873,7 +959,7 @@ export class EchoTalkApp {
             }
         } else {
             this.playSound('./sounds/wrong.mp3', 1, 0.6);
-            $('#feedback').html(`<div class="incorrect">Try again! (${similarityPercent}% match) <br>Detected: "${answer}"</div>`);
+            $('#feedback-text').html(`<div class="incorrect">Try again! (${similarityPercent}% match) <br>Detected: "${answer}"</div>`);
         }
 
         this.saveState();

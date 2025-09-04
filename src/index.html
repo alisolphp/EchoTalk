@@ -60,7 +60,13 @@
         <div>
             <button id="checkBtn" class="btn btn-success d-block w-100 py-3">Check/Skip</button>
         </div>
-        <div id="feedback" class="mb-3"></div>
+        <div class="visualizer-container">
+            <img src="images/sound-wave-animation.webp" id="soundWaveVisualizer" alt="Sound Wave Animation">
+        </div>
+        <div id="feedback" class="mb-3" style="min-height: 60px;">
+            <canvas id="audio-visualizer" class="d-none" height="50"></canvas>
+            <div id="feedback-text" class="fs-5"></div>
+        </div>
     </div>
 
     <div id="optionsModal" class="modal fade" tabindex="-1" aria-labelledby="optionsModalLabel" aria-hidden="true">
