@@ -6,6 +6,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import $ from 'jquery';
 import { Modal } from 'bootstrap';
 import './../css/style.css';
+import confetti from 'canvas-confetti';
 
 // --- Type Definitions ---
 // Define the structure for a recording object
@@ -1025,8 +1026,36 @@ export class EchoTalkApp {
         this.practiceStep();
     }
 
+    private triggerCelebrationAnimation(): void {
+        const duration = 2 * 1000;
+        const animationEnd = Date.now() + duration;
+
+        (function frame() {
+            // launch a few confetti from the left edge
+            confetti({
+                particleCount: 7,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0, y: 1 }
+            });
+            // and launch a few from the right edge
+            confetti({
+                particleCount: 7,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1, y: 1 }
+            });
+
+            // keep going until the time is up
+            if (Date.now() < animationEnd) {
+                requestAnimationFrame(frame);
+            }
+        }());
+    }
+
     private finishSession(): void {
         this.terminateMicrophoneStream();
+        this.triggerCelebrationAnimation(); // <-- This is the new line
         // Displays a celebratory message and ends the practice session
         const messages = ["You nailed it!", "That was sharp!", "Boom!", "Bravo!", "That was smooth!", "Great shadowing!", "You crushed it!", "Smart move!", "Echo mastered.", "That was fire!"];
         const emojis = ["🔥", "🎯", "💪", "🎉", "🚀", "👏", "🌟", "🧠", "🎧", "💥"];
@@ -1046,11 +1075,9 @@ export class EchoTalkApp {
         setTimeout(() => this.speak(ttsMsg, null, 1.3), 1100);
         // Show a button to restart the session
         displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="app.resetWithoutReload(); return false;">${callToAction}</a>`;
-
         // Hide the practice UI and show the completion message
         $('#practice-ui-container').addClass('d-none');
         $('#session-complete-container').html(`<h2>${displayMsg}</h2>`).removeClass('d-none');
-
         // Clear session-specific state from localStorage
         localStorage.removeItem(this.STORAGE_KEYS.index);
         localStorage.removeItem(this.STORAGE_KEYS.count);
