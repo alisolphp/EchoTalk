@@ -886,11 +886,12 @@ export class EchoTalkApp {
 
         // Update the links for Google search
         const encodedWord = encodeURIComponent(word);
-        const encodedSentence = encodeURIComponent(this.currentPhrase);
         $('#searchPronunciationLink').attr('href', `https://www.google.com/search?q=pronunciation:+${encodedWord}`);
         $('#searchMeaningLink').attr('href', `https://www.google.com/search?q=meaning:+${encodedWord}`);
         $('#searchExamplesLink').attr('href', `https://www.google.com/search?q=${encodedWord}+in+a+sentence`);
-        $('#searchSentenceMeaningLink').attr('href', `https://translate.google.com/?sl=auto&text=${encodedSentence}`);
+        $('#searchSentenceMeaningLink').on('click', () => {
+            this.openTranslate(this.currentPhrase);
+        });
 
         // Handle the "Play Word" button click
         $('#playWordBtn').off('click').on('click', () => {
@@ -904,6 +905,33 @@ export class EchoTalkApp {
         if (modalElement) {
             const modal = new Modal(modalElement);
             modal.show();
+        }
+    }
+
+    private openTranslate(text) {
+        const url = "https://translate.google.com/?sl=auto&tl=auto"
+            + "&op=translate&text="
+            + encodeURIComponent(text);
+
+        // باز کردن تب خالی
+        const newWin = window.open("", "_blank");
+
+        if (newWin) {
+            newWin.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head><meta charset="utf-8"></head>
+          <body>
+            <p style="font-family:sans-serif"></p>
+            <script>
+              location.replace("${url}");
+            <\/script>
+          </body>
+          </html>
+        `);
+            newWin.document.close();
+        } else {
+            alert("Popup blocked! Please allow popups for this site.");
         }
     }
 
