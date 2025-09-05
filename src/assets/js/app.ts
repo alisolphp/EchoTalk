@@ -1042,8 +1042,8 @@ export class EchoTalkApp {
         const callToActions = ["Let's Start Over!", "Go Again!", "Ready for Another Round?"];
         const callToAction = callToActions[Math.floor(Math.random() * callToActions.length)];
         ttsMsg += ` ${callToAction}`;
-        this.playSound('./sounds/victory.mp3', 2, 0.6);
-        setTimeout(() => this.speak(ttsMsg), 1500);
+        this.playSound('./sounds/victory.mp3', 2.5, 0.6);
+        setTimeout(() => this.speak(ttsMsg, null, 1.3), 1100);
         // Show a button to restart the session
         displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="app.resetWithoutReload(); return false;">${callToAction}</a>`;
 
