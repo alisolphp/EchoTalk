@@ -192,6 +192,7 @@
                         <li><strong>Look Up Word Meanings:</strong> Click on any word in the phrase being displayed to search for its meaning on Google in a new tab.</li>
                         <li><strong>Record Your Voice:</strong> You can enable voice recording to save your attempts locally in your browser and compare them with the original audio later.</li>
                         <li><strong>Auto-Save Progress:</strong> Your settings and current progress are automatically saved, allowing you to easily continue your practice later.</li>
+                        <li><strong>Analyze with AI:</strong> In the 'My Records' modal, click the <i class="bi bi-magic"></i> <strong>Analyze with AI</strong> button next to your recording. This instantly copies a detailed prompt to your clipboard and downloads your audio file. You can then upload the file to an AI chatbot (like Gemini) and paste the prompt to get a free, fast, and accurate analysis of your pronunciation.</li>
                     </ul>
 
                     <hr>
@@ -298,6 +299,24 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="aiInstructionsModal" tabindex="-1" aria-labelledby="aiInstructionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="aiInstructionsModalLabel"><i class="bi bi-robot text-info"></i> AI Analysis Guide</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="aiInstructionsModalBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Got it</button>
+                    <a href="https://gemini.google.com/" target="_blank" class="btn btn-primary">Go to Gemini <i class="bi bi-box-arrow-up-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <footer class="text-center text-muted small mt-auto py-2 opacity-25">

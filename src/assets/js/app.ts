@@ -257,6 +257,7 @@ export class EchoTalkApp {
         $('#showRecordingsBtn').on('click', () => this.displayRecordings());
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.playBotAudio(e.currentTarget));
+        $('#recordingsList').on('click', '.prepare-for-ai', (e) => this.prepareForAIAnalysis(e.currentTarget));
         $('#recordingsModal').on('hidden.bs.modal', () => this.stopAllPlayback());
         $('#languageSelect, #headerLanguageSelect').on('change', (e) => {
             const newLang = $(e.currentTarget).val() as string;
@@ -921,7 +922,6 @@ export class EchoTalkApp {
             + "&op=translate&text="
             + encodeURIComponent(text);
 
-        // باز کردن تب خالی
         const newWin = window.open("", "_blank");
 
         if (newWin) {
@@ -1408,8 +1408,11 @@ export class EchoTalkApp {
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <span>Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
                                     <span class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-primary play-user-audio" data-sentence="${sentence}" data-index="${index}"><i class="bi bi-person-fill"></i> Play Mine</button>
                                         <button class="btn btn-sm btn-outline-success play-bot-audio" data-sentence="${sentence}"><i class="bi bi-robot"></i> Play Bot</button>
+                                        <button class="btn btn-sm btn-primary play-user-audio" data-sentence="${sentence}" data-index="${index}"><i class="bi bi-person-fill"></i> Play Mine</button>                                        
+                                        <button class="btn btn-sm btn-info prepare-for-ai" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                            <i class="bi bi-magic"></i> Analyze with AI
+                                        </button>
                                     </span>
                                 </li>
                             `).join('')}
@@ -1458,6 +1461,128 @@ export class EchoTalkApp {
         this.stopAllPlayback(true);
         const sentence = $(element).data('sentence') as string;
         this.speak(sentence);
+    }
+
+    // Add this new method to the EchoTalkApp class
+
+    private async prepareForAIAnalysis(element: HTMLElement): Promise<void> {
+        // Step 1: Get sentence and record data from the element
+        const sentence = $(element).data('sentence') as string;
+        const index = $(element).data('index') as number;
+        const record = window.modalRecordings[sentence]?.[index];
+
+        if (!record) {
+            console.error("Could not find record for AI analysis.");
+            alert("Sorry, the recording could not be found.");
+            return;
+        }
+
+        // Step 2: Perform the copy and download actions
+        await this.copyAIPrompt(element); // We can reuse the copy logic
+        this.downloadUserAudio(element); // and the download logic
+
+        // Step 3: Prepare the dynamic content for the modal
+        const modalBodyContent = `
+            <p class="fw-bold">All set! Here's what just happened:</p>
+            <ul class="list-group list-group-flush mb-3">
+                <li class="list-group-item bg-transparent">
+                    <i class="bi bi-check-circle-fill text-success"></i> <strong>Your voice recording</strong> for the sentence below was successfully <strong>downloaded</strong>:
+                    <br><small class="text-muted"><em>"${sentence}"</em></small>
+                </li>
+                <li class="list-group-item bg-transparent">
+                    <i class="bi bi-check-circle-fill text-success"></i> The analysis prompt for <strong>your recording</strong> was copied to your <strong>clipboard</strong>.
+                </li>
+            </ul>
+            <hr>
+            <p class="fw-bold">What's next?</p>
+            <p>
+                Simply go to the <a href="https://gemini.google.com/" target="_blank">Gemini website</a>, upload <strong>your downloaded voice recording</strong> as an attachment, and paste the copied prompt into the chat.
+            </p>
+            <p class="mt-3">
+                Enjoy the free, fast, accurate, and targeted AI analysis to improve your <strong>pronunciation and fluency</strong>!
+            </p>
+        `;
+
+        // Step 4: Inject the content and show the modal
+        $('#aiInstructionsModalBody').html(modalBodyContent);
+
+        const modalElement = document.getElementById('aiInstructionsModal');
+        if (modalElement) {
+            const modal = new Modal(modalElement);
+            modal.show();
+        }
+    }
+
+    /**
+     * Handles downloading the user's recorded audio blob as an OGG file.
+     * @param element The button element that was clicked.
+     */
+    private downloadUserAudio(element: HTMLElement): void {
+        const sentence = $(element).data('sentence') as string;
+        const index = $(element).data('index') as number;
+        const record = window.modalRecordings[sentence]?.[index];
+
+        if (record && record.audio) {
+            const audioUrl = URL.createObjectURL(record.audio);
+            const link = document.createElement('a');
+
+            // Create a safe filename from the sentence
+            const safeFilename = sentence.replace(/[^a-z0-9]/gi, '_').toLowerCase().substring(0, 20);
+            link.download = `echotalk_recording_${safeFilename || 'audio'}.ogg`;
+            link.href = audioUrl;
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(audioUrl);
+        } else {
+            console.error("Could not find audio record to download.");
+            alert("Sorry, the audio file could not be found.");
+        }
+    }
+
+    /**
+     * Copies a pre-formatted, improved prompt to the clipboard for AI analysis.
+     * @param element The button element that was clicked.
+     */
+    private async copyAIPrompt(element: HTMLElement): Promise<void> {
+        const sentence = $(element).data('sentence') as string;
+
+        const promptText = `Analyze my pronunciation in the attached audio file. I was practicing the shadowing technique with the EchoTalk app.
+
+The target sentence was:
+"${sentence}"
+
+Please provide the following analysis:
+1.  **Overall Score (1-10):** How was my overall pronunciation of the full sentence?
+2.  **Word-by-Word Analysis:**
+    * List each word from the sentence.
+    * Give each word a pronunciation score from 1 to 10.
+    * If a word's pronunciation has issues, explain the specific error (e.g., vowel sound, stress, intonation) and provide clear instructions on how to correct it.
+3.  **Fluency Score (1-10):** How fluent and natural did my speech sound?
+4.  **General Recommendations:** What other advice do you have for improving my pronunciation of this sentence?
+5. Motivate me to keep up doing practice with EchoTalk to enhance my speaking ability.
+
+If I have forgotten to attach the audio file, please respond with only this exact message: "Please download your recorded audio for "${sentence}" sentence from the EchoTalk app and send it to me as an attachment for analysis."`;
+
+        try {
+            await navigator.clipboard.writeText(promptText);
+
+            // Provide user feedback
+            const originalHtml = $(element).html();
+            $(element).html('<i class="bi bi-check-lg"></i> Copied!');
+            $(element).prop('disabled', true);
+
+            setTimeout(() => {
+                $(element).html(originalHtml);
+                $(element).prop('disabled', false);
+            }, 2000);
+
+        } catch (err) {
+            console.error('Failed to copy prompt: ', err);
+            // Optional: Alert the user that copying failed.
+            alert("Could not copy the prompt to your clipboard. Please try again.");
+        }
     }
 
     private stopAllPlayback(keepTTS: boolean = false): void {
