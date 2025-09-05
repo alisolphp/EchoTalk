@@ -1,7 +1,6 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-
 const getBuildDate = () => {
     const now = new Date();
     const year = now.getFullYear().toString();
@@ -26,6 +25,19 @@ export default defineConfig({
     plugins: [
         VitePWA({
             registerType: 'autoUpdate',
+
+            manifest: {
+                name: 'EchoTalk',
+                short_name: 'EchoTalk',
+                description: 'An offline browser-based language training app using Shadowing technique with sentence segmentation, audio recording, and user review features.',
+                start_url: '.',
+                display: 'standalone',
+                background_color: '#212529',
+                theme_color: '#fdd835',
+                lang: 'en',
+                scope: './'
+            },
+
             workbox: {
                 globPatterns: ['**/*.{js,css,mp3,png,json,ico,html,webmanifest}'],
                 runtimeCaching: [
@@ -51,4 +63,3 @@ export default defineConfig({
         include: ['./tests/**/*.test.ts'],
     },
 });
-
