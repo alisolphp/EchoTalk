@@ -257,7 +257,11 @@ export class EchoTalkApp {
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.playBotAudio(e.currentTarget));
         $('#recordingsModal').on('hidden.bs.modal', () => this.stopAllPlayback());
-        $('#languageSelect').on('change', () => {
+        $('#languageSelect, #headerLanguageSelect').on('change', (e) => {
+            const newLang = $(e.currentTarget).val() as string;
+            // Sync both selects
+            $('#languageSelect, #headerLanguageSelect').val(newLang);
+            // Call the main handler function
             this.handleLanguageChange();
         });
         $('#levelSelect').on('change', () => {
@@ -320,8 +324,11 @@ export class EchoTalkApp {
         });
 
         document.addEventListener('hidden.bs.modal', () => {
+            // Only run this logic if a modal was just closed and the hash is still '#modal'
             if (window.location.hash === '#modal') {
-                history.back();
+                // Get current URL without the hash part
+                const urlWithoutHash = window.location.pathname + window.location.search; // Replace the current history state to clean up the URL without navigating
+                history.replaceState(null, '', urlWithoutHash);
             }
         });
 
@@ -400,14 +407,13 @@ export class EchoTalkApp {
     }
 
     private setupLanguageOptions(): void {
-        const $languageSelect = $('#languageSelect');
-        $languageSelect.empty();
-
+        const $languageSelects = $('#languageSelect, #headerLanguageSelect');
+        $languageSelects.empty();
         for (const [code, name] of Object.entries(this.languageMap)) {
-            $languageSelect.append(`<option value="${code}">${name}</option>`);
+            $languageSelects.append(`<option value="${code}">${name}</option>`);
         }
 
-        $languageSelect.val(this.lang);
+        $languageSelects.val(this.lang);
     }
 
     /**
@@ -451,6 +457,7 @@ export class EchoTalkApp {
     private updateLanguageUI() {
         this.updateLanguageGeneral();
         $('.current-language-general-name').text(this.langGeneral);
+        $('#languageSelect, #headerLanguageSelect').val(this.lang);
     }
 
     private updateLanguageGeneral() {
