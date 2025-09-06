@@ -258,6 +258,7 @@ export class EchoTalkApp {
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.playBotAudio(e.currentTarget));
         $('#recordingsList').on('click', '.prepare-for-ai', (e) => this.prepareForAIAnalysis(e.currentTarget));
+        $('#recordingsList').on('click', '.check-accuracy-btn', (e) => this.getPronunciationAccuracy(e.currentTarget));
         $('#recordingsModal').on('hidden.bs.modal', () => this.stopAllPlayback());
         $('#languageSelect, #headerLanguageSelect').on('change', (e) => {
             const newLang = $(e.currentTarget).val() as string;
@@ -1405,15 +1406,35 @@ export class EchoTalkApp {
                     <div class="accordion-body">
                         <ul class="list-group">
                             ${recordings.map((rec, index) => `
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <span>Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
-                                    <span class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-outline-success play-bot-audio" data-sentence="${sentence}"><i class="bi bi-robot"></i> Play Bot</button>
-                                        <button class="btn btn-sm btn-primary play-user-audio" data-sentence="${sentence}" data-index="${index}"><i class="bi bi-person-fill"></i> Play Mine</button>                                        
-                                        <button class="btn btn-sm btn-info prepare-for-ai" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
-                                            <i class="bi bi-magic"></i> Analyze with AI
-                                        </button>
-                                    </span>
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                        <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
+                                        <div class="row g-2">
+                                            <div class="col-6 col-md-auto">
+                                                <button class="btn btn-sm btn-outline-success play-bot-audio w-100" data-sentence="${sentence}">
+                                                    <i class="bi bi-robot"></i> Play Bot
+                                                </button>
+                                            </div>
+                                            <div class="col-6 col-md-auto">
+                                                <button class="btn btn-sm btn-primary play-user-audio w-100" data-sentence="${sentence}" data-index="${index}">
+                                                    <i class="bi bi-person-fill"></i> Play Mine
+                                                </button>
+                                            </div>
+                                            ${this.lang === 'en-US' ? `
+                                            <div class="col-6 col-md-auto">
+                                                <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
+                                                    <i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>
+                                                </button>
+                                            </div>
+                                            ` : ''}
+                                            <div class="col-6 col-md-auto">
+                                                <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                                    <i class="bi bi-magic"></i> Full <span class="text-nowrap">AI Analyze</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="accuracy-result-container mt-2 border-top pt-2" style="display: none;"></div>
                                 </li>
                             `).join('')}
                         </ul>
@@ -1463,7 +1484,96 @@ export class EchoTalkApp {
         this.speak(sentence);
     }
 
-    // Add this new method to the EchoTalkApp class
+    private async getPronunciationAccuracy(element: HTMLElement): Promise<void> {
+        const $element = $(element);
+        const sentence = $element.data('sentence') as string;
+        const index = $element.data('index') as number;
+        const record = window.modalRecordings[sentence]?.[index];
+
+        const $resultContainer = $element.closest('li.list-group-item').find('.accuracy-result-container');
+
+        if (!record || !record.audio) {
+            $resultContainer.html('<div class="alert alert-danger p-2">Audio file not found.</div>').slideDown();
+            return;
+        }
+
+        $element.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+        $resultContainer.html('<div class="text-center text-muted">Analyzing pronunciation, please wait...</div>').slideDown();
+
+        try {
+            const formData = new FormData();
+            formData.append('title', sentence);
+            formData.append('language', 'en');
+            formData.append('audioFile', record.audio, 'recording.ogg');
+
+            const endpointUrl = 'https://alisol.ir/Projects/GetAccuracyFromRecordedAudio/';
+
+            const response = await fetch(endpointUrl, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error: ${response.status} ${response.statusText} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            this.renderAccuracyResult(result, $resultContainer);
+
+        } catch (error) {
+            console.error('Error checking pronunciation accuracy:', error);
+            $resultContainer.html(`<div class="alert alert-danger p-2">This service is currently unavailable. Please try again later.</div>`);
+        } finally {
+            $element.prop('disabled', false).html('<i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>');
+        }
+    }
+
+    private renderAccuracyResult(result: any, $container: JQuery<HTMLElement>): void {
+        if (!result.real_transcripts || !result.is_letter_correct_all_words || !result.pronunciation_accuracy) {
+            $container.html('<div class="alert alert-warning p-2">The server returned an unexpected response.</div>');
+            return;
+        }
+
+        const words = result.real_transcripts.split(' ');
+        const correctness = result.is_letter_correct_all_words.trim().split(' ');
+
+        if (words.length !== correctness.length) {
+            console.error('Mismatch between words and correctness data:', words, correctness);
+            $container.html('<div class="alert alert-warning p-2">Could not parse the accuracy data from the server.</div>');
+            return;
+        }
+
+        let coloredSentenceHtml = words.map((word, wordIndex) => {
+            return [...word].map((char, charIndex) => {
+                const isCorrect = (correctness[wordIndex] || '')[charIndex] === '1';
+                return `<span class="${isCorrect ? 'text-success' : 'text-danger'}">${char}</span>`;
+            }).join('');
+        }).join(' ');
+
+        const overallScore = result.pronunciation_accuracy;
+        const detectedTranscript = result.real_transcript;
+
+        const resultHtml = `
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Accuracy Analysis</h6>
+            <div><strong>Overall Score:</strong> <span class="badge bg-info">${overallScore}%</span></div>
+        </div>
+        <p class="fs-5 fw-bold mt-2 mb-1">${coloredSentenceHtml}</p>
+        <p class="text-muted mb-0"><small><strong>Detected:</strong> <em>${detectedTranscript}</em></small></p>
+    `;
+
+        $container.html(resultHtml);
+    }
+
+    private blobToBase64(blob: Blob): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
 
     private async prepareForAIAnalysis(element: HTMLElement): Promise<void> {
         // Step 1: Get sentence and record data from the element
