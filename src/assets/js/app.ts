@@ -77,7 +77,9 @@ export class EchoTalkApp {
         attempts: 'shadow_attempts',
         recordAudio: 'shadow_record_audio',
         speechRate: 'shadow_speech_rate',
-        lang: 'shadow_language'
+        lang: 'shadow_language',
+        spellApiKey: 'spell_api_key',
+        spellCheckerIsAvailable: 'spell_checker_is_available'
     };
     // --- State Properties ---
     private sentence: string = '';
@@ -182,17 +184,20 @@ export class EchoTalkApp {
     }
 
     private async checkSpellApiKey(): Promise<void> {
+        localStorage.setItem(this.STORAGE_KEYS.spellCheckerIsAvailable, String(false));
         try {
             const urlParams = new URLSearchParams(window.location.search);
-            const apiKey = urlParams.get('spellApiKey');
+            const apiKey = urlParams.get('spellApiKey') || localStorage.getItem(this.STORAGE_KEYS.spellApiKey);
 
             if (apiKey) {
+                localStorage.setItem(this.STORAGE_KEYS.spellApiKey, apiKey.toString());
                 this.spellApiKey = apiKey;
                 const response = await fetch(`https://alisol.ir/Projects/GetAccuracyFromRecordedAudio/?action=checkAPIKey&spellApiKey=${this.spellApiKey}`);
                 if (response.ok) {
                     const result = await response.json();
                     if (result.status === 'success' && result.message === 'api_key_is_valid') {
                         this.spellCheckerIsAvailable = true;
+                        localStorage.setItem(this.STORAGE_KEYS.spellCheckerIsAvailable, String(this.spellCheckerIsAvailable));
                         console.log('Spell checker API key is valid and available.');
                     }
                 }
@@ -276,7 +281,8 @@ export class EchoTalkApp {
         });
         $('#useSampleBtn').on('click', () => this.useSample());
         $('#sampleSentence').on('click', 'span', (e) => this.handleSampleWordClick(e.currentTarget));
-        $('#repeatBtn').on('click', () => this.practiceStep(0.6));
+        $('#slowBtn').on('click', () => this.practiceStep(0.6));
+        $('#fastBtn').on('click', () => this.practiceStep(1.3));
         $('#recordToggle').on('change', (e) => this.handleRecordToggle(e.currentTarget));
         $('#showRecordingsBtn').on('click', () => this.displayRecordings());
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
@@ -604,6 +610,8 @@ export class EchoTalkApp {
         $('#recordToggle').prop('checked', this.isRecordingEnabled);
         this.lang = localStorage.getItem(this.STORAGE_KEYS.lang) || 'en-US';
         ($('#languageSelect') as JQuery<HTMLSelectElement>).val(this.lang);
+
+        this.spellCheckerIsAvailable = localStorage.getItem(this.STORAGE_KEYS.spellCheckerIsAvailable) === 'true';
 
         // Load saved level and category, or set defaults
         const savedLevelIndex = localStorage.getItem('selectedLevelIndex');
