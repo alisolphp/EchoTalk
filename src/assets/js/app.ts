@@ -109,6 +109,8 @@ export class EchoTalkApp {
     private estimatedWordsPerSecond: number = 2.5;
     private phrasesSpokenCount: number = 0;
     private speechRate: number = 1;
+    private spellApiKey: string = '';
+    private spellCheckerIsAvailable: boolean = false;
     private readonly languageMap: Record<string, string> = {
         'en-US': 'English (US)',
         'da-DK': 'Danish (DK)',
@@ -171,10 +173,32 @@ export class EchoTalkApp {
             this.registerServiceWorker();
 
             this.handleHashChange();
+            await this.checkSpellApiKey();
         } catch (error) {
             console.error("Initialization failed:", error);
             // Display an error message if initialization fails
             $('#configArea').html('<div class="alert alert-danger">Failed to initialize the application. Please refresh the page.</div>');
+        }
+    }
+
+    private async checkSpellApiKey(): Promise<void> {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const apiKey = urlParams.get('spellApiKey');
+
+            if (apiKey) {
+                this.spellApiKey = apiKey;
+                const response = await fetch(`https://alisol.ir/Projects/GetAccuracyFromRecordedAudio/?action=checkAPIKey&spellApiKey=${this.spellApiKey}`);
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.status === 'success' && result.message === 'api_key_is_valid') {
+                        this.spellCheckerIsAvailable = true;
+                        console.log('Spell checker API key is valid and available.');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error validating spell checker API key:', error);
         }
     }
 
@@ -1409,9 +1433,9 @@ export class EchoTalkApp {
                                 <li class="list-group-item">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                                         <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
-                                        <div class="row g-2">
+                                        <div class="row g-2 justify-content-center">
                                             <div class="col-6 col-md-auto">
-                                                <button class="btn btn-sm btn-outline-success play-bot-audio w-100" data-sentence="${sentence}">
+                                                <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}">
                                                     <i class="bi bi-robot"></i> Play Bot
                                                 </button>
                                             </div>
@@ -1420,7 +1444,7 @@ export class EchoTalkApp {
                                                     <i class="bi bi-person-fill"></i> Play Mine
                                                 </button>
                                             </div>
-                                            ${this.lang === 'en-US' ? `
+                                            ${this.lang === 'en-US' && this.spellCheckerIsAvailable ? `
                                             <div class="col-6 col-md-auto">
                                                 <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
                                                     <i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>
@@ -1506,7 +1530,7 @@ export class EchoTalkApp {
             formData.append('language', 'en');
             formData.append('audioFile', record.audio, 'recording.ogg');
 
-            const endpointUrl = 'https://alisol.ir/Projects/GetAccuracyFromRecordedAudio/';
+            const endpointUrl = `https://alisol.ir/Projects/GetAccuracyFromRecordedAudio/?spellApiKey=${this.spellApiKey}`;
 
             const response = await fetch(endpointUrl, {
                 method: 'POST',
@@ -1523,7 +1547,7 @@ export class EchoTalkApp {
 
         } catch (error) {
             console.error('Error checking pronunciation accuracy:', error);
-            $resultContainer.html(`<div class="alert alert-danger p-2">This service is currently unavailable. Please try again later.</div>`);
+            $resultContainer.html(`<div class="alert alert-danger p-2">Error: Your audio could not be analyzed. Please try again with another recording.</div>`);
         } finally {
             $element.prop('disabled', false).html('<i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>');
         }
