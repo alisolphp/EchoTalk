@@ -1689,23 +1689,28 @@ export class EchoTalkApp {
      */
     private async copyAIPrompt(element: HTMLElement): Promise<void> {
         const sentence = $(element).data('sentence') as string;
+        const promptText = `You are an AI language model. Your task is to analyze pronunciation and fluency in the attached audio file. 
 
-        const promptText = `Analyze my pronunciation in the attached audio file. I was practicing the shadowing technique with the EchoTalk app.
+IMPORTANT:
+- If you cannot actually analyze the user's audio for pronunciation or fluency, respond honestly with exactly:
+"I do not have the capability to analyze audio pronunciation. Please use another service or chatbot for this."
+- Do NOT make up scores, word-level feedback, or fluency analysis under any circumstances. Accuracy and honesty are mandatory.
 
-The target sentence was:
+Now, if an audio file is provided, perform the following analysis for the target sentence:
 "${sentence}"
 
-Please provide the following analysis:
-1.  **Overall Score (1-10):** How was my overall pronunciation of the full sentence?
-2.  **Word-by-Word Analysis:**
-    * List each word from the sentence.
-    * Give each word a pronunciation score from 1 to 10.
-    * If a word's pronunciation has issues, explain the specific error (e.g., vowel sound, stress, intonation) and provide clear instructions on how to correct it.
-3.  **Fluency Score (1-10):** How fluent and natural did my speech sound?
-4.  **General Recommendations:** What other advice do you have for improving my pronunciation of this sentence?
-5. Motivate me to keep up doing practice with EchoTalk to enhance my speaking ability.
+Analysis instructions:
+1. **Overall Score (1-10):** Provide an overall pronunciation score for the full sentence.
+2. **Word-by-Word Analysis:**
+   * List each word from the sentence.
+   * Assign a pronunciation score (1-10) to each word.
+   * If a word has issues, clearly explain the error (e.g., vowel sound, stress, intonation) and give practical correction tips.
+3. **Fluency Score (1-10):** Evaluate how fluent and natural the speech sounds.
+4. **General Recommendations:** Provide guidance for improving pronunciation of this sentence.
+5. **Motivation:** Encourage the user to continue practicing with EchoTalk to improve speaking skills.
 
-If I have forgotten to attach the audio file, please respond with only this exact message: "Please download your recorded audio for "${sentence}" sentence from the EchoTalk app and send it to me as an attachment for analysis."`;
+If no audio file is attached, respond ONLY with this exact message:
+"Please download your recorded audio for "${sentence}" sentence from the EchoTalk app and send it to me as an attachment for analysis."`;
 
         try {
             await navigator.clipboard.writeText(promptText);
