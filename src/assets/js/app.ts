@@ -76,10 +76,11 @@ export class EchoTalkApp {
         correctCount: 'shadow_correct',
         attempts: 'shadow_attempts',
         recordAudio: 'shadow_record_audio',
+        practiceMode: 'shadow_practice_mode',
         speechRate: 'shadow_speech_rate',
         lang: 'shadow_language',
-        spellApiKey: 'spell_api_key',
-        spellCheckerIsAvailable: 'spell_checker_is_available'
+        spellApiKey: 'shadow_spell_api_key',
+        spellCheckerIsAvailable: 'shadow_spell_checker_is_available'
     };
     // --- State Properties ---
     private sentence: string = '';
@@ -92,7 +93,7 @@ export class EchoTalkApp {
     private samples: SampleData = { levels: [] };
     private currentPhrase: string = '';
     private isRecordingEnabled: boolean = false;
-    private practiceMode: 'skip' | 'check' = 'skip';
+    private practiceMode: 'skip' | 'check' | 'auto-skip' = 'skip';
 
     // --- Media & DB Properties ---
     private mediaRecorder: MediaRecorder | undefined;
@@ -108,6 +109,7 @@ export class EchoTalkApp {
 
     // --- Helper Properties ---
     private readonly isMobile: boolean = /Mobi|Android/i.test(navigator.userAgent);
+    private autoSkipTimer: number | null = null;
     private estimatedWordsPerSecond: number = 2.5;
     private phrasesSpokenCount: number = 0;
     private speechRate: number = 1;
@@ -137,6 +139,20 @@ export class EchoTalkApp {
 
         window.modalRecordings = {};
         (window as any).app = this;
+    }
+
+    private clearAutoSkipTimer(): void {
+        if (this.autoSkipTimer) {
+            clearTimeout(this.autoSkipTimer);
+            this.autoSkipTimer = null;
+        }
+        // Reset the animation state of the button
+        const $checkBtn = $('#checkBtn');
+        if ($checkBtn.hasClass('auto-skip-progress')) {
+            $checkBtn.removeClass('loading');
+            // Remove the inline animation style to reset it for the next run
+            $checkBtn.css('animation-duration', '');
+        }
     }
 
     public async init(selector: string, value: string): Promise<void> {
@@ -208,13 +224,18 @@ export class EchoTalkApp {
     }
 
     private async resetWithoutReload(): Promise<void> {
+        // Stop all ongoing audio playback FIRST.
+        // This is critical because cancelling speech synthesis can trigger its 'onend'
+        // event, which might try to set a new autoSkipTimer.
+        this.stopAllPlayback();
+
+        // NOW, clear any timers. This will catch timers set by the 'onend' event above.
+        this.clearAutoSkipTimer();
+
         // Stop any ongoing recording to release the microphone.
         await this.stopRecording();
 
         this.terminateMicrophoneStream();
-
-        // Stop all ongoing audio playback, including TTS.
-        this.stopAllPlayback();
 
         // Reset all internal state properties to their initial values.
         // We intentionally do not clear localStorage here.
@@ -628,6 +649,9 @@ export class EchoTalkApp {
         if (savedCategoryIndex) {
             ($('#categorySelect') as JQuery<HTMLSelectElement>).val(savedCategoryIndex);
         }
+
+        this.practiceMode = (localStorage.getItem(this.STORAGE_KEYS.practiceMode) as 'skip' | 'check' | 'auto-skip') || 'skip';
+        $('#practiceModeSelect').val(this.practiceMode);
     }
 
     private saveState(): void {
@@ -640,6 +664,7 @@ export class EchoTalkApp {
         localStorage.setItem(this.STORAGE_KEYS.attempts, this.attempts.toString());
         localStorage.setItem(this.STORAGE_KEYS.speechRate, this.speechRate.toString());
         localStorage.setItem(this.STORAGE_KEYS.lang, this.lang.toString());
+        localStorage.setItem(this.STORAGE_KEYS.practiceMode, this.practiceMode);
     }
 
     private fetchSamples(): Promise<SampleData> {
@@ -861,29 +886,53 @@ export class EchoTalkApp {
 
     private setupPracticeUI(): void {
         const userInputGroup = $('#userInput').parent();
-        // Adjust the UI based on the selected practice mode ('check' or 'skip')
+        const checkBtn = $('#checkBtn');
+
+        // Adjust the UI based on the selected practice mode
         if (this.practiceMode === 'check') {
             $('#instructionText').text('Now it’s your turn. Tap the mic icon on your keyboard and speak the word.').show();
             userInputGroup.show();
             $('#userInput').trigger('focus');
-            $('#checkBtn').text('Check/Skip');
+            checkBtn.text('Check/Skip').show();
+        } else if (this.practiceMode === 'auto-skip') {
+            $('#instructionText').text('Listen and repeat. The next phrase will play automatically.').show();
+            userInputGroup.hide();
+
+            // Show the button, set its text, and prepare it for animation
+            checkBtn.html('<i class="bi bi-hourglass-split"></i> Auto-advancing...').show();
+            checkBtn.addClass('auto-skip-progress');
+            checkBtn.removeClass('loading');
+            checkBtn.css('animation-duration', ''); // Ensure clean state
         } else { // 'skip' mode
             $('#instructionText').text('Listen, repeat to yourself, then click "Next Step".').show();
             userInputGroup.hide();
-            $('#checkBtn').html('<i class="bi bi-skip-forward-fill"></i> Next Step');
+            checkBtn.html('<i class="bi bi-skip-forward-fill"></i> Next Step').show();
         }
     }
 
     // --- Core Logic Methods ---
 
+    private getMaxWordsBasedOnLevel(): Number {
+        const $levelSelect = $('#levelSelect');
+        const level = Number($levelSelect.val());
+        const wordsPerLevel = {
+            0: 1, // Beginners
+            1: 3, // Intermediate
+            2: 3  // Advanced
+        };
+        return wordsPerLevel[level] ?? 3;
+    }
+
     private practiceStep(speed: number = 1): void {
+        this.clearAutoSkipTimer();
+
         // Main function to advance the practice session
         if (this.currentIndex >= this.words.length) {
             this.finishSession();
             return;
         }
         // Get the boundaries of the current phrase (up to 3 words or until punctuation)
-        const endIndex = this.getPhraseBounds(this.currentIndex, 3);
+        const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel());
         const startIndex = this.getStartOfCurrentPhrase();
         const phrase = this.words.slice(startIndex, endIndex).join(' ');
         this.currentPhrase = this.removeJunkCharsFromText(phrase);
@@ -982,7 +1031,7 @@ export class EchoTalkApp {
             await this.stopRecording();
         }
 
-        const endIndex = this.getPhraseBounds(this.currentIndex, 3);
+        const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel());
         const startIndex = this.getStartOfCurrentPhrase();
         const target = this.cleanText(this.words.slice(startIndex, endIndex).join(' '));
 
@@ -1047,7 +1096,7 @@ export class EchoTalkApp {
         if (this.isRecordingEnabled) {
             this.stopRecording();
         }
-        const endIndex = this.getPhraseBounds(this.currentIndex, 3);
+        const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel());
         this.currentIndex = endIndex;
         this.currentCount = 0;
         if (this.currentIndex >= this.words.length) {
@@ -1087,6 +1136,8 @@ export class EchoTalkApp {
     }
 
     private finishSession(): void {
+        this.clearAutoSkipTimer();
+
         this.terminateMicrophoneStream();
         this.triggerCelebrationAnimation(); // <-- This is the new line
         // Displays a celebratory message and ends the practice session
@@ -1201,29 +1252,60 @@ export class EchoTalkApp {
         // Add each word as a span to the container
         wordSpans.forEach((span, index) => {
             container.append(span);
-            if(index < wordSpans.length - 1) container.append(' ');
+            if (index < wordSpans.length - 1) container.append(' ');
         });
+
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = this.lang;
         utterance.rate = speed * this.speechRate;
+
+        let startTime: number;
+        utterance.onstart = () => {
+            startTime = performance.now();
+        };
+
+        utterance.onend = () => {
+            const duration = (performance.now() - startTime) / 1000; // in seconds
+
+            // Recalculate estimated WPM for better accuracy on mobile
+            if (this.isMobile && duration > 0.1) {
+                const currentWPS = phraseWords.length / duration;
+                this.estimatedWordsPerSecond = (this.estimatedWordsPerSecond * this.phrasesSpokenCount + currentWPS) / (this.phrasesSpokenCount + 1);
+                this.phrasesSpokenCount++;
+            }
+
+            // Handle Auto-Skip mode
+            if (this.practiceMode === 'auto-skip') {
+                const $checkBtn = $('#checkBtn');
+                const waitTime = duration * 1.5; // Wait time in seconds
+
+                // To reliably re-trigger a CSS animation, we must remove the class,
+                // force a browser reflow, and then add the class back.
+                $checkBtn.removeClass('loading');
+
+                // This is a standard trick to force the browser to repaint the element
+                // (by reading its offsetHeight) before the next line of code runs.
+                void $checkBtn[0].offsetHeight;
+
+                // Now, set the new duration and add the class back to start the animation
+                $checkBtn.css('animation-duration', `${waitTime}s`);
+                $checkBtn.addClass('loading');
+
+                // Set a timeout that fires when the animation is expected to end
+                this.autoSkipTimer = setTimeout(() => {
+                    this.advanceToNextPhrase();
+                }, (waitTime * 1000) + 50); // Add a small buffer for safety
+            }
+
+            if (onEnd) onEnd();
+        };
+
         if (this.isMobile) {
             // For mobile, estimate word boundaries based on calculated WPM
-           const delayPerWord = 900 / (this.estimatedWordsPerSecond * speed)
+            const delayPerWord = 900 / (this.estimatedWordsPerSecond * speed)
             phraseWords.forEach((word, index) => {
                 setTimeout(() => $(wordSpans[index]).addClass('highlighted'), index * delayPerWord);
             });
-            let startTime: number;
-            utterance.onstart = () => { startTime = performance.now(); };
-            utterance.onend = () => {
-                const duration = (performance.now() - startTime) / 1000;
-                // Recalculate estimated WPM for better accuracy
-                if (duration > 0.1) {
-                    const currentWPS = phraseWords.length / duration;
-                    this.estimatedWordsPerSecond = (this.estimatedWordsPerSecond * this.phrasesSpokenCount + currentWPS) / (this.phrasesSpokenCount + 1);
-                    this.phrasesSpokenCount++;
-                }
-                if (onEnd) onEnd();
-            };
         } else {
             // For desktop, use the onboundary event for precise highlighting
             const wordBoundaries: number[] = [];
@@ -1234,15 +1316,14 @@ export class EchoTalkApp {
             });
             utterance.onboundary = (event: SpeechSynthesisEvent) => {
                 if (event.name === 'word') {
-                    // Find the index of the word that is currently being spoken
-                    let wordIndex = wordBoundaries.findIndex(boundary => event.charIndex < boundary) -1;
-                    if(wordIndex === -2) wordIndex = wordBoundaries.length - 1; // Last word
+                    let wordIndex = wordBoundaries.findIndex(boundary => event.charIndex < boundary) - 1;
+                    if (wordIndex === -2) wordIndex = wordBoundaries.length - 1; // Last word
                     $('.word.highlighted').removeClass('highlighted');
                     $(wordSpans[wordIndex]).addClass('highlighted');
                 }
             };
-            utterance.onend = () => { if (onEnd) onEnd(); };
         }
+
         speechSynthesis.speak(utterance);
         // Automatically focus the input field for the user
         const userInput = $('#userInput') as JQuery<HTMLInputElement>;
@@ -1263,7 +1344,7 @@ export class EchoTalkApp {
 
     private async startPractice(): Promise<void> {
         // Handles the start of a new practice session
-        this.practiceMode = ($('input[name="practiceMode"]:checked').val() as 'skip' | 'check');
+        this.practiceMode = ($('#practiceModeSelect').val() as 'skip' | 'check' | 'auto-skip');
         const rawVal = $('#sentenceInput').attr('data-val');
         this.sentence = (typeof rawVal === 'string' ? rawVal.trim() : '').replace(/([^\.\?\!\n])\n/g, '$1.\n');
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);

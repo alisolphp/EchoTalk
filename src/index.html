@@ -118,37 +118,37 @@
                     <div class="card bg-dark-subtle mb-3">
                         <div class="card-body">
                             <h6 class="card-title mb-3">Practice Configuration</h6>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Practice Mode:</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="practiceMode" id="mode-skip" value="skip" checked>
-                                    <label class="form-check-label" for="mode-skip"><i class="bi bi-skip-forward-fill" style="color: #9adeff;"></i> Skip-Only Mode (Listen and repeat yourself, then go next)</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="practiceMode" id="mode-check" value="check">
-                                    <label class="form-check-label" for="mode-check"><i class="bi bi-check2-circle" style="color: #38ff00;"></i> Check Mode (Use keyboard mic to check your pronunciation)</label>
-                                </div>
-                            </div>
 
                             <div class="mb-3">
-                                <label for="speechRateSelect" class="form-label fw-bold">Speech Speed:</label>
-                                <select id="speechRateSelect" class="form-select">
-                                    <option value="0.6">🐢 Slow</option>
-                                    <option value="0.8">🧍 Medium</option>
-                                    <option value="1">🚶 Normal</option>
-                                    <option value="1.2">🏃 Fast</option>
-                                    <option value="1.4">🚗 Furious</option>
+                                <label for="practiceModeSelect" class="form-label fw-bold">Practice Mode:</label>
+                                <select id="practiceModeSelect" class="form-select">
+                                    <option value="skip">🎧 Skip-Only (Listen &amp; Repeat)</option>
+                                    <option value="auto-skip">🕒 Auto-Skip (Practice Within Time)</option>
+                                    <option value="check">🎤 Check Mode (Use Keyboard's Mic)</option>
                                 </select>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="repsSelect" class="form-label fw-bold">Repetitions per Phrase:</label>
-                                <select id="repsSelect" class="form-select"></select>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="speechRateSelect" class="form-label fw-bold">Speech Speed:</label>
+                                    <select id="speechRateSelect" class="form-select">
+                                        <option value="0.6">🐢 Slow</option>
+                                        <option value="0.8">🧍 Medium</option>
+                                        <option value="1">🚶 Normal</option>
+                                        <option value="1.2">🏃 Fast</option>
+                                        <option value="1.4">🚗 Furious</option>
+                                    </select>
+                                </div>
+
+                                <div class="col">
+                                    <label for="repsSelect" class="form-label fw-bold">Repetitions:</label>
+                                    <select id="repsSelect" class="form-select"></select>
+                                </div>
                             </div>
 
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
-                                <label class="form-check-label" for="recordToggle"><i class="bi bi-mic-fill" style="color: #ffb300;"></i> <strong>Record my voice</strong> for comparing later (completely locally)</label>
+                                <label class="form-check-label" for="recordToggle"><i class="bi bi-mic-fill" style="color: #ffb300;"></i> <strong>Record my voice</strong> to compare later (completely locally)</label>
                             </div>
                         </div>
                     </div>
@@ -164,6 +164,10 @@
                     </div>
 
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-success opacity-50" data-bs-dismiss="modal">
+                            <i class="bi bi-check-square-fill"></i>
+                            <small>Saved Automatically</small>
+                        </button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
 
