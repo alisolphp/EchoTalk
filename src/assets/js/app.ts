@@ -337,7 +337,7 @@ export class EchoTalkApp {
             $(this).attr('data-val', $(this).val());
         });
         $('#categorySelect').on('change', () => this.useSample());
-        $('#backHomeButton').on('click', () => history.back());
+        $('#backHomeButton').on('click', () => document.location.reload());
 
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
@@ -986,17 +986,17 @@ export class EchoTalkApp {
         // Set the modal title to the word
         $('#wordActionsModalLabel').text(`Word: ${word}`);
 
+        $('#playWordBtn').off('click').on('click', () => {
+            this.speak(word);
+        });
+
         // Update the links for Google search
         const encodedWord = encodeURIComponent(word);
         $('#searchPronunciationLink').attr('href', `https://www.google.com/search?q=pronunciation:+${encodedWord}`);
         $('#searchMeaningLink').attr('href', `https://www.google.com/search?q=meaning:+${encodedWord}`);
         $('#searchExamplesLink').attr('href', `https://www.google.com/search?q=${encodedWord}+in+a+sentence`);
-        $('#searchSentenceMeaningLink').off('click').on('click', () => {
-            this.openTranslate(this.currentPhrase);
-        });
-        $('#playWordBtn').off('click').on('click', () => {
-            this.speak(word);
-        });
+        $('#searchSentenceMeaningLink').off('click').on('click', () => this.openTranslate(this.currentPhrase));
+        $('#translateWithGptBtn').off('click').on('click', () => this.handleTranslateWithGpt(this.currentPhrase));
 
         this.speak(word);
 
@@ -1031,6 +1031,93 @@ export class EchoTalkApp {
             newWin.document.close();
         } else {
             alert("Popup blocked! Please allow popups for this site.");
+        }
+    }
+
+    private async handleTranslateWithGpt(element: HTMLElement): Promise<void> {
+        const sentence = this.currentPhrase;
+        if (!sentence) return;
+
+        const promptText = `You are a professional, patient, and encouraging language teacher.
+Your role is not just to translate but to guide me like a personal mentor, helping me deeply understand and *remember* every element of the given sentence.
+Imagine you are teaching me in a one-on-one lesson where clarity, memory retention, and motivation matter most.
+
+Task: Please translate the following sentence into the language I feel most comfortable with.
+But don’t stop at translation — teach me step by step in a way that makes the sentence unforgettable.
+
+When crafting your output, follow these steps:
+
+1. Fluent Translation: Provide a smooth, natural translation of the whole sentence.
+2. Word-by-Word Breakdown: List every word from the original sentence, explain its meaning clearly, and highlight nuances where helpful.
+3. Phonetic / Mnemonic Aid: For tricky words, add a phonetic hint or mnemonic (sound-alike trick, short story, or playful connection) that makes the word easy to recall.
+4. Examples in Context: Show at least one simple, real-world example sentence for important words so I see how they are used naturally.
+5. Visualization / Metaphor: Suggest an image, metaphor, or scenario that allows me to *visualize* and emotionally connect with the meaning.
+6. Summary in Plain Words: Rephrase the whole sentence in simpler, everyday language so I can fully grasp its meaning and usage.
+7. Active Recall Practice: End with an interactive element — e.g., a quiz-style question, a short fill-in-the-blank, or asking me to re-express the idea in my own words.
+8. Motivation & Encouragement: Wrap up warmly, motivating me to keep practicing. Specifically, encourage me to continue shadowing practice in the EchoTalk app to strengthen fluency and confidence.
+9. Language of Output: Present all section titles and explanations in the language I feel most comfortable with (not in English), so the learning experience feels natural, supportive, and personal.
+
+Sentence:
+"${sentence}"`;
+
+        // --- Use the new helper function ---
+        const success = await this.copyTextToClipboard(promptText);
+
+        if (success) {
+            // Provide user feedback and open the new tab on success
+            const $element = $(element);
+            const originalHtml = $element.html();
+            $element.html('<i class="bi bi-check-lg"></i> Copied!');
+            $element.prop('disabled', true);
+
+            setTimeout(() => {
+                $element.html(originalHtml);
+                $element.prop('disabled', false);
+            }, 2000);
+
+            window.open('https://chatgpt.com/', '_blank');
+        } else {
+            // Handle failure
+            alert("Could not copy the prompt to your clipboard.");
+        }
+    }
+
+    /**
+     * A robust method to copy text to the clipboard.
+     * It tries the modern Clipboard API first and falls back to a legacy method if needed.
+     * @param textToCopy The string to be copied to the clipboard.
+     * @returns A Promise that resolves to `true` if successful, and `false` otherwise.
+     */
+    private async copyTextToClipboard(textToCopy: string): Promise<boolean> {
+        try {
+            // --- Primary Method: Modern async Clipboard API ---
+            // This requires a secure context (HTTPS or localhost)
+            await navigator.clipboard.writeText(textToCopy);
+            return true;
+        } catch (err) {
+            // --- Fallback Method: Legacy execCommand ---
+            console.warn('Modern clipboard API failed. Falling back to legacy method.', err);
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+
+            // Make the textarea invisible
+            textArea.style.position = "fixed";
+            textArea.style.top = "-9999px";
+            textArea.style.left = "-9999px";
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                return successful;
+            } catch (legacyErr) {
+                console.error('Fallback copy method failed:', legacyErr);
+                document.body.removeChild(textArea);
+                return false;
+            }
         }
     }
 
@@ -1800,7 +1887,7 @@ export class EchoTalkApp {
      */
     private async copyAIPrompt(element: HTMLElement): Promise<void> {
         const sentence = $(element).data('sentence') as string;
-        const promptText = `You are an AI language model. Your task is to analyze pronunciation and fluency in the attached audio file. 
+        const promptText = `You are an AI language model. Your task is to analyze pronunciation and fluency in the attached audio file.
 
 IMPORTANT:
 - If you cannot actually analyze the user's audio for pronunciation or fluency, respond honestly with exactly:
@@ -1823,22 +1910,22 @@ Analysis instructions:
 If no audio file is attached, respond ONLY with this exact message:
 "Please download your recorded audio for "${sentence}" sentence from the EchoTalk app and send it to me as an attachment for analysis."`;
 
-        try {
-            await navigator.clipboard.writeText(promptText);
+        // --- Use the new helper function ---
+        const success = await this.copyTextToClipboard(promptText);
 
-            // Provide user feedback
-            const originalHtml = $(element).html();
-            $(element).html('<i class="bi bi-check-lg"></i> Copied!');
-            $(element).prop('disabled', true);
+        if (success) {
+            // Provide user feedback on success
+            const $element = $(element);
+            const originalHtml = $element.html();
+            $element.html('<i class="bi bi-check-lg"></i> Copied!');
+            $element.prop('disabled', true);
 
             setTimeout(() => {
-                $(element).html(originalHtml);
-                $(element).prop('disabled', false);
+                $element.html(originalHtml);
+                $element.prop('disabled', false);
             }, 2000);
-
-        } catch (err) {
-            console.error('Failed to copy prompt: ', err);
-            // Optional: Alert the user that copying failed.
+        } else {
+            // Handle failure
             alert("Could not copy the prompt to your clipboard. Please try again.");
         }
     }
