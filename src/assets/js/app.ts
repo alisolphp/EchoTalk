@@ -115,6 +115,12 @@ export class EchoTalkApp {
     private speechRate: number = 1;
     private spellApiKey: string = '';
     private spellCheckerIsAvailable: boolean = false;
+    private readonly STOP_WORDS: string[] = [
+        'a', 'an', 'the', 'in', 'on', 'at', 'for', 'to', 'of', 'with', 'by',
+        'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being',
+        'and', 'or', 'but', 'so', 'if', 'as', 'that', 'which', 'who', 'whom',
+        'my', 'your', 'his', 'her', 'its', 'our', 'their'
+    ];
     private readonly languageMap: Record<string, string> = {
         'en-US': 'English (US)',
         'da-DK': 'Danish (DK)',
@@ -915,12 +921,12 @@ export class EchoTalkApp {
     private getMaxWordsBasedOnLevel(): Number {
         const $levelSelect = $('#levelSelect');
         const level = Number($levelSelect.val());
-        const wordsPerLevel = {
-            0: 1, // Beginners
-            1: 3, // Intermediate
-            2: 3  // Advanced
+        const wordsPerLevel: { [key: number]: number } = {
+            0: 2, // Beginners
+            1: 5, // Intermediate
+            2: 7  // Advanced
         };
-        return wordsPerLevel[level] ?? 3;
+        return wordsPerLevel[level] ?? 5;
     }
 
     private practiceStep(speed: number = 1): void {
@@ -931,7 +937,7 @@ export class EchoTalkApp {
             this.finishSession();
             return;
         }
-        // Get the boundaries of the current phrase (up to 3 words or until punctuation)
+        // Get the boundaries of the current phrase
         const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel());
         const startIndex = this.getStartOfCurrentPhrase();
         const phrase = this.words.slice(startIndex, endIndex).join(' ');
@@ -980,11 +986,9 @@ export class EchoTalkApp {
         $('#searchPronunciationLink').attr('href', `https://www.google.com/search?q=pronunciation:+${encodedWord}`);
         $('#searchMeaningLink').attr('href', `https://www.google.com/search?q=meaning:+${encodedWord}`);
         $('#searchExamplesLink').attr('href', `https://www.google.com/search?q=${encodedWord}+in+a+sentence`);
-        $('#searchSentenceMeaningLink').on('click', () => {
+        $('#searchSentenceMeaningLink').off('click').on('click', () => {
             this.openTranslate(this.currentPhrase);
         });
-
-        // Handle the "Play Word" button click
         $('#playWordBtn').off('click').on('click', () => {
             this.speak(word);
         });
@@ -1186,17 +1190,28 @@ export class EchoTalkApp {
         return lastPuncIndex >= 0 ? lastPuncIndex + 1 : 0;
     }
 
-    private getPhraseBounds(startIndex: number, maxWords: number = 3): number {
+    private getPhraseBounds(startIndex: number, maxWords: number): number {
         // Determines the end index of the current phrase (up to maxWords or a punctuation mark)
         let endIndex = startIndex;
         let count = 0;
         while (endIndex < this.words.length && count < maxWords) {
             endIndex++;
             count++;
+            // Stop if the word ends with sentence-ending punctuation
             if (/[.!?]/.test(this.words[endIndex - 1].slice(-1))) {
                 break;
             }
         }
+
+        // Avoid ending a phrase with a stop word if it's not the end of the sentence.
+        // This creates more natural-sounding practice chunks.
+        if (endIndex < this.words.length && endIndex > startIndex + 1) {
+            const lastWordInPhrase = this.words[endIndex - 1].toLowerCase().replace(/[.,!?;:"]+$/, '');
+            if (this.STOP_WORDS.includes(lastWordInPhrase)) {
+                endIndex--; // Backtrack one word
+            }
+        }
+
         return endIndex;
     }
 
