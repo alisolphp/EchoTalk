@@ -1210,7 +1210,7 @@ export class EchoTalkApp {
 
         // Avoid ending a phrase with a stop word if it's not the end of the sentence.
         // This creates more natural-sounding practice chunks.
-        if (endIndex < this.words.length && endIndex > startIndex + 1) {
+        if (endIndex < this.words.length && (endIndex - startIndex) > 3) {
             const lastWordInPhrase = this.words[endIndex - 1].toLowerCase().replace(/[.,!?;:"]+$/, '');
             if (this.STOP_WORDS.includes(lastWordInPhrase)) {
                 endIndex--; // Backtrack one word
@@ -1296,6 +1296,8 @@ export class EchoTalkApp {
 
             // Handle Auto-Skip mode
             if (this.practiceMode === 'auto-skip') {
+                this.currentCount++; // Increment the repetition counter
+
                 const $checkBtn = $('#checkBtn');
                 const waitTime = duration * 1.5; // Wait time in seconds
 
@@ -1313,8 +1315,16 @@ export class EchoTalkApp {
 
                 // Set a timeout that fires when the animation is expected to end
                 this.autoSkipTimer = setTimeout(() => {
-                    this.advanceToNextPhrase();
+                    // Check if the required repetitions are complete
+                    if (this.currentCount >= this.reps) {
+                        // If complete, advance to the next phrase.
+                        this.advanceToNextPhrase();
+                    } else {
+                        // If not complete, simply repeat the current phrase.
+                        this.practiceStep();
+                    }
                 }, (waitTime * 1000) + 50); // Add a small buffer for safety
+
             }
 
             if (onEnd) onEnd();

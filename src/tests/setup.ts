@@ -8,6 +8,11 @@ import fs from 'fs';
 import path from 'path';
 import $ from 'jquery';
 
+vi.mock('canvas-confetti', () => ({
+    __esModule: true,
+    default: vi.fn(),
+}));
+
 // Expose jQuery globally for modules that rely on global $
 (globalThis as any).$ = $;
 (globalThis as any).jQuery = $;

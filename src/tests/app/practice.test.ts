@@ -174,7 +174,7 @@ describe('Practice Logic', () => {
         ($('#sentenceInput') as any).val('This is a test');
         ($('#sentenceInput') as any).attr('data-val', 'This is a test');
         // Select 'check' practice mode.
-        $('#mode-check').prop('checked', true);
+        $('#practiceModeSelect').val('check');
         $('#startBtn').trigger('click');
 
         // Simulate user typing the correct first part of the sentence.
@@ -193,7 +193,7 @@ describe('Practice Logic', () => {
 
         ($('#sentenceInput') as any).val('This is a test');
         ($('#sentenceInput') as any).attr('data-val', 'This is a test');
-        $('#mode-check').prop('checked', true);
+        $('#practiceModeSelect').val('check');
 
         await (app as any).startPractice();
 
@@ -209,7 +209,7 @@ describe('Practice Logic', () => {
     it('should advance to the next phrase correctly in skip mode', async () => {
         // Set a sentence with multiple phrases.
         ($('#sentenceInput') as any).val('one two three. four five six.');
-        ($('#sentenceInput') as any).attr('onw two three. four five six.');
+        ($('#sentenceInput') as any).attr('data-val', 'one two three. four five six.');
         $('#startBtn').trigger('click');
 
         // Manually set initial state to simulate being in the middle of a session.
@@ -251,11 +251,11 @@ describe('Practice Logic', () => {
     });
 
     it('should advance to the next phrase after the last correct repetition', async () => {
-        ($('#sentenceInput') as any).val('This is a test phrase');
-        ($('#sentenceInput') as any).attr('data-val', 'This is a test phrase');
+        ($('#sentenceInput') as any).val('This is a. test phrase');
+        ($('#sentenceInput') as any).attr('data-val', 'This is a. test phrase');
         // Require 2 repetitions.
         ($('#repsSelect') as any).val('2');
-        $('#mode-check').prop('checked', true);
+        $('#practiceModeSelect').val('check');
         $('#startBtn').trigger('click');
 
         // Set state to be on the last required repetition for the first phrase.
@@ -323,7 +323,7 @@ describe('Practice Logic', () => {
 
     it('should display accuracy in the final message for check mode', async () => {
         // Ensure 'check' mode is selected.
-        $('#mode-check').prop('checked', true);
+        $('#practiceModeSelect').val('check');
         $('#startBtn').trigger('click');
 
         // Manually set internal stats for accuracy calculation.
@@ -381,7 +381,7 @@ describe('Practice Logic', () => {
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
         ($('#sentenceInput') as any).attr('data-val', 'First phrase. Second phrase.');
         ($('#repsSelect') as any).val('2');
-        $('#mode-check').prop('checked', true);
+        $('#practiceModeSelect').val('check');
 
         await (app as any).startPractice();
 

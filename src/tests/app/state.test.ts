@@ -187,7 +187,7 @@ describe('State Management and Event Handlers', () => {
         ($('#sentenceInput') as any).val(customSentence);
         ($('#sentenceInput') as any).attr('data-val', customSentence);
         ($('#repsSelect') as any).val('5');
-        $('#mode-check').prop('checked', true);
+        $('#practiceModeSelect').val('check');
 
         // 2. Trigger the start practice button click.
         $('#startBtn').trigger('click');
