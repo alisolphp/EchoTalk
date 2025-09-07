@@ -232,14 +232,59 @@
                     <h5 class="modal-title" id="wordActionsModalLabel"></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-center">
-                    <div class="d-grid gap-2">
+                <div class="modal-body">
+                    <div class="d-grid mb-3">
                         <button id="playWordBtn" class="btn btn-primary"><i class="bi bi-play-fill"></i> Play Word Again</button>
-                        <a id="searchPronunciationLink" href="#" target="_blank" class="btn btn-outline-info">How to Pronounce <i class="bi bi-box-arrow-up-right"></i></a>
-                        <a id="searchExamplesLink" href="#" target="_blank" class="btn btn-outline-warning">Usage Examples <i class="bi bi-box-arrow-up-right"></i></a>
-                        <a id="searchMeaningLink" href="#" target="_blank" class="btn btn-outline-light">Word Meaning <i class="bi bi-box-arrow-up-right"></i></a>
-                        <a id="searchSentenceMeaningLink" class="btn btn-outline-light">Sentence Meaning <i class="bi bi-box-arrow-up-right"></i></a>
-                        <a id="translateWithGptBtn" href="#" class="btn btn-outline-primary">Copy AI Translation Prompt <i class="bi bi-robot"></i></a>
+                    </div>
+
+                    <div class="accordion" id="wordActionsAccordion">
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingGoogle">
+                                <button class="accordion-button collapsed online-only-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGoogle" aria-expanded="false" aria-controls="collapseGoogle">
+                                    <i class="bi bi-google me-2"></i> Google Integrations
+                                    <i class="bi bi-wifi-off text-danger ms-auto me-2" title="Requires internet connection"></i>
+                                </button>
+                            </h2>
+                            <div id="collapseGoogle" class="accordion-collapse collapse" aria-labelledby="headingGoogle" data-bs-parent="#wordActionsAccordion">
+                                <div class="accordion-body p-2">
+                                    <div class="d-grid gap-2">
+                                        <a id="searchPronunciationLink" href="#" target="_blank" class="btn btn-outline-info btn-sm">
+                                            <i class="bi bi-soundwave me-2"></i>How to Pronounce
+                                        </a>
+                                        <a id="searchExamplesLink" href="#" target="_blank" class="btn btn-outline-warning btn-sm">
+                                            <i class="bi bi-blockquote-left me-2"></i>Usage Examples
+                                        </a>
+                                        <a id="searchMeaningLink" href="#" target="_blank" class="btn btn-outline-success btn-sm">
+                                            <i class="bi bi-book me-2"></i>Word Meaning
+                                        </a>
+                                        <a id="searchSentenceMeaningLink" href="#" class="btn btn-outline-light btn-sm">
+                                            <i class="bi bi-translate me-2"></i>Sentence Meaning
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAI">
+                                <button class="accordion-button collapsed online-only-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAI" aria-expanded="false" aria-controls="collapseAI">
+                                    <i class="bi bi-robot me-2"></i> AI Integrations
+                                    <i class="bi bi-wifi-off text-danger ms-auto me-2" title="Requires internet connection"></i>
+                                </button>
+                            </h2>
+                            <div id="collapseAI" class="accordion-collapse collapse" aria-labelledby="headingAI" data-bs-parent="#wordActionsAccordion">
+                                <div class="accordion-body p-2">
+                                    <div class="d-grid gap-2">
+                                        <a id="translateWithGptBtn" href="#" class="btn btn-outline-primary btn-sm"><i class="bi bi-translate me-1"></i> AI Deep Translation</a>
+                                        <a id="grammarAnalysisBtn" href="#" class="btn btn-outline-success btn-sm"><i class="bi bi-diagram-3 me-1"></i> AI Grammar Analysis</a>
+                                        <a id="vocabExpansionBtn" href="#" class="btn btn-outline-warning btn-sm"><i class="bi bi-stack me-1"></i> AI Vocabulary Expansion</a>
+                                        <a id="contextNuanceBtn" href="#" class="btn btn-outline-info btn-sm"><i class="bi bi-chat-quote me-1"></i> AI Context & Nuance</a>
+                                        <a id="creativePracticeBtn" href="#" class="btn btn-outline-danger btn-sm"><i class="bi bi-lightbulb me-1"></i> AI Creative Practice</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -331,6 +376,24 @@
         </div>
     </div>
 
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel"><i class="bi bi-check-circle-fill text-success"></i> Prompt Copied!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Now, just paste the prompt in the new tab and enjoy the AI analysis.</p>
+                    <p class="small text-muted mb-0">To continue, click the "Go to ChatGPT" button.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmGoToGptBtn">Let's Go to ChatGPT</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <footer class="text-center text-muted small mt-auto py-2 opacity-25">

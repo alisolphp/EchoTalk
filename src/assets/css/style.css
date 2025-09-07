@@ -211,3 +211,14 @@ body {
 }
 
 /* --- END: Auto-skip animation --- */
+
+
+/* By default, the offline (wifi-off) icon is hidden */
+.online-only-header .bi-wifi-off {
+    display: none;
+}
+
+/* When the body has the 'is-offline' class, show the offline icon */
+body.is-offline .online-only-header .bi-wifi-off {
+    display: inline-block;
+}

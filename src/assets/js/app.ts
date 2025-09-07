@@ -203,6 +203,8 @@ export class EchoTalkApp {
 
             this.handleHashChange();
             await this.checkSpellApiKey();
+
+            this.updateOnlineStatusClass();
         } catch (error) {
             console.error("Initialization failed:", error);
             // Display an error message if initialization fails
@@ -399,6 +401,8 @@ export class EchoTalkApp {
 
         document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
 
+        window.addEventListener('online', () => this.updateOnlineStatusClass());
+        window.addEventListener('offline', () => this.updateOnlineStatusClass());
     }
 
     private handleVisibilityChange(): void {
@@ -986,10 +990,10 @@ export class EchoTalkApp {
         // Set the modal title to the word
         $('#wordActionsModalLabel').text(`Word: ${word}`);
 
+        // Standard actions:
         $('#playWordBtn').off('click').on('click', () => {
             this.speak(word);
         });
-
         // Update the links for Google search
         const encodedWord = encodeURIComponent(word);
         $('#searchPronunciationLink').attr('href', `https://www.google.com/search?q=pronunciation:+${encodedWord}`);
@@ -998,9 +1002,31 @@ export class EchoTalkApp {
         $('#searchSentenceMeaningLink').off('click').on('click', () => this.openTranslate(this.currentPhrase));
         $('#translateWithGptBtn').off('click').on('click', () => this.handleTranslateWithGpt(this.currentPhrase));
 
-        this.speak(word);
+        // --- AI Prompt Actions ---
+        // Note: We pass e.currentTarget to provide visual feedback on the button itself.
+        $('#translateWithGptBtn').off('click').on('click', (e) => {
+            e.preventDefault();
+            this.handleTranslateWithGpt(e.currentTarget);
+        });
+        $('#grammarAnalysisBtn').off('click').on('click', (e) => {
+            e.preventDefault();
+            this.handleGrammarAnalysis(e.currentTarget);
+        });
+        $('#vocabExpansionBtn').off('click').on('click', (e) => {
+            e.preventDefault();
+            this.handleVocabularyExpansion(e.currentTarget);
+        });
+        $('#contextNuanceBtn').off('click').on('click', (e) => {
+            e.preventDefault();
+            this.handleContextNuance(e.currentTarget);
+        });
+        $('#creativePracticeBtn').off('click').on('click', (e) => {
+            e.preventDefault();
+            this.handleCreativePractice(e.currentTarget);
+        });
 
-        // Show the modal
+        // Speak the word and show the modal
+        this.speak(word);
         const modalElement = document.getElementById('wordActionsModal');
         if (modalElement) {
             const modal = new Modal(modalElement);
@@ -1055,31 +1081,169 @@ When crafting your output, follow these steps:
 6. Summary in Plain Words: Rephrase the whole sentence in simpler, everyday language so I can fully grasp its meaning and usage.
 7. Active Recall Practice: End with an interactive element — e.g., a quiz-style question, a short fill-in-the-blank, or asking me to re-express the idea in my own words.
 8. Motivation & Encouragement: Wrap up warmly, motivating me to keep practicing. Specifically, encourage me to continue shadowing practice in the EchoTalk app to strengthen fluency and confidence.
-9. Language of Output: Present all section titles and explanations in the language I feel most comfortable with (not in English), so the learning experience feels natural, supportive, and personal.
+9. Language of Output: Present all section titles and explanations in the language I feel most comfortable with (probably it's not ${this.langGeneral}), so the learning experience feels natural, supportive, and personal.
 
 Sentence:
 "${sentence}"`;
 
-        // --- Use the new helper function ---
         const success = await this.copyTextToClipboard(promptText);
-
         if (success) {
-            // Provide user feedback and open the new tab on success
-            const $element = $(element);
-            const originalHtml = $element.html();
-            $element.html('<i class="bi bi-check-lg"></i> Copied!');
-            $element.prop('disabled', true);
-
-            setTimeout(() => {
-                $element.html(originalHtml);
-                $element.prop('disabled', false);
-            }, 2000);
-
-            window.open('https://chatgpt.com/', '_blank');
+            this.showCopySuccessFeedback(element, 'https://chatgpt.com/');
         } else {
-            // Handle failure
             alert("Could not copy the prompt to your clipboard.");
         }
+    }
+
+    private async handleGrammarAnalysis(element: HTMLElement): Promise<void> {
+        const sentence = this.currentPhrase;
+        if (!sentence) return;
+
+        const promptText = `You are a meticulous and clear grammar instructor. Your task is to dissect the following sentence grammatically for a language learner. Avoid overly technical jargon and explain everything in a simple, intuitive way.
+
+For the sentence below, provide the following breakdown:
+1.  **Identify Parts of Speech:** List each word and identify its part of speech (e.g., noun, verb, adjective, preposition).
+2.  **Sentence Structure:** Explain the main structure (e.g., Subject-Verb-Object). Identify the main subject and the main verb.
+3.  **Verb Tense and Form:** What is the verb's tense (e.g., Present Simple, Past Perfect)? Explain why this tense is used here.
+4.  **Key Grammar Concepts:** Point out 1-2 important grammar rules or concepts demonstrated in this sentence that a learner should pay attention to (e.g., use of articles, phrasal verbs, clauses).
+5. Motivation & Encouragement: Wrap up warmly, motivating me to keep practicing. Specifically, encourage me to continue shadowing practice in the EchoTalk app to strengthen fluency and confidence.
+6. Language of Output: Present all section titles and explanations in the language I feel most comfortable with (probably it's not ${this.langGeneral}), so the learning experience feels natural, supportive, and personal.
+
+Present your analysis in a clear, organized format. All explanations should be in the language I am most comfortable with to ensure full understanding.
+
+Sentence:
+"${sentence}"`;
+
+        const success = await this.copyTextToClipboard(promptText);
+        if (success) {
+            this.showCopySuccessFeedback(element, 'https://chatgpt.com/');
+        } else {
+            alert("Could not copy the prompt to your clipboard.");
+        }
+    }
+
+    private async handleVocabularyExpansion(element: HTMLElement): Promise<void> {
+        const sentence = this.currentPhrase;
+        if (!sentence) return;
+
+        const promptText = `You are a helpful vocabulary coach. Your goal is to help me expand my vocabulary based on the key words in the sentence provided.
+
+For the sentence below, please perform the following steps:
+1.  **Identify Key Vocabulary:** Select the 2-3 most important or useful words from the sentence (not common words like 'a', 'the', 'is').
+2.  **For Each Key Word, Provide:**
+    * **Meaning:** A simple, clear definition.
+    * **Synonyms:** List 2-3 synonyms (words with similar meaning).
+    * **Antonyms:** List 1-2 antonyms (words with the opposite meaning), if applicable.
+    * **Example Sentence:** Provide a new, simple sentence using the key word to show its context.
+3. Motivation & Encouragement: Wrap up warmly, motivating me to keep practicing. Specifically, encourage me to continue shadowing practice in the EchoTalk app to strengthen fluency and confidence.
+4. Language of Output: Present all section titles and explanations in the language I feel most comfortable with (probably it's not ${this.langGeneral}), so the learning experience feels natural, supportive, and personal.
+
+Please format the output clearly for easy learning. All explanations should be in the language I am most comfortable with.
+
+Sentence:
+"${sentence}"`;
+
+        const success = await this.copyTextToClipboard(promptText);
+        if (success) {
+            this.showCopySuccessFeedback(element, 'https://chatgpt.com/');
+        } else {
+            alert("Could not copy the prompt to your clipboard.");
+        }
+    }
+
+    private async handleContextNuance(element: HTMLElement): Promise<void> {
+        const sentence = this.currentPhrase;
+        if (!sentence) return;
+
+        const promptText = `You are a cultural and linguistic expert. Your task is to help me understand the subtle nuances and appropriate context for using the following sentence.
+
+Please analyze the sentence and answer these questions:
+1.  **Formality Level:** How formal or informal is this sentence? (e.g., Very Formal, Neutral, Casual, Slang).
+2.  **Common Scenarios:** In what kind of real-life situations would a native speaker use this sentence? (e.g., at work, with friends, in a formal speech).
+3.  **Emotional Tone:** What is the likely emotional tone behind this sentence? (e.g., happy, frustrated, sarcastic, neutral).
+4.  **Idioms or Expressions:** Does the sentence contain any idioms, phrasal verbs, or common expressions? If so, explain what they mean.
+5. Motivation & Encouragement: Wrap up warmly, motivating me to keep practicing. Specifically, encourage me to continue shadowing practice in the EchoTalk app to strengthen fluency and confidence.
+6. Language of Output: Present all section titles and explanations in the language I feel most comfortable with (probably it's not ${this.langGeneral}), so the learning experience feels natural, supportive, and personal.
+
+Provide your analysis in the language I am most comfortable with.
+
+Sentence:
+"${sentence}"`;
+
+        const success = await this.copyTextToClipboard(promptText);
+        if (success) {
+            this.showCopySuccessFeedback(element, 'https://chatgpt.com/');
+        } else {
+            alert("Could not copy the prompt to your clipboard.");
+        }
+    }
+
+    private async handleCreativePractice(element: HTMLElement): Promise<void> {
+        const sentence = this.currentPhrase;
+        if (!sentence) return;
+
+        const promptText = `You are a creative writing partner for a language learner. Your goal is to help me practice using the grammar and vocabulary from a sentence I've learned.
+
+Based on the sentence below, please do the following:
+1.  **Create a Variation:** Write one new sentence that uses a similar grammatical structure but changes the topic.
+2.  **Create an Opposite:** Write one new sentence that expresses the opposite idea.
+3.  **Ask a Question:** Form a question that could be answered with the original sentence.
+4.  **Fill in the Blank:** Provide a short "fill-in-the-blank" exercise based on a key word or phrase from the sentence for me to complete.
+
+# IMPORTANT:
+- Motivation & Encouragement: Wrap up warmly, motivating me to keep practicing. Specifically, encourage me to continue shadowing practice in the EchoTalk app to strengthen fluency and confidence.
+- Language of Output: Present all section titles and explanations in the language I feel most comfortable with (probably it's not ${this.langGeneral}), so the learning experience feels natural, supportive, and personal.
+
+Present everything in a fun, encouraging way, and provide all instructions in the language I am most comfortable with.
+
+Sentence:
+"${sentence}"`;
+
+        const success = await this.copyTextToClipboard(promptText);
+        if (success) {
+            this.showCopySuccessFeedback(element, 'https://chatgpt.com/');
+        } else {
+            alert("Could not copy the prompt to your clipboard.");
+        }
+    }
+
+    /**
+     * A helper method to provide visual feedback on an element after a successful copy action.
+     * @param element The HTML element (button) that was clicked.
+     * @param url The URL to open in a new tab.
+     */
+
+    private showCopySuccessFeedback(element: HTMLElement, url: string): void {
+        // --- Step 1: Give immediate feedback on the clicked button ---
+        const $element = $(element);
+        const originalHtml = $element.html();
+        $element.html('<i class="bi bi-check-lg"></i> Copied!');
+        $element.prop('disabled', true);
+
+        setTimeout(() => {
+            $element.html(originalHtml);
+            $element.prop('disabled', false);
+        }, 2000);
+
+        // --- Step 2: Prepare and show the confirmation modal ---
+        const modalElement = document.getElementById('confirmationModal');
+        if (!modalElement) return;
+
+        const confirmBtn = modalElement.querySelector('#confirmGoToGptBtn');
+        if (!confirmBtn) return;
+
+        // Correctly get the Modal instance from the imported class
+        const confirmationModal = Modal.getOrCreateInstance(modalElement);
+
+        // A function to handle the redirection
+        const redirectToGpt = () => {
+            window.open(url, '_blank');
+            confirmationModal.hide();
+        };
+
+        // Use .one() to ensure the click event is only handled once
+        $(confirmBtn).off('click').one('click', redirectToGpt);
+
+        confirmationModal.show();
     }
 
     /**
@@ -1906,6 +2070,8 @@ Analysis instructions:
 3. **Fluency Score (1-10):** Evaluate how fluent and natural the speech sounds.
 4. **General Recommendations:** Provide guidance for improving pronunciation of this sentence.
 5. **Motivation:** Encourage the user to continue practicing with EchoTalk to improve speaking skills.
+6. **Language of Output:** Present all section titles and explanations in the language I feel most comfortable with (probably it's not ${this.langGeneral}), so the learning experience feels natural, supportive, and personal.
+
 
 If no audio file is attached, respond ONLY with this exact message:
 "Please download your recorded audio for "${sentence}" sentence from the EchoTalk app and send it to me as an attachment for analysis."`;
@@ -1945,6 +2111,16 @@ If no audio file is attached, respond ONLY with this exact message:
     private displayAppVersion(): void {
         const buildDate = __APP_BUILD_DATE__;
         $('#app-version').text(`Build: ${buildDate}`);
+    }
+
+    /**
+     * Toggles a CSS class on the body element based on the browser's online status.
+     * This is a lightweight way to allow CSS to handle UI changes.
+     */
+    private updateOnlineStatusClass(): void {
+        const isOnline = navigator.onLine;
+        document.body.classList.toggle('is-offline', !isOnline);
+        document.body.classList.toggle('is-online', isOnline);
     }
 
 }
