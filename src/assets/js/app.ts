@@ -1693,23 +1693,22 @@ Sentence:
     // --- Event Handler Implementations ---
 
     private async startPractice(): Promise<void> {
-        this.sentence = ($('#sentenceInput') as JQuery<HTMLInputElement>).val() as string || '';
+        // Handles the start of a new practice session
+        this.practiceMode = ($('#practiceModeSelect').val() as 'skip' | 'check' | 'auto-skip');
+        const rawVal = $('#sentenceInput').attr('data-val');
+        this.sentence = (typeof rawVal === 'string' ? rawVal.trim() : '').replace(/([^\.\?\!\n])\n/g, '$1.\n');
+
         if (this.sentence.trim() === '') {
             alert('Please enter a sentence to practice.');
             return;
         }
-        this.reps = parseInt(($('#repsSelect') as JQuery<HTMLSelectElement>).val() as string, 10);
+
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
-
-        // Read practice mode from the UI before saving state
-        this.practiceMode = ($('#practiceModeSelect') as JQuery<HTMLSelectElement>).val() as 'skip' | 'check' | 'auto-skip';
-
+        this.reps = parseInt(($('#repsSelect').val() as string));
+        this.currentCount = 0;
+        this.correctCount = 0;
+        this.attempts = 0;
         this.saveState();
-
-        $('#configArea').addClass('d-none');
-        $('#practiceArea').removeClass('d-none');
-        $('#backHomeButton').removeClass('d-none').addClass('d-inline-block');
-        $('#fullSentence').text(this.sentence).removeClass('d-none');
 
         // --- Save Practice Data ---
         try {
@@ -1743,7 +1742,22 @@ Sentence:
         }
         // --- End Save Practice Data ---
 
+        // Reset UI visibility before showing the practice area
+        $('#session-complete-container').addClass('d-none').empty();
+        $('#practice-ui-container').removeClass('d-none');
+        $('#configArea').addClass('d-none');
+        $('#practiceArea').removeClass('d-none');
+
+        // Show back home button and full sentence display
+        $('#backHomeButton').removeClass('d-none');
+        $('#backHomeButton').addClass('d-inline-block');
+
+        await this.initializeMicrophoneStream();
+        this.setupPracticeUI();
+        this.renderFullSentence();
         this.practiceStep();
+
+        location.hash = 'practice';
     }
 
     private resetApp(): Promise<void> {
@@ -2029,7 +2043,8 @@ Sentence:
         // Plays the sentence using the text-to-speech engine
         this.stopAllPlayback(true);
         const sentence = $(element).data('sentence') as string;
-        this.speak(sentence, null, 1, this.lang);
+        const sentenceLang = $(element).data('lang') as string;
+        this.speak(sentence, null, 1, sentenceLang);
     }
 
     private async getPronunciationAccuracy(element: HTMLElement): Promise<void> {
