@@ -168,6 +168,13 @@ export class EchoTalkApp {
 
     public async init(selector: string, value: string): Promise<void> {
         try {
+
+            // Get user to practice page if already has a practicing sentence in local storage:
+            const shadowSentence = localStorage.getItem(this.STORAGE_KEYS.sentence) || '';
+            if(shadowSentence !== ''){
+                this.showPracticeSetup();
+            }
+
             const sampleData = await this.fetchSamples();
             this.samples = sampleData;
             this.db = await this.initDB();
@@ -1709,7 +1716,7 @@ Sentence:
             console.log("All recordings have been deleted from IndexedDB.");
             // Now, clear localStorage and reload the page
             localStorage.clear();
-            location.reload();
+            window.location.href = window.location.origin + window.location.pathname;
         };
 
         // If an error occurs during clearing
@@ -1717,7 +1724,7 @@ Sentence:
             console.error("Error deleting recordings from IndexedDB:", (event.target as IDBRequest).error);
             // As a fallback, still clear local storage and reload to reset settings
             localStorage.clear();
-            location.reload();
+            window.location.href = window.location.origin + window.location.pathname
         };
 
     }
