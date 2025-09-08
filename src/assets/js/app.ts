@@ -166,6 +166,15 @@ export class EchoTalkApp {
         }
     }
 
+    /**
+     * Initializes the entire application. This entry-point method loads state from localStorage,
+     * fetches sample sentence data, populates UI selectors, and binds all necessary DOM events.
+     * @public
+     * @async
+     * @param {string} selector - (Legacy or future use) A CSS selector for the root element.
+     * @param {string} value - (Legacy or future use) An initial value for a component.
+     * @returns {Promise<void>} A promise that resolves when initialization is complete.
+     */
     public async init(selector: string, value: string): Promise<void> {
         try {
 
@@ -243,6 +252,14 @@ export class EchoTalkApp {
         }
     }
 
+    /**
+     * Resets the application to its initial configuration screen without a full page reload.
+     * It stops all media playback, terminates the microphone stream, and resets the practice state
+     * while preserving user settings stored in localStorage.
+     * @private
+     * @async
+     * @returns {Promise<void>}
+     */
     private async resetWithoutReload(): Promise<void> {
         // Stop all ongoing audio playback FIRST.
         // This is critical because cancelling speech synthesis can trigger its 'onend'
@@ -514,9 +531,12 @@ export class EchoTalkApp {
     }
 
     /**
-     * Handles the entire process of switching the application's practice language.
-     * This is triggered when the user selects a new language from the dropdown in the options modal.
-     * The process involves fetching new data, updating the UI, and loading a new sample sentence.
+     * Handles the logic for changing the application's practice language.
+     * It fetches the new language's sentence data, re-populates the UI selectors
+     * for levels and categories, and displays a new sample sentence.
+     * @private
+     * @async
+     * @returns {Promise<void>}
      */
     private async handleLanguageChange(): Promise<void> {
         try {
@@ -558,10 +578,11 @@ export class EchoTalkApp {
     }
 
     /**
-     * Checks if a local (offline) TTS voice is available for the given language.
-     * This version includes a timeout to avoid false negatives on slow-loading voice lists.
+     * Checks if a local (offline) Text-to-Speech (TTS) voice is available for the specified language.
+     * Implements a timeout fallback to avoid false negatives on browsers that load voice lists slowly.
+     * @private
      * @param {string} lang - The language code to check (e.g., 'en-US').
-     * @returns {Promise<boolean>} - A promise that resolves to true if a local voice is found, false otherwise.
+     * @returns {Promise<boolean>} A promise that resolves to `true` if a local voice is found, otherwise `false`.
      */
     private checkTTSVoice(lang: string): Promise<boolean> {
         return new Promise((resolve) => {
@@ -958,6 +979,14 @@ export class EchoTalkApp {
         return wordsPerLevel[level] ?? 5;
     }
 
+    /**
+     * Executes a single step in the shadowing practice session.
+     * It determines the next phrase to practice, speaks it aloud using TTS,
+     * and, if enabled, starts recording the user's voice for repetition.
+     * @private
+     * @param {number} [speed=1] - The speed multiplier for the TTS playback.
+     * @returns {void}
+     */
     private practiceStep(speed: number = 1): void {
         this.clearAutoSkipTimer();
         // Main function to advance the practice session
@@ -1257,10 +1286,13 @@ Sentence:
     }
 
     /**
-     * A robust method to copy text to the clipboard.
-     * It tries the modern Clipboard API first and falls back to a legacy method if needed.
-     * @param textToCopy The string to be copied to the clipboard.
-     * @returns A Promise that resolves to `true` if successful, and `false` otherwise.
+     * Copies a given string to the user's clipboard.
+     * It prioritizes the modern, asynchronous Clipboard API and provides a fallback
+     * to the legacy `document.execCommand` for older browsers.
+     * @private
+     * @async
+     * @param {string} textToCopy - The text to be copied.
+     * @returns {Promise<boolean>} A promise that resolves to `true` on success, or `false` on failure.
      */
     private async copyTextToClipboard(textToCopy: string): Promise<boolean> {
         try {
@@ -1405,6 +1437,12 @@ Sentence:
         }());
     }
 
+    /**
+     * Concludes a practice session. It displays a completion message with performance stats,
+     * plays a celebration animation and sound, and clears session-specific state from localStorage.
+     * @private
+     * @returns {void}
+     */
     private finishSession(): void {
         this.clearAutoSkipTimer();
         this.terminateMicrophoneStream();
@@ -1452,6 +1490,15 @@ Sentence:
         return lastPuncIndex >= 0 ? lastPuncIndex + 1 : 0;
     }
 
+    /**
+     * Calculates the end boundary of a practice phrase based on a starting index and a maximum word count.
+     * The phrase is terminated by sentence-ending punctuation or the word limit. It also avoids
+     * ending a phrase with a common stop-word to create more natural practice chunks.
+     * @private
+     * @param {number} startIndex - The index of the word where the phrase begins.
+     * @param {number} maxWords - The maximum number of words allowed in the phrase.
+     * @returns {number} The index marking the end of the phrase (exclusive).
+     */
     private getPhraseBounds(startIndex: number, maxWords: number): number {
         // Determines the end index of the current phrase (up to maxWords or a punctuation mark)
         let endIndex = startIndex;
@@ -1644,6 +1691,14 @@ Sentence:
         return text.replace(/^[\s.,;:/\\()[\]{}"'«»!?-]+|[\s.,;:/\\()[\]{}"'«»!?-]+$/g, '');
     }
 
+    /**
+     * Initiates a new practice session based on the user's configuration.
+     * It sets up the practice UI, saves the session details to IndexedDB,
+     * initializes the microphone stream, and starts the first practice step.
+     * @private
+     * @async
+     * @returns {Promise<void>}
+     */
     private async startPractice(): Promise<void> {
         // Handles the start of a new practice session
         this.practiceMode = ($('#practiceModeSelect').val() as 'skip' | 'check' | 'auto-skip');
@@ -1710,6 +1765,12 @@ Sentence:
         location.hash = 'practice';
     }
 
+    /**
+     * Performs a hard reset of the application. It clears all data from localStorage
+     * and deletes all recordings from IndexedDB, then reloads the page to return to a clean state.
+     * @private
+     * @returns {Promise<void>} A promise that resolves upon initiating the reset, though the page reloads immediately.
+     */
     private resetApp(): Promise<void> {
         // Resets the entire application to its initial state
         return new Promise((resolve, reject) => {
@@ -1812,6 +1873,13 @@ Sentence:
         return correctWords / targetWords.length;
     }
 
+    /**
+     * Fetches all stored audio recordings from IndexedDB, groups them by sentence,
+     * sorts them by date, and renders them into the "My Recordings" modal for playback and analysis.
+     * @private
+     * @async
+     * @returns {Promise<void>}
+     */
     private async displayRecordings(): Promise<void> {
         // Fetches all recordings and displays them in a modal
         if (!this.db) return;
@@ -1994,6 +2062,15 @@ Sentence:
         this.speak(sentence, null, 1, sentenceLang);
     }
 
+    /**
+     * Sends a user's recorded audio to an external API for pronunciation analysis.
+     * It constructs a FormData object with the audio blob and sentence, sends the request,
+     * and renders the received accuracy report in the UI.
+     * @private
+     * @async
+     * @param {HTMLElement} element - The button element that triggered the analysis.
+     * @returns {Promise<void>}
+     */
     private async getPronunciationAccuracy(element: HTMLElement): Promise<void> {
         const $element = $(element);
         const sentence = $element.data('sentence') as string;
