@@ -14,6 +14,15 @@ interface Recording {
     sentence: string;
     audio: Blob;
     timestamp: Date;
+    lang: string;
+}
+
+// Define the structure for a practice entry
+interface Practice {
+    sentence: string;
+    lang: string;
+    count: number;
+    lastPracticed: Date;
 }
 
 // Define the structure for the new sample data
@@ -346,6 +355,7 @@ export class EchoTalkApp {
         $('#fastBtn').on('click', () => this.practiceStep(1.3));
         $('#recordToggle').on('change', (e) => this.handleRecordToggle(e.currentTarget));
         $('#showRecordingsBtn').on('click', () => this.displayRecordings());
+        $('#showPracticesBtn').on('click', () => this.displayPractices());
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.playBotAudio(e.currentTarget));
         $('#recordingsList').on('click', '.prepare-for-ai', (e) => this.prepareForAIAnalysis(e.currentTarget));
@@ -722,19 +732,29 @@ export class EchoTalkApp {
     }
 
     private initDB(): Promise<IDBDatabase> {
-        // Initializes the IndexedDB for storing recordings
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open('EchoTalkDB', 1);
-            request.onupgradeneeded = event => {
+            const request = indexedDB.open('EchoTalkDB', 3); // Bump version to 3
+
+            request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
-                // Create the 'recordings' object store if it doesn't exist
                 if (!db.objectStoreNames.contains('recordings')) {
                     const store = db.createObjectStore('recordings', { autoIncrement: true });
                     store.createIndex('sentence', 'sentence', { unique: false });
                 }
+                if (!db.objectStoreNames.contains('practices')) {
+                    const store = db.createObjectStore('practices', { keyPath: 'sentence' });
+                    store.createIndex('lastPracticed', 'lastPracticed', { unique: false });
+                }
             };
-            request.onsuccess = event => resolve((event.target as IDBOpenDBRequest).result);
-            request.onerror = event => reject((event.target as IDBOpenDBRequest).error);
+
+            request.onsuccess = (event) => {
+                resolve((event.target as IDBOpenDBRequest).result);
+            };
+
+            request.onerror = (event) => {
+                console.error("Database error:", (event.target as IDBOpenDBRequest).error);
+                reject("Database error");
+            };
         });
     }
 
@@ -814,15 +834,16 @@ export class EchoTalkApp {
         }
     }
 
-    private saveRecording(blob: Blob, sentenceText: string): void {
-        // Saves an audio blob to the IndexedDB
-        if (!this.db || blob.size === 0) return;
+    private async saveRecording(blob: Blob): Promise<void> {
+        const record: Recording = {
+            sentence: this.currentPhrase,
+            audio: blob,
+            timestamp: new Date(),
+            lang: this.lang // Store the current language with the recording
+        };
         const transaction = this.db.transaction(['recordings'], 'readwrite');
         const store = transaction.objectStore('recordings');
-        const record: Recording = { sentence: sentenceText, audio: blob, timestamp: new Date() };
-        const request = store.add(record);
-        request.onsuccess = () => console.log('Recording saved successfully.');
-        request.onerror = (err) => console.error('Error saving recording:', err);
+        store.add(record);
     }
 
     private async startRecording(): Promise<void> {
@@ -1672,34 +1693,57 @@ Sentence:
     // --- Event Handler Implementations ---
 
     private async startPractice(): Promise<void> {
-        // Handles the start of a new practice session
-        this.practiceMode = ($('#practiceModeSelect').val() as 'skip' | 'check' | 'auto-skip');
-        const rawVal = $('#sentenceInput').attr('data-val');
-        this.sentence = (typeof rawVal === 'string' ? rawVal.trim() : '').replace(/([^\.\?\!\n])\n/g, '$1.\n');
+        this.sentence = ($('#sentenceInput') as JQuery<HTMLInputElement>).val() as string || '';
+        if (this.sentence.trim() === '') {
+            alert('Please enter a sentence to practice.');
+            return;
+        }
+        this.reps = parseInt(($('#repsSelect') as JQuery<HTMLSelectElement>).val() as string, 10);
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
-        this.reps = parseInt(($('#repsSelect').val() as string));
-        this.currentCount = 0;
-        this.correctCount = 0;
-        this.attempts = 0;
-        this.saveState();
 
-        // Reset UI visibility before showing the practice area
-        $('#session-complete-container').addClass('d-none').empty();
-        $('#practice-ui-container').removeClass('d-none');
+        // Read practice mode from the UI before saving state
+        this.practiceMode = ($('#practiceModeSelect') as JQuery<HTMLSelectElement>).val() as 'skip' | 'check' | 'auto-skip';
+
+        this.saveState();
 
         $('#configArea').addClass('d-none');
         $('#practiceArea').removeClass('d-none');
+        $('#backHomeButton').removeClass('d-none').addClass('d-inline-block');
+        $('#fullSentence').text(this.sentence).removeClass('d-none');
 
-        // Show back home button and full sentence display
-        $('#backHomeButton').removeClass('d-none');
-        $('#backHomeButton').addClass('d-inline-block');
+        // --- Save Practice Data ---
+        try {
+            const transaction = this.db.transaction(['practices'], 'readwrite');
+            const store = transaction.objectStore('practices');
+            const request = store.get(this.sentence);
 
-        await this.initializeMicrophoneStream();
-        this.setupPracticeUI();
-        this.renderFullSentence();
+            request.onsuccess = () => {
+                const data: Practice | undefined = request.result;
+                if (data) {
+                    // Entry exists, update it
+                    data.count++;
+                    data.lastPracticed = new Date();
+                    store.put(data);
+                } else {
+                    // No entry, create a new one
+                    const newPractice: Practice = {
+                        sentence: this.sentence,
+                        lang: this.lang,
+                        count: 1,
+                        lastPracticed: new Date()
+                    };
+                    store.add(newPractice);
+                }
+            };
+            transaction.onerror = (event) => {
+                console.error('Transaction error while saving practice:', (event.target as IDBTransaction).error);
+            };
+        } catch (error) {
+            console.error('Error saving practice data:', error);
+        }
+        // --- End Save Practice Data ---
+
         this.practiceStep();
-
-        location.hash = 'practice';
     }
 
     private resetApp(): Promise<void> {
@@ -1902,6 +1946,52 @@ Sentence:
         `;
             $list.append(sentenceHtml);
         }
+    }
+
+    public async displayPractices(): Promise<void> {
+        const transaction = this.db.transaction(['practices'], 'readonly');
+        const store = transaction.objectStore('practices');
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+            const practices: Practice[] = request.result;
+            const $practicesList = $('#practicesList');
+            $practicesList.empty();
+
+            if (practices.length === 0) {
+                $practicesList.html('<p class="text-center text-muted">No practices recorded yet. Start a session to see your progress!</p>');
+            } else {
+                // Sort by most recently practiced
+                practices.sort((a, b) => b.lastPracticed.getTime() - a.lastPracticed.getTime());
+
+                practices.forEach(p => {
+                    const langName = this.languageMap[p.lang] || p.lang;
+                    const formattedDate = p.lastPracticed.toLocaleString();
+
+                    const practiceHTML = `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">"${p.sentence}"</h5>
+                            <p class="card-text mb-1">
+                                <span class="badge bg-primary me-2">${langName}</span>
+                                <span class="badge bg-info">Practiced: <strong>${p.count}</strong> time(s)</span>
+                            </p>
+                            <p class="card-text"><small class="text-muted">Last practiced: ${formattedDate}</small></p>
+                        </div>
+                    </div>
+                `;
+                    $practicesList.append(practiceHTML);
+                });
+            }
+
+            const practicesModal = new Modal($('#practicesModal')[0]);
+            practicesModal.show();
+        };
+
+        request.onerror = (event) => {
+            console.error('Error fetching practices:', (event.target as IDBRequest).error);
+            $('#practicesList').html('<p class="text-center text-danger">Could not load practices.</p>');
+        };
     }
 
     private truncateSentence(sentence: string): string {

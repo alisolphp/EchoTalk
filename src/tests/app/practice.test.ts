@@ -328,6 +328,8 @@ describe('Practice Logic', () => {
     });
 
     it('should display accuracy in the final message for check mode', async () => {
+        // Set a sentence to prevent startPractice from exiting early.
+        $('#sentenceInput').val('This is a test sentence.');
         // Ensure 'check' mode is selected.
         $('#practiceModeSelect').val('check');
         $('#startBtn').trigger('click');

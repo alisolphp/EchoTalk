@@ -106,9 +106,18 @@
 <div id="areaForYou" class="container my-4 d-none area">
     <h1 class="mb-4 text-center">For You</h1>
     <div class="list-group">
-        <a href="#" id="myRecordingsLink" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#recordingsModal">My Recordings</a>
-        <a href="#" class="list-group-item list-group-item-action">My Practices</a>
-        <a href="#" class="list-group-item list-group-item-action">My Progress</a>
+        <a href="#" id="myRecordingsLink" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#recordingsModal">
+            <i class="bi bi-file-earmark-music"></i>
+            My Recordings
+        </a>
+        <a href="#" id="showPracticesBtn" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#practicesModal">
+            <i class="bi bi-journal-check"></i>
+            My Practices
+        </a>
+        <a href="#" id="showProgressBtn" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#progressModal">
+            <i class="bi bi-bar-chart-line-fill"></i>
+            My Progress
+        </a>
     </div>
 </div>
 
@@ -355,6 +364,24 @@
                 <div class="accordion" id="recordingsList">
                     <p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="practicesModal" tabindex="-1" aria-labelledby="practicesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="practicesModalLabel"><i class="bi bi-journal-check me-2"></i>My Practices</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="practicesList">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
