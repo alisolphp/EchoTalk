@@ -73,6 +73,9 @@ export class EchoTalkApp {
     /** A flag indicating if audio recording is enabled by the user. */
     public isRecordingEnabled: boolean = false;
 
+    /** The current area */
+    public area: 'Home' | 'Help' | 'PrePractice' | 'Practice' | 'Options' | 'ForYou' = 'Home';
+
     /** The current practice mode: 'skip', 'check', or 'auto-skip'. */
     public practiceMode: 'skip' | 'check' | 'auto-skip' = 'skip';
 
@@ -87,6 +90,9 @@ export class EchoTalkApp {
 
     /** A timer for the 'auto-skip' practice mode. */
     public autoSkipTimer: number | null = null;
+
+    /** A timer for the `auto restart current practice` in the 'auto-skip' practice mode. */
+    public autoRestartTimer: number | null = null;
 
     /** An estimated words-per-second rate for TTS on mobile to simulate word highlighting. */
     public estimatedWordsPerSecond: number = 2.5;

@@ -32,6 +32,7 @@ export class PracticeService {
         this.app.currentCount = 0;
         this.app.correctCount = 0;
         this.app.attempts = 0;
+        this.app.area = 'Practice';
         this.app.saveState();
 
         try {
@@ -214,35 +215,77 @@ export class PracticeService {
     }
 
     /**
+     * Restarts the current practice session from the beginning of the same sentence.
+     */
+    public async restartCurrentPractice(): Promise<void> {
+        if (this.app.autoRestartTimer) {
+            clearTimeout(this.app.autoRestartTimer);
+            this.app.autoRestartTimer = null;
+        }
+
+        // Reset state variables for the new run
+        this.app.currentIndex = 0;
+        this.app.currentCount = 0;
+        this.app.correctCount = 0;
+        this.app.attempts = 0;
+        this.app.saveState();
+
+        // Restore the UI from completion screen to practice screen
+        $('#session-complete-container').addClass('d-none').empty();
+        $('#practice-ui-container').removeClass('d-none');
+        $('#backHomeButton').removeClass('d-none').addClass('d-inline-block');
+
+        // Re-initialize microphone and start the practice loop
+        await this.app.audioService.initializeMicrophoneStream();
+        this.app.uiService.setupPracticeUI();
+        this.app.uiService.renderFullSentence();
+        this.practiceStep();
+    }
+
+    /**
      * Concludes the practice session when all phrases have been completed.
      * It shows a completion message, plays a victory sound, and clears session-specific state.
      */
     public finishSession(): void {
         this.app.utilService.clearAutoSkipTimer();
         this.app.audioService.terminateMicrophoneStream();
-        this.app.uiService.triggerCelebrationAnimation();
-
+        if(this.app.area === 'Practice') {
+            this.app.uiService.triggerCelebrationAnimation();
+        }
         const messages = ["You nailed it!", "That was sharp!", "Boom!", "Bravo!", "That was smooth!", "Great shadowing!", "You crushed it!", "Smart move!", "Echo mastered.", "That was fire!"];
         const emojis = ["🔥", "🎯", "💪", "🎉", "🚀", "👏", "🌟", "🧠", "🎧", "💥"];
         let ttsMsg = messages[Math.floor(Math.random() * messages.length)];
         const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-        let displayMsg = `${emoji} ${ttsMsg}`;
 
+        let accuracyText = '';
         if (this.app.practiceMode === 'check') {
-            const accuracy = this.app.attempts ? Math.round((this.app.correctCount / this.app.attempts) * 100) : 100;
-            displayMsg += ` Your accuracy: ${accuracy}%.`;
+            const accuracy = this.app.attempts ?
+                Math.round((this.app.correctCount / this.app.attempts) * 100) : 100;
+            accuracyText = `<p class="lead mb-4">Your accuracy: ${accuracy}%.</p>`;
             ttsMsg += ` Your accuracy: ${accuracy}%.`;
         }
 
-        const callToActions = ["Let's Start Over!", "Go Again!", "Ready for Another Round?"];
-        const callToAction = callToActions[Math.floor(Math.random() * callToActions.length)];
-        ttsMsg += ` ${callToAction}`;
-        this.app.audioService.playSound('./sounds/victory.mp3', 2.5, 0.6);
-        setTimeout(() => this.app.audioService.speak(ttsMsg, null, 1.3, 'en-US'), 1100);
+        if(this.app.area === 'Practice'){
+            this.app.audioService.playSound('./sounds/victory.mp3', 2.5, 0.6);
+            setTimeout(() => this.app.audioService.speak(ttsMsg, null, 1.3, 'en-US'), 1100);
+        }
 
-        displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="app.resetWithoutReload(); return false;">${callToAction}</a>`;
+        const completionHtml = `
+        <div class="text-center py-3">
+            <h2 class="mb-3">${emoji} ${ttsMsg.split(' Your accuracy:')[0]}</h2>
+            ${accuracyText}
+            <div class="d-grid gap-3 col-10 col-md-6 mx-auto mt-4">
+                <button id="restartPracticeBtn" class="btn btn-primary btn-lg" onclick="app.practiceService.restartCurrentPractice(); return false;">
+                    <i class="bi bi-arrow-repeat"></i> Repeat this sentence
+                </button>
+                <button class="btn btn-secondary" onclick="app.resetWithoutReload(); return false;">
+                    Try a new sentence?
+                </button>
+            </div>
+        </div>`;
+
         $('#practice-ui-container').addClass('d-none');
-        $('#session-complete-container').html(`<h2>${displayMsg}</h2>`).removeClass('d-none');
+        $('#session-complete-container').html(completionHtml).removeClass('d-none');
 
         localStorage.removeItem(this.app.STORAGE_KEYS.index);
         localStorage.removeItem(this.app.STORAGE_KEYS.count);
@@ -250,6 +293,32 @@ export class PracticeService {
         localStorage.removeItem(this.app.STORAGE_KEYS.attempts);
 
         $('#backHomeButton').addClass('d-none').removeClass('d-inline-block');
+
+        if (this.app.practiceMode === 'auto-skip' && this.app.area === 'Practice') {
+            const waitTime = 5; // seconds
+            const $restartBtn = $('#restartPracticeBtn');
+
+            $restartBtn.addClass('auto-skip-progress');
+
+            // Reset any previous animation state to ensure it restarts correctly
+            $restartBtn.removeClass('loading');
+
+            // Force a DOM reflow to apply the class removal before adding it again
+            void $restartBtn[0].offsetHeight;
+
+            // Set the animation duration
+            $restartBtn.css('animation-duration', `${waitTime}s`);
+
+            // Add the 'loading' class to trigger the animation
+            $restartBtn.addClass('loading');
+
+            // Set a timer to automatically restart the practice after the animation completes
+            this.app.autoRestartTimer = setTimeout(() => {
+                if (!$('#session-complete-container').hasClass('d-none')) {
+                    this.restartCurrentPractice();
+                }
+            }, waitTime * 1000);
+        }
     }
 
     /**

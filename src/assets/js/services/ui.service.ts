@@ -33,13 +33,14 @@ export class UiService {
      * A generic method to show a specific page area and update navigation bar styling.
      * @param key The key corresponding to the page to be shown ('Home', 'PrePractice', 'ForYou').
      */
-    private showPage(key: 'Home' | 'PrePractice' | 'ForYou'): void {
+    private showPage(key: 'Home' | 'Help' | 'PrePractice' | 'Practice' | 'Options' | 'ForYou'): void {
         $('.area').addClass('d-none');
         $('.nav-bottom .nav-item.active').removeClass('active');
 
         $(`#area${key}`).removeClass('d-none');
         $(`#nav${key}`).addClass('active');
 
+        this.app.area = key;
         this.app.resetWithoutReload();
     }
 

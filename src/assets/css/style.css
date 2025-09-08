@@ -197,13 +197,13 @@ body {
     }
 }
 
-#checkBtn.auto-skip-progress {
+.auto-skip-progress {
     background-image: linear-gradient(to right, rgba(255, 255, 255, 0.25) 50%, transparent 50%);
     background-size: 200% 100%;
     background-position: 100% 0; /* Set initial state */
 }
 
-#checkBtn.auto-skip-progress.loading {
+.auto-skip-progress.loading {
     /* The animation-duration will be set via JavaScript */
     animation-name: progress-animation;
     animation-timing-function: linear;
