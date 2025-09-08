@@ -256,6 +256,52 @@ export class EchoTalkApp {
     }
 
     /**
+     * Handles a click on the "Practice" button from the practice history modal.
+     * It closes the modal, sets the selected sentence and language, and starts a new practice session.
+     * @param element The button element that was clicked.
+     */
+    public async handlePracticeThis(element: HTMLElement): Promise<void> {
+        const sentence = $(element).data('sentence') as string;
+        const lang = $(element).data('lang') as string;
+
+        if (!sentence || !lang) {
+            console.error("Could not start practice from history: sentence or lang missing.");
+            return;
+        }
+
+        const modalElement = document.getElementById('practicesModal');
+        if (modalElement) {
+            this.uiService.showPracticeSetup();
+            if (this.lang !== lang) {
+                this.lang = lang;
+                this.uiService.updateLanguageUI();
+                try {
+                    this.dataService.fetchSamples();
+                    this.uiService.setupSampleOptions();
+                } catch (error) {
+                    console.error("Failed to load new language data:", error);
+                    $('#configArea').html('<div class="alert alert-danger">Failed to load language data. Please refresh the page.</div>');
+                    return;
+                }
+            }
+
+            this.uiService.setInputValue(sentence);
+            this.sentence = sentence;
+            this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
+            this.currentIndex = 0;
+
+            await this.practiceService.startPractice();
+
+            // Wait for the modal to be completely hidden before executing the rest of the code
+            $(modalElement).one('hidden.bs.modal', async () => {});
+
+            // Use getInstance here since we know it exists.
+            const modalInstance = Modal.getInstance(modalElement);
+            modalInstance?.hide();
+        }
+    }
+
+    /**
      * Registers the service worker for PWA functionality like offline caching.
      */
     private registerServiceWorker(): void {
@@ -286,6 +332,7 @@ export class EchoTalkApp {
         $('#recordToggle').on('change', (e) => this.handleRecordToggle(e.currentTarget));
         $('#showRecordingsBtn').on('click', () => this.dataService.displayRecordings());
         $('#showPracticesBtn').on('click', () => this.dataService.displayPractices());
+        $('#practicesList').on('click', '.practice-this-sentence-btn', (e) => this.handlePracticeThis(e.currentTarget));
         $('#recordingsList').on('click', '.play-user-audio', (e) => this.audioService.playUserAudio(e.currentTarget));
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.audioService.playBotAudio(e.currentTarget));
         $('#recordingsList').on('click', '.prepare-for-ai', (e) => this.aiService.prepareForAIAnalysis(e.currentTarget));

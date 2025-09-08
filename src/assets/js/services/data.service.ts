@@ -163,6 +163,9 @@ export class DataService {
             </div>`;
             $list.append(sentenceHtml);
         }
+
+        const recordingsModal = Modal.getOrCreateInstance($('#recordingsModal')[0]);
+        recordingsModal.show();
     }
 
     /**
@@ -182,27 +185,97 @@ export class DataService {
             if (practices.length === 0) {
                 $practicesList.html('<p class="text-center text-muted">No practices recorded yet. Start a session to see your progress!</p>');
             } else {
-                practices.sort((a, b) => b.lastPracticed.getTime() - a.lastPracticed.getTime());
-                practices.forEach(p => {
-                    const langName = this.app.languageMap[p.lang] || p.lang;
-                    const formattedDate = p.lastPracticed.toLocaleString();
+                const groupedByLang: Record<string, Practice[]> = practices.reduce((acc, p) => {
+                    (acc[p.lang] = acc[p.lang] || []).push(p);
+                    return acc;
+                }, {} as Record<string, Practice[]>);
 
-                    const practiceHTML = `
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold">"${p.sentence}"</h5>
-                            <p class="card-text mb-1">
-                                <span class="badge bg-primary me-2">${langName}</span>
-                                <span class="badge bg-info">Practiced: <strong>${p.count}</strong> time(s)</span>
-                            </p>
-                            <p class="card-text"><small class="text-muted">Last practiced: ${formattedDate}</small></p>
-                        </div>
-                    </div>`;
-                    $practicesList.append(practiceHTML);
-                });
+                const languages = Object.keys(groupedByLang);
+
+                if (languages.length > 1) {
+                    const accordionId = 'practicesAccordion';
+                    let accordionHtml = `<div class="accordion" id="${accordionId}">`;
+
+                    languages.forEach((lang) => {
+                        const langName = this.app.languageMap[lang] || lang;
+                        const uniqueId = `lang-${lang.replace(/[^a-zA-Z0-9]/g, '')}`;
+                        const practicesForLang = groupedByLang[lang];
+                        practicesForLang.sort((a, b) => b.lastPracticed.getTime() - a.lastPracticed.getTime());
+
+                        accordionHtml += `
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading-${uniqueId}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${uniqueId}" aria-expanded="false">
+                                        ${langName} Sentences
+                                    </button>
+                                </h2>
+                                <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#${accordionId}">
+                                    <div class="accordion-body">`;
+
+                        practicesForLang.forEach(p => {
+                            const formattedDate = p.lastPracticed.toLocaleString();
+                            const truncatedSentence = this.app.utilService.truncateSentence(p.sentence);
+                            const sentenceAttr = p.sentence.replace(/"/g, '&quot;');
+                            accordionHtml += `
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="flex-grow-1 me-3">
+                                                <p class="card-title fw-bold mb-1">"${truncatedSentence}"</p>
+                                                <p class="card-text mb-1">
+                                                    <span class="badge bg-info">Practiced: <strong>${p.count}</strong> time(s)</span>
+                                                </p>
+                                                <p class="card-text mb-0"><small class="text-muted">Last practiced: ${formattedDate}</small></p>
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <button class="btn btn-sm btn-primary practice-this-sentence-btn" data-sentence="${sentenceAttr}" data-lang="${p.lang}" title="Practice this sentence">
+                                                    <i class="bi bi-play-circle-fill"></i> <span class="d-none d-sm-inline">Practice</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        });
+
+                        accordionHtml += `
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+
+                    accordionHtml += `</div>`;
+                    $practicesList.html(accordionHtml);
+                } else {
+                    practices.sort((a, b) => b.lastPracticed.getTime() - a.lastPracticed.getTime());
+                    practices.forEach(p => {
+                        const formattedDate = p.lastPracticed.toLocaleString();
+                        const truncatedSentence = this.app.utilService.truncateSentence(p.sentence);
+                        const sentenceAttr = p.sentence.replace(/"/g, '&quot;');
+                        const practiceHTML = `
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1 me-3">
+                                            <p class="card-title fw-bold mb-1">"${truncatedSentence}"</p>
+                                            <p class="card-text mb-1">
+                                                <span class="badge bg-info">Practiced: <strong>${p.count}</strong> time(s)</span>
+                                            </p>
+                                            <p class="card-text mb-0"><small class="text-muted">Last practiced: ${formattedDate}</small></p>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <button class="btn btn-sm btn-primary practice-this-sentence-btn" data-sentence="${sentenceAttr}" data-lang="${p.lang}" title="Practice this sentence">
+                                                <i class="bi bi-play-circle-fill"></i> <span class="d-none d-sm-inline">Practice</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        $practicesList.append(practiceHTML);
+                    });
+                }
             }
 
-            const practicesModal = new Modal($('#practicesModal')[0]);
+            const practicesModal = Modal.getOrCreateInstance($('#practicesModal')[0]);
             practicesModal.show();
         };
 

@@ -105,7 +105,7 @@ export class UiService {
         $('.current-language-general-name').text(this.app.langGeneral);
         const modalElement = document.getElementById('ttsWarningModal');
         if (modalElement) {
-            const modal = new Modal(modalElement);
+            const modal = Modal.getOrCreateInstance(modalElement);
             modal.show();
         }
     }
@@ -252,7 +252,7 @@ export class UiService {
         this.app.audioService.speak(word, null, 1, this.app.lang);
         const modalElement = document.getElementById('wordActionsModal');
         if (modalElement) {
-            const modal = new Modal(modalElement);
+            const modal = Modal.getOrCreateInstance(modalElement);
             modal.show();
         }
     }

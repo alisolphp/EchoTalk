@@ -257,6 +257,9 @@ export class PracticeService {
      * otherwise, it advances to the next phrase.
      */
     public handleCheckOrNext(): void {
+        if(this.app.practiceMode === 'auto-skip'){
+            return;
+        }
         this.checkAnswer();
     }
 
