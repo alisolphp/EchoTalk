@@ -358,7 +358,7 @@ export class EchoTalkApp {
             // play sample sentence with selected rate:
             const sentence = sampleSentences[val];
             if (sentence) {
-                this.speak(sentence, null, val);
+                this.speak(sentence, null, val, 'en-US');
             }
         });
 
@@ -993,7 +993,7 @@ export class EchoTalkApp {
 
         // Standard actions:
         $('#playWordBtn').off('click').on('click', () => {
-            this.speak(word);
+            this.speak(word, null, 0.7, this.lang);
         });
         // Update the links for Google search
         const encodedWord = encodeURIComponent(word);
@@ -1027,7 +1027,7 @@ export class EchoTalkApp {
         });
 
         // Speak the word and show the modal
-        this.speak(word);
+        this.speak(word, null, 1, this.lang);
         const modalElement = document.getElementById('wordActionsModal');
         if (modalElement) {
             const modal = new Modal(modalElement);
@@ -1417,7 +1417,7 @@ Sentence:
         const callToAction = callToActions[Math.floor(Math.random() * callToActions.length)];
         ttsMsg += ` ${callToAction}`;
         this.playSound('./sounds/victory.mp3', 2.5, 0.6);
-        setTimeout(() => this.speak(ttsMsg, null, 1.3), 1100);
+        setTimeout(() => this.speak(ttsMsg, null, 1.3, 'en-US'), 1100);
         // Show a button to restart the session
         displayMsg += `<br><a class="btn btn-success mt-2" href="#" onclick="app.resetWithoutReload(); return false;">${callToAction}</a>`;
         // Hide the practice UI and show the completion message
@@ -1495,12 +1495,24 @@ Sentence:
         return sentences[Math.floor(Math.random() * sentences.length)];
     }
 
-    private speak(text: string, onEnd?: (() => void) | null, rate: null|number = null): void {
+    private speak(
+        text: string,
+        onEnd?: (() => void) | null,
+        rate: number | null = null,
+        lang: string | null = null,
+        volume: number | null = null // Parameter for volume
+    ): void {
         // Uses the SpeechSynthesis API to speak the provided text
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = this.lang;
+        u.lang = lang || this.lang; // Use provided lang, or fallback to default
         u.rate = typeof rate === 'number' ? rate : this.speechRate;
+
+        // Set volume only if it's a valid number, clamped between 0 and 1
+        if (typeof volume === 'number') {
+            u.volume = Math.max(0, Math.min(1, volume));
+        }
+
         if (onEnd) {
             u.onend = onEnd;
         }
@@ -1876,7 +1888,7 @@ Sentence:
         // Plays the sentence using the text-to-speech engine
         this.stopAllPlayback(true);
         const sentence = $(element).data('sentence') as string;
-        this.speak(sentence);
+        this.speak(sentence, null, 1, this.lang);
     }
 
     private async getPronunciationAccuracy(element: HTMLElement): Promise<void> {
