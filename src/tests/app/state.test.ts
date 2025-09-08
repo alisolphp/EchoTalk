@@ -10,20 +10,7 @@ describe('State Management and Event Handlers', () => {
             "levels": [
                 {
                     "name": "Beginner (A1-A2)",
-                    "categories": [
-                        {
-                            "name": "Daily Conversations",
-                            "sentences": [
-                                "Hello, how are you?"
-                            ]
-                        },
-                        {
-                            "name": "Travel",
-                            "sentences": [
-                                "Where is the train station?"
-                            ]
-                        }
-                    ]
+                    "categories": []
                 },
                 {
                     "name": "Intermediate (B1-B2)",
@@ -33,59 +20,25 @@ describe('State Management and Event Handlers', () => {
                             "sentences": [
                                 "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms."
                             ]
-                        },
-                        {
-                            "name": "Business & Workplace",
-                            "sentences": [
-                                "We need to schedule a meeting for next week."
-                            ]
                         }
                     ]
                 },
                 {
                     "name": "Advanced (C1-C2)",
-                    "categories": [
-                        {
-                            "name": "Formal & Academic",
-                            "sentences": [
-                                "The geopolitical landscape has undergone a significant transformation in recent decades."
-                            ]
-                        },
-                        {
-                            "name": "Complex Topics & Debate",
-                            "sentences": [
-                                "The advent of quantum computing poses an existential threat to modern cryptographic standards."
-                            ]
-                        },
-                        {
-                            "name": "Persuasion & Negotiation",
-                            "sentences": [
-                                "While I understand your position, I'd urge you to consider the strategic advantages from a long-term perspective."
-                            ]
-                        },
-                        {
-                            "name": "Figurative & Nuanced Language",
-                            "sentences": [
-                                "The CEO's speech was a masterclass in ambiguity, leaving everyone to read between the lines."
-                            ]
-                        }
-                    ]
+                    "categories": []
                 }
             ]
         });
         localStorage.clear();
         app = new EchoTalkApp();
 
-        // Mock the IndexedDB transaction and object store to prevent real database interactions.
         const mockDbObject = {
             transaction: vi.fn(() => ({
                 objectStore: () => ({
                     getAll: vi.fn(),
                     add: vi.fn(),
-                    // START: Added code to fix the test
                     clear: vi.fn().mockImplementation(function() {
                         const request: { onsuccess?: () => void } = {};
-                        // Simulate async success to allow .onsuccess handler to be called
                         setTimeout(() => {
                             if (request.onsuccess) {
                                 request.onsuccess();
@@ -93,121 +46,90 @@ describe('State Management and Event Handlers', () => {
                         }, 0);
                         return request;
                     })
-                    // END: Added code
                 })
             }))
         };
-        vi.spyOn(app as any, 'initDB').mockResolvedValue(mockDbObject);
+        vi.spyOn(app.dataService, 'initDB').mockResolvedValue(mockDbObject as any);
 
         await app.init();
     });
 
     it('should correctly load a sample sentence and reset state', async () => {
-        // Manually set a different sentence and index to ensure they are reset.
         ($('#sentenceInput') as any).val('An old sentence');
         ($('#sentenceInput') as any).attr('data-val', 'An old sentence');
-        (app as any).currentIndex = 5;
+        app.currentIndex = 5;
 
-        (app as any).useSample(); // Trigger the method to load a new sample sentence.
-        const newSentence = (app as any).sentence;
+        app.practiceService.useSample();
+        const newSentence = app.sentence;
 
-        // Verify that one of the mocked DEFAULT sample sentences is now in the app state.
         const expectedSentences = [
             "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms."
         ];
         expect(expectedSentences).toContain(newSentence);
 
-        // Verify that `currentIndex` is reset to 0 and the new sentence is saved to localStorage.
-        expect((app as any).currentIndex).toBe(0);
+        expect(app.currentIndex).toBe(0);
         expect(localStorage.getItem('shadow_sentence')).toBe(newSentence);
     });
 
     it('should update currentIndex when a word in the sample sentence is clicked', () => {
-        // Create a mock element representing a word with a specific `data-index`.
         const wordElement = $('<span></span>').attr('data-index', 3)[0];
 
-        (app as any).handleSampleWordClick(wordElement); // Call the event handler directly.
+        app.practiceService.handleSampleWordClick(wordElement);
 
-        // Verify that the `currentIndex` is updated to the clicked word's index.
-        expect((app as any).currentIndex).toBe(3);
-        // Verify that the new index is also saved in localStorage.
+        expect(app.currentIndex).toBe(3);
         expect(localStorage.getItem('shadow_index')).toBe('3');
     });
 
     it('should toggle the isRecordingEnabled flag and update localStorage', () => {
-        // Create a mock checkbox element for the record toggle.
         const checkbox = $('<input type="checkbox" />');
 
-        // Simulate checking the box.
         checkbox.prop('checked', true);
         (app as any).handleRecordToggle(checkbox[0]);
-        // Verify that the internal state and localStorage reflect the change.
-        expect((app as any).isRecordingEnabled).toBe(true);
+        expect(app.isRecordingEnabled).toBe(true);
         expect(localStorage.getItem('shadow_record_audio')).toBe('true');
 
-        // Simulate unchecking the box.
         checkbox.prop('checked', false);
         (app as any).handleRecordToggle(checkbox[0]);
-        // Verify the state is toggled back and updated in localStorage.
-        expect((app as any).isRecordingEnabled).toBe(false);
+        expect(app.isRecordingEnabled).toBe(false);
         expect(localStorage.getItem('shadow_record_audio')).toBe('false');
     });
 
     it('should clear localStorage on resetApp', async () => {
         vi.useFakeTimers();
-
-        // Set some dummy data
         localStorage.setItem('shadow_sentence', 'A test sentence');
-
-        // Call the function but don't await the promise completion immediately
         const resetPromise = (app as any).resetApp();
-
-        // Advance timers to trigger the mock's async behavior (setTimeout)
         await vi.runAllTimers();
-
-        // Now, await the promise to settle
         await resetPromise;
-
-        // Verify results
         expect(localStorage.getItem('shadow_sentence')).toBeNull();
         expect((location as any).reload).toHaveBeenCalled();
-
         vi.useRealTimers();
     });
 
-    it('should initialize practice state from UI values on start', () => {
-        // Override the mock FOR THIS TEST ONLY to start with a blank slate.
-        // This is done to prevent `app.init()` from loading a sample sentence in `beforeEach` and ensure this test passes correctly.
+    it('should initialize practice state from UI values on start', async () => {
         vi.spyOn($, 'getJSON').mockResolvedValueOnce({
-            sentences: [],
+            levels: []
         });
 
-        // 1. Set up the UI with custom values.
         const customSentence = 'I\'m a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.';
         ($('#sentenceInput') as any).val(customSentence);
         ($('#sentenceInput') as any).attr('data-val', customSentence);
         ($('#repsSelect') as any).val('5');
         $('#practiceModeSelect').val('check');
 
-        // 2. Trigger the start practice button click.
-        $('#practiceModeSelect').val('check'); // Set the value of the select element
-        $('#startBtn').trigger('click');
+        await app.practiceService.startPractice();
 
-        // 3. Verify that the app's internal state is correctly initialized.
-        expect((app as any).sentence).toBe(customSentence);
-        expect((app as any).reps).toBe(5);
-        expect((app as any).practiceMode).toBe('check');
+        expect(app.sentence).toBe(customSentence);
+        expect(app.reps).toBe(5);
+        expect(app.practiceMode).toBe('check');
     });
 
     it('should not change currentIndex if a clicked word has no data-index', () => {
-        (app as any).currentIndex = 5; // Set an initial index.
+        app.currentIndex = 5;
 
-        // Create a mock element without the required `data-index` attribute.
         const wordElement = $('<span>A word</span>')[0];
 
-        (app as any).handleSampleWordClick(wordElement); // Call the handler with the invalid element.
+        app.practiceService.handleSampleWordClick(wordElement);
 
-        // Verify that the `currentIndex` remains unchanged.
-        expect((app as any).currentIndex).toBe(5);
+        expect(app.currentIndex).toBe(5);
     });
 });
