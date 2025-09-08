@@ -66,7 +66,14 @@
 
                 <div id="sentence-container" class="fs-3 fw-bold mb-3 d-inline"></div>
             </div>
-            <p id="instructionText">Now it’s your turn. Tap the mic icon on your keyboard and speak the word.</p>
+            <div class="row mb-3">
+                <div class="d-inline w-auto" id="instructionText">Now it’s your turn. Tap the mic icon on your keyboard and speak the word.</div>
+                <div class="d-inline w-auto">
+                    <button id="showTtsWarningBtn" class="btn btn-sm btn-outline-warning d-inline-block">
+                        <i class="bi bi-volume-mute"></i> I can't hear anything...
+                    </button>
+                </div>
+            </div>
             <div class="input-group mb-3">
                 <input type="text" id="userInput" class="form-control" placeholder="Tap keyboard mic">
             </div>
@@ -309,16 +316,16 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="ttsWarningModalLabel"><i class="bi bi-exclamation-triangle-fill text-warning"></i> TTS Engine Warning</h5>
+                    <h5 class="modal-title" id="ttsWarningModalLabel"><i class="bi bi-exclamation-triangle-fill text-warning"></i> TTS Engine Problem: Missing or Incorrect Voice</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>It appears the Text-to-Speech (TTS) engine for <strong class="current-language-general-name">English</strong> language is not installed on your device.</p>
-                    <p>The app will still function, but it may require an internet connection to play audio, which could result in slower performance and delays.</p>
+                    <p>It appears the Text-to-Speech (TTS) engine for <strong class="current-language-general-name">English</strong> language is not properly configured on your device. This can happen if the voice is missing or the pronunciation is incorrect.</p>
+                    <p>You may not hear any audio, or the audio may sound robotic or have the wrong accent. For the best experience, it's recommended to install the correct voice engine for this language from your device's settings.</p>
                     <hr>
                     <div class="mt-3">
                         <p class="fw-bold">Recommended Solution:</p>
-                        <p>For the best offline experience, please install the required voice engine from your device's settings:</p>
+                        <p>For the best offline experience, please install the TTS engine for <strong class="current-language-general-name">English</strong> language from your device's settings:</p>
 
                         <details class="card bg-dark-subtle border-secondary mb-2">
                             <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">

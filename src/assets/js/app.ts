@@ -362,6 +362,7 @@ export class EchoTalkApp {
             }
         });
 
+        $('#showTtsWarningBtn').on('click', () => this.showTTSWarning());
 
         // Hide the install button if the app is already installed
         if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
