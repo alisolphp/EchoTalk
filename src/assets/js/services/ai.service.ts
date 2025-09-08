@@ -1,6 +1,10 @@
 import $ from 'jquery';
 import { EchoTalkApp } from '../app';
 
+/**
+ * Service responsible for all interactions with AI,
+ * including prompt generation for analysis and API key validation.
+ */
 export class AiService {
     private app: EchoTalkApp;
 
@@ -8,6 +12,10 @@ export class AiService {
         this.app = app;
     }
 
+    /**
+     * Checks if a spell checker API key is provided either in the URL or localStorage.
+     * If found, it validates the key with a backend service and updates the app state.
+     */
     public async checkSpellApiKey(): Promise<void> {
         localStorage.setItem(this.app.STORAGE_KEYS.spellCheckerIsAvailable, String(false));
         try {
@@ -31,6 +39,11 @@ export class AiService {
         }
     }
 
+    /**
+     * Generates a detailed prompt for GPT to translate and explain a sentence.
+     * The generated prompt is copied to the user's clipboard.
+     * @param element The button element that triggered the action, used for UI feedback.
+     */
     public async handleTranslateWithGpt(element: HTMLElement): Promise<void> {
         const sentence = this.app.currentPhrase;
         if (!sentence) return;
@@ -63,6 +76,11 @@ Sentence:
         }
     }
 
+    /**
+     * Generates a prompt for GPT to perform a grammatical analysis of a sentence.
+     * The prompt is copied to the user's clipboard.
+     * @param element The button element that triggered the action.
+     */
     public async handleGrammarAnalysis(element: HTMLElement): Promise<void> {
         const sentence = this.app.currentPhrase;
         if (!sentence) return;
@@ -90,6 +108,11 @@ Sentence:
         }
     }
 
+    /**
+     * Generates a prompt for GPT to provide vocabulary expansion based on a sentence.
+     * The prompt is copied to the user's clipboard.
+     * @param element The button element that triggered the action.
+     */
     public async handleVocabularyExpansion(element: HTMLElement): Promise<void> {
         const sentence = this.app.currentPhrase;
         if (!sentence) return;
@@ -119,6 +142,11 @@ Sentence:
         }
     }
 
+    /**
+     * Generates a prompt for GPT to explain the context and nuance of a sentence.
+     * The prompt is copied to the user's clipboard.
+     * @param element The button element that triggered the action.
+     */
     public async handleContextNuance(element: HTMLElement): Promise<void> {
         const sentence = this.app.currentPhrase;
         if (!sentence) return;
@@ -146,6 +174,11 @@ Sentence:
         }
     }
 
+    /**
+     * Generates a prompt for GPT to create creative practice exercises based on a sentence.
+     * The prompt is copied to the user's clipboard.
+     * @param element The button element that triggered the action.
+     */
     public async handleCreativePractice(element: HTMLElement): Promise<void> {
         const sentence = this.app.currentPhrase;
         if (!sentence) return;
@@ -175,6 +208,10 @@ Sentence:
         }
     }
 
+    /**
+     * Sends a recorded audio file to a backend service for pronunciation accuracy analysis.
+     * @param element The button element that triggered the analysis.
+     */
     public async getPronunciationAccuracy(element: HTMLElement): Promise<void> {
         const $element = $(element);
         const sentence = $element.data('sentence') as string;
@@ -216,6 +253,12 @@ Sentence:
         }
     }
 
+    /**
+     * Renders the pronunciation accuracy results received from the server.
+     * It displays an overall score and highlights correct/incorrect letters in the sentence.
+     * @param result The accuracy data returned from the API.
+     * @param $container The jQuery element where the results should be displayed.
+     */
     private renderAccuracyResult(result: any, $container: JQuery<HTMLElement>): void {
         if (!result.real_transcripts || !result.is_letter_correct_all_words || !result.pronunciation_accuracy) {
             $container.html('<div class="alert alert-warning p-2">The server returned an unexpected response.</div>');
@@ -249,6 +292,12 @@ Sentence:
         $container.html(resultHtml);
     }
 
+    /**
+     * Prepares for a full AI analysis by another service (like Gemini).
+     * It copies a detailed analysis prompt to the clipboard and triggers the download
+     * of the user's recorded audio file.
+     * @param element The button element that triggered the action.
+     */
     public async prepareForAIAnalysis(element: HTMLElement): Promise<void> {
         await this.copyAIPrompt(element);
         this.downloadUserAudio(element);
@@ -278,6 +327,10 @@ Sentence:
         $('#aiInstructionsModalBody').html(modalBodyContent);
     }
 
+    /**
+     * Finds the user's audio recording and triggers a browser download for it.
+     * @param element The element containing data attributes about the recording.
+     */
     private downloadUserAudio(element: HTMLElement): void {
         const sentence = $(element).data('sentence') as string;
         const index = $(element).data('index') as number;
@@ -298,6 +351,11 @@ Sentence:
         }
     }
 
+    /**
+     * Generates a prompt for analyzing a user's audio recording and copies it to the clipboard.
+     * This prompt instructs an AI (like Gemini) on how to score pronunciation and fluency.
+     * @param element The element containing the sentence data for the prompt.
+     */
     private async copyAIPrompt(element: HTMLElement): Promise<void> {
         const sentence = $(element).data('sentence') as string;
 

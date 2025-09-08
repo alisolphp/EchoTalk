@@ -3,6 +3,10 @@ import { Modal } from 'bootstrap';
 import { EchoTalkApp } from '../app';
 import { Recording, Practice, SampleData } from '../types';
 
+/**
+ * Service for managing all data-related operations, including fetching
+ * sample sentences and interacting with the IndexedDB database.
+ */
 export class DataService {
     private app: EchoTalkApp;
 
@@ -10,10 +14,19 @@ export class DataService {
         this.app = app;
     }
 
+    /**
+     * Fetches the sample sentences for the current language from a JSON file.
+     * @returns A promise that resolves with the sample data.
+     */
     public fetchSamples(): Promise<SampleData> {
         return $.getJSON(`./data/sentences/sentences-${this.app.lang}.json`);
     }
 
+    /**
+     * Initializes the IndexedDB database.
+     * Creates object stores for 'recordings' and 'practices' if they don't exist.
+     * @returns A promise that resolves with the database instance.
+     */
     public initDB(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open('EchoTalkDB', 3);
@@ -38,6 +51,10 @@ export class DataService {
         });
     }
 
+    /**
+     * Saves a user's audio recording (as a Blob) to the 'recordings' object store in IndexedDB.
+     * @param blob The audio data Blob to be saved.
+     */
     public async saveRecording(blob: Blob): Promise<void> {
         const record: Recording = {
             sentence: this.app.currentPhrase,
@@ -50,6 +67,10 @@ export class DataService {
         store.add(record);
     }
 
+    /**
+     * Fetches all recordings from IndexedDB, groups them by sentence, sorts them,
+     * and renders them into the recordings modal.
+     */
     public async displayRecordings(): Promise<void> {
         if (!this.app.db) return;
         const transaction = this.app.db.transaction(['recordings'], 'readonly');
@@ -144,6 +165,10 @@ export class DataService {
         }
     }
 
+    /**
+     * Fetches all practice history from IndexedDB, sorts it by the last practiced date,
+     * and displays it in the practices modal.
+     */
     public async displayPractices(): Promise<void> {
         const transaction = this.app.db.transaction(['practices'], 'readonly');
         const store = transaction.objectStore('practices');

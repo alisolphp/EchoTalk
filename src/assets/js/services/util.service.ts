@@ -1,6 +1,10 @@
 import $ from 'jquery';
 import { EchoTalkApp } from '../app';
 
+/**
+ * A service that provides a collection of general-purpose utility functions
+ * used throughout the application.
+ */
 export class UtilService {
     private app: EchoTalkApp;
 
@@ -8,6 +12,9 @@ export class UtilService {
         this.app = app;
     }
 
+    /**
+     * Clears the timer used in 'auto-skip' mode and resets the progress animation on the button.
+     */
     public clearAutoSkipTimer(): void {
         if (this.app.autoSkipTimer) {
             clearTimeout(this.app.autoSkipTimer);
@@ -20,6 +27,11 @@ export class UtilService {
         }
     }
 
+    /**
+     * Finds the starting index of the current phrase by looking backwards from the
+     * current word index for the last punctuation mark.
+     * @returns The starting index of the phrase.
+     */
     public getStartOfCurrentPhrase(): number {
         let lastPuncIndex = -1;
         for (let i = this.app.currentIndex - 1; i >= 0; i--) {
@@ -31,6 +43,13 @@ export class UtilService {
         return lastPuncIndex >= 0 ? lastPuncIndex + 1 : 0;
     }
 
+    /**
+     * Calculates the end index for a practice phrase, starting from a given index.
+     * The phrase ends after `maxWords` or at the next punctuation mark.
+     * @param startIndex The index from which to start calculating the phrase.
+     * @param maxWords The maximum number of words the phrase can contain.
+     * @returns The calculated end index for the phrase.
+     */
     public getPhraseBounds(startIndex: number, maxWords: number): number {
         let endIndex = startIndex;
         let count = 0;
@@ -52,6 +71,11 @@ export class UtilService {
         return endIndex;
     }
 
+    /**
+     * Picks a random sample sentence from the loaded data based on the
+     * user's selected level and category preferences.
+     * @returns A random sentence string.
+     */
     public pickSample(): string {
         const savedLevelIndex = parseInt(localStorage.getItem('selectedLevelIndex') || '0');
         const savedCategoryIndex = parseInt(localStorage.getItem('selectedCategoryIndex') || '0');
@@ -73,14 +97,31 @@ export class UtilService {
         return sentences[Math.floor(Math.random() * sentences.length)];
     }
 
+    /**
+     * Cleans a string for comparison by converting it to lowercase, trimming whitespace,
+     * and removing punctuation.
+     * @param text The string to clean.
+     * @returns The cleaned string.
+     */
     public cleanText(text: string): string {
         return this.removeJunkCharsFromText(text.toLowerCase().trim().replace("&", "and"));
     }
 
+    /**
+     * Removes leading and trailing punctuation and whitespace from a string.
+     * @param text The string to process.
+     * @returns The processed string.
+     */
     public removeJunkCharsFromText(text: string): string {
         return text.replace(/^[\s.,;:/\\()[\]{}"'«»!?-]+|[\s.,;:/\\()[\]{}"'«»!?-]+$/g, '');
     }
 
+    /**
+     * Calculates a simple similarity score between two strings by comparing them word by word.
+     * @param targetStr The correct string.
+     * @param answerStr The user's input string.
+     * @returns A similarity score between 0 and 1.
+     */
     public calculateWordSimilarity(targetStr: string, answerStr: string): number {
         const targetWords = targetStr.split(/\s+/).filter(Boolean);
         const answerWords = answerStr.split(/\s+/).filter(Boolean);
@@ -93,6 +134,11 @@ export class UtilService {
         return correctWords / targetWords.length;
     }
 
+    /**
+     * Truncates a long sentence for display purposes.
+     * @param sentence The sentence to truncate.
+     * @returns The truncated sentence.
+     */
     public truncateSentence(sentence: string): string {
         const words = sentence.split(' ');
         if (words.length > 4) {
@@ -101,6 +147,13 @@ export class UtilService {
         return sentence;
     }
 
+    /**
+     * Copies a given text string to the user's clipboard.
+     * It uses the modern `navigator.clipboard` API with a fallback to the legacy
+     * `document.execCommand('copy')` for older browsers.
+     * @param textToCopy The text to be copied.
+     * @returns A promise that resolves to `true` on success and `false` on failure.
+     */
     public async copyTextToClipboard(textToCopy: string): Promise<boolean> {
         try {
             await navigator.clipboard.writeText(textToCopy);

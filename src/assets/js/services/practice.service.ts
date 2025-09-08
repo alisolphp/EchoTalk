@@ -2,6 +2,10 @@ import $ from 'jquery';
 import { EchoTalkApp } from '../app';
 import { Practice } from '../types';
 
+/**
+ * Encapsulates the core logic for the practice session flow, including starting,
+ * advancing through phrases, checking answers, and finishing a session.
+ */
 export class PracticeService {
     private app: EchoTalkApp;
 
@@ -9,6 +13,10 @@ export class PracticeService {
         this.app = app;
     }
 
+    /**
+     * Starts a new practice session. It initializes state, saves the practice attempt
+     * to IndexedDB, sets up the UI, and begins the first practice step.
+     */
     public async startPractice(): Promise<void> {
         this.app.practiceMode = ($('#practiceModeSelect').val() as 'skip' | 'check' | 'auto-skip');
         const rawVal = $('#sentenceInput').attr('data-val');
@@ -66,6 +74,11 @@ export class PracticeService {
         location.hash = 'practice';
     }
 
+    /**
+     * Executes a single step of the practice loop for the current phrase.
+     * It determines the current phrase, speaks it using TTS, and sets up recording if enabled.
+     * @param speed The playback speed for the TTS, defaults to 1.
+     */
     public practiceStep(speed: number = 1): void {
         this.app.utilService.clearAutoSkipTimer();
         if (this.app.currentIndex >= this.app.words.length) {
@@ -102,6 +115,10 @@ export class PracticeService {
         $('#sentence-container').off('click', '.word').on('click', '.word', (e) => this.app.uiService.showWordActionsModal(e.currentTarget));
     }
 
+    /**
+     * Determines the maximum number of words for a practice phrase based on the selected difficulty level.
+     * @returns The maximum number of words for the current level.
+     */
     private getMaxWordsBasedOnLevel(): Number {
         const $levelSelect = $('#levelSelect');
         const level = Number($levelSelect.val());
@@ -111,6 +128,10 @@ export class PracticeService {
         return wordsPerLevel[level] ?? 5;
     }
 
+    /**
+     * Checks the user's spoken or typed answer against the target phrase.
+     * This method is used in 'check' mode. It calculates similarity and provides feedback.
+     */
     public async checkAnswer(): Promise<void> {
         if (this.app.isRecordingEnabled) {
             await this.app.audioService.stopRecording();
@@ -172,6 +193,10 @@ export class PracticeService {
         }, 1200);
     }
 
+    /**
+     * Advances the practice session to the next phrase in the sentence.
+     * Used in 'skip' and 'auto-skip' modes.
+     */
     public advanceToNextPhrase(): void {
         if (this.app.isRecordingEnabled) {
             this.app.audioService.stopRecording();
@@ -188,6 +213,10 @@ export class PracticeService {
         this.practiceStep();
     }
 
+    /**
+     * Concludes the practice session when all phrases have been completed.
+     * It shows a completion message, plays a victory sound, and clears session-specific state.
+     */
     public finishSession(): void {
         this.app.utilService.clearAutoSkipTimer();
         this.app.audioService.terminateMicrophoneStream();
@@ -223,10 +252,18 @@ export class PracticeService {
         $('#backHomeButton').addClass('d-none').removeClass('d-inline-block');
     }
 
+    /**
+     * A handler for the main practice button. In 'check' mode, it checks the answer;
+     * otherwise, it advances to the next phrase.
+     */
     public handleCheckOrNext(): void {
         this.checkAnswer();
     }
 
+    /**
+     * Selects a new random sample sentence based on the chosen level and category,
+     * and updates the UI and application state accordingly.
+     */
     public useSample(): void {
         const selectedLevelIndex = ($('#levelSelect').val() as string);
         const selectedCategoryIndex = ($('#categorySelect').val() as string);
@@ -242,6 +279,11 @@ export class PracticeService {
         this.app.uiService.setInputValue('');
     }
 
+    /**
+     * Handles clicks on words in the sample sentence display, allowing the user
+     * to set the starting point for their practice.
+     * @param element The clicked word span element.
+     */
     public handleSampleWordClick(element: HTMLElement): void {
         const newIndex = $(element).data('index');
         if (typeof newIndex === 'number') {

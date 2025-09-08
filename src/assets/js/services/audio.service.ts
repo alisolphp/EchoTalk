@@ -1,6 +1,10 @@
 import $ from 'jquery';
 import { EchoTalkApp } from '../app';
 
+/**
+ * Manages all audio-related functionality including Text-to-Speech (TTS),
+ * microphone recording, and audio playback.
+ */
 export class AudioService {
     private app: EchoTalkApp;
     private mediaRecorder: MediaRecorder | undefined;
@@ -8,12 +12,20 @@ export class AudioService {
     private audioContext: AudioContext | null = null;
     private analyser: AnalyserNode | null = null;
     private visualizerFrameId: number | null = null;
+
+    /** A flag to indicate if the audio visualizer is currently active. */
     private visualizerActive: boolean = false;
 
     constructor(app: EchoTalkApp) {
         this.app = app;
     }
 
+    /**
+     * Checks if a local TTS voice is available for the specified language.
+     * Local voices are preferred as they often provide lower latency.
+     * @param lang The language code to check (e.g., 'en-US').
+     * @returns A promise that resolves to `true` if a local voice is found, otherwise `false`.
+     */
     public checkTTSVoice(lang: string): Promise<boolean> {
         return new Promise((resolve) => {
             let timeoutId: number | null = null;
@@ -45,6 +57,11 @@ export class AudioService {
         });
     }
 
+    /**
+     * Initializes the microphone stream if recording is enabled.
+     * It requests microphone access from the user and sets up the MediaRecorder and AudioContext
+     * for recording and visualization.
+     */
     public async initializeMicrophoneStream(): Promise<void> {
         if (!this.app.isRecordingEnabled || this.stream) {
             return;
@@ -86,6 +103,10 @@ export class AudioService {
         }
     }
 
+    /**
+     * Stops all tracks in the microphone stream and releases associated resources.
+     * This is crucial for turning off the microphone indicator and conserving battery.
+     */
     public terminateMicrophoneStream(): void {
         if (this.stream) {
             this.stream.getTracks().forEach(track => track.stop());
@@ -103,6 +124,9 @@ export class AudioService {
         }
     }
 
+    /**
+     * Starts recording audio from the microphone if the MediaRecorder is ready.
+     */
     public async startRecording(): Promise<void> {
         if (this.mediaRecorder && this.mediaRecorder.state === 'inactive') {
             this.mediaRecorder.start();
@@ -111,6 +135,10 @@ export class AudioService {
         }
     }
 
+    /**
+     * Stops the audio recording and the sound wave visualizer.
+     * @returns A promise that resolves once the MediaRecorder has fully stopped.
+     */
     public stopRecording(): Promise<void> {
         if (this.visualizerFrameId) {
             cancelAnimationFrame(this.visualizerFrameId);
@@ -133,6 +161,10 @@ export class AudioService {
         });
     }
 
+    /**
+     * Monitors the audio input level from the microphone to drive the sound wave visualizer.
+     * Uses `requestAnimationFrame` for efficient rendering.
+     */
     private monitorAudioLevel(): void {
         if (!this.analyser) return;
         const visualizerElement = document.getElementById('soundWaveVisualizer');
@@ -162,6 +194,14 @@ export class AudioService {
         checkSound();
     }
 
+    /**
+     * A wrapper for the browser's SpeechSynthesis API to speak a given text.
+     * @param text The text to be spoken.
+     * @param onEnd An optional callback function to execute when speech finishes.
+     * @param rate Optional speech rate override.
+     * @param lang Optional language code override.
+     * @param volume Optional volume override (0.0 to 1.0).
+     */
     public speak(text: string, onEnd?: (() => void) | null, rate: number | null = null, lang: string | null = null, volume: number | null = null): void {
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
@@ -176,6 +216,12 @@ export class AudioService {
         speechSynthesis.speak(u);
     }
 
+    /**
+     * Plays a sound effect from a given source file.
+     * @param src The path to the audio file.
+     * @param speed The playback speed (default is 1).
+     * @param volume The playback volume (0.0 to 1.0, default is 1).
+     */
     public playSound(src: string, speed: number = 1, volume: number = 1): void {
         const audio = new Audio(src);
         audio.playbackRate = speed;
@@ -183,6 +229,14 @@ export class AudioService {
         audio.play();
     }
 
+    /**
+     * Speaks a given text while highlighting the words as they are spoken.
+     * Uses `onboundary` events on desktop for accurate highlighting and a timer-based
+     * estimation on mobile where `onboundary` is less reliable.
+     * @param text The text to speak and highlight.
+     * @param onEnd An optional callback to run after speech is complete.
+     * @param speed The playback speed multiplier.
+     */
     public speakAndHighlight(text: string, onEnd?: (() => void) | null, speed: number = 1): void {
         const container = $('#sentence-container');
         container.empty();
@@ -255,6 +309,10 @@ export class AudioService {
         ($('#userInput') as JQuery<HTMLInputElement>).focus();
     }
 
+    /**
+     * Plays a user's recorded audio from a Blob.
+     * @param element The element that triggered the playback, containing data attributes.
+     */
     public playUserAudio(element: HTMLElement): void {
         this.stopAllPlayback(true);
         const sentence = $(element).data('sentence') as string;
@@ -276,6 +334,10 @@ export class AudioService {
         }
     }
 
+    /**
+     * Plays the TTS-generated audio for a given sentence.
+     * @param element The element that triggered the playback, containing data attributes.
+     */
     public playBotAudio(element: HTMLElement): void {
         this.stopAllPlayback(true);
         const sentence = $(element).data('sentence') as string;
@@ -283,6 +345,10 @@ export class AudioService {
         this.speak(sentence, null, 1, sentenceLang);
     }
 
+    /**
+     * Stops any currently playing audio, including user recordings and TTS speech.
+     * @param keepTTS If true, only stops Blob-based audio, allowing TTS to continue.
+     */
     public stopAllPlayback(keepTTS: boolean = false): void {
         if (this.app.currentlyPlayingAudioElement) {
             this.app.currentlyPlayingAudioElement.pause();
