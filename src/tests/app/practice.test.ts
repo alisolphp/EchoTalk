@@ -121,26 +121,32 @@ describe('Practice Logic', () => {
         expect((window as any).speechSynthesis.speak).toHaveBeenCalled();
     });
 
-    // Projects\EchoTalk\src\tests\app\practice.test.ts
-
     it('should cancel speech and reload page when reset is clicked', async () => {
         vi.useFakeTimers();
 
         // Start practice to get into a state where reset is relevant.
-        $('#startBtn').trigger('click');
+        await (app as any).startPractice();
+
+        // Since we can't directly await a click handler, we spy on the method
+        // that the handler calls. This allows us to confirm it was triggered.
+        const resetAppSpy = vi.spyOn(app as any, 'resetApp');
+
         // Simulate clicking the reset button.
         $('#resetBtn').trigger('click');
 
-        // Manually advance timers to execute the setTimeout in the mock
+        // Ensure the spy was called by the click event.
+        expect(resetAppSpy).toHaveBeenCalled();
+
+        // Advance timers to let the async operations inside resetApp run to completion.
         await vi.runAllTimers();
 
-        // Verify that ongoing speech is cancelled and the page is reloaded.
+        // Now, check the final results of the reset operation.
         expect((window as any).speechSynthesis.cancel).toHaveBeenCalled();
         expect((location as any).reload).toHaveBeenCalled();
-        // Ensure that relevant practice state is cleared from localStorage.
         expect(localStorage.getItem('shadow_sentence')).toBeNull();
 
-        // It's a good practice to restore real timers
+        // Cleanup the spy and timers.
+        resetAppSpy.mockRestore();
         vi.useRealTimers();
     });
 

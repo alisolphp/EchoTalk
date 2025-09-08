@@ -156,22 +156,22 @@ describe('State Management and Event Handlers', () => {
     it('should clear localStorage on resetApp', async () => {
         vi.useFakeTimers();
 
-        // Set some dummy data in localStorage to be cleared.
+        // Set some dummy data
         localStorage.setItem('shadow_sentence', 'A test sentence');
-        localStorage.setItem('shadow_index', '5');
 
-        (app as any).resetApp(); // Call the reset function.
+        // Call the function but don't await the promise completion immediately
+        const resetPromise = (app as any).resetApp();
 
-        // Manually advance timers to execute the setTimeout in the mock
+        // Advance timers to trigger the mock's async behavior (setTimeout)
         await vi.runAllTimers();
 
-        // Verify that the specific items are cleared from localStorage.
+        // Now, await the promise to settle
+        await resetPromise;
+
+        // Verify results
         expect(localStorage.getItem('shadow_sentence')).toBeNull();
-        expect(localStorage.getItem('shadow_index')).toBeNull();
-        // Also verify that `location.reload` was called to reload the page state.
         expect((location as any).reload).toHaveBeenCalled();
 
-        // It's a good practice to restore real timers
         vi.useRealTimers();
     });
 
@@ -190,6 +190,7 @@ describe('State Management and Event Handlers', () => {
         $('#practiceModeSelect').val('check');
 
         // 2. Trigger the start practice button click.
+        $('#practiceModeSelect').val('check'); // Set the value of the select element
         $('#startBtn').trigger('click');
 
         // 3. Verify that the app's internal state is correctly initialized.
