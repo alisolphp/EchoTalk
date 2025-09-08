@@ -311,19 +311,25 @@ export class EchoTalkApp {
     }
 
     private showHomePage(): void {
-        $('#appArea').addClass('d-none');
-        $('#homeArea').removeClass('d-none');
-        $('.nav-bottom .nav-item.active').removeClass('active');
-        $('#navHome').addClass('active');
+        this.showPage('Home');
     }
 
     private showPracticeSetup(): void {
-        $('#homeArea').addClass('d-none');
-        $('#appArea').removeClass('d-none');
-        $('.nav-bottom .nav-item.active').removeClass('active');
-        $('#navPractice').addClass('active');
+        this.showPage('PrePractice');
     }
 
+    private showForYouPage(): void {
+        this.showPage('ForYou');
+    }
+
+    private showPage(key: 'Home' | 'PrePractice' | 'ForYou'): void {
+        $('.area').addClass('d-none');
+        $('.nav-bottom .nav-item.active').removeClass('active');
+
+        $(`#area${key}`).removeClass('d-none');
+        $(`#nav${key}`).addClass('active');
+    }
+    
     private bindEvents(): void {
         // Binds all UI events to their corresponding methods
         $('#startBtn').on('click', () => this.startPractice());
@@ -362,8 +368,10 @@ export class EchoTalkApp {
         $('#categorySelect').on('change', () => this.useSample());
 
         $('#goToPracticeBtn').on('click', () => this.showPracticeSetup());
-        $('#navPractice').on('click', () => this.showPracticeSetup());
+        $('#navPrePractice').on('click', () => this.showPracticeSetup());
         $('#navHome').on('click', () => this.showHomePage());
+        $('#navForYou').on('click', () => this.showForYouPage());
+        $('#myRecordingsLink').on('click', () => this.displayRecordings());
         $('.backHomeButton').on('click', () => this.showPracticeSetup());
 
         $('#speechRateSelect').on('change', (e) => {

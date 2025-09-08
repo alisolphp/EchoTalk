@@ -2,13 +2,14 @@
 <html lang="en" class="h-100" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">    <title>EchoTalk | Offline Shadowing Practice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>EchoTalk | Offline Shadowing Practice</title>
     <meta name="theme-color" content="#43b6fd">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-512.png">
 </head>
 <body class="d-flex flex-column h-100">
 
-<div id="homeArea" class="container my-4 text-center">
+<div id="areaHome" class="container my-4 text-center area">
     <img src="icons/icon-512.png" style="width: 150px; margin-bottom: 1rem;">
     <h1 class="mb-2">EchoTalk</h1>
     <p class="lead mb-4">Your personal space for offline shadowing practice.</p>
@@ -18,8 +19,7 @@
     </footer>
 </div>
 
-
-<div id="appArea" class="container my-4 d-none">
+<div id="areaPrePractice" class="container my-4 d-none area">
     <div class="d-flex justify-content-center align-items-center gap-2">
         <h1 class="mb-0"><img src="icons/icon-512.png" style="width: 1em;"> EchoTalk</h1>
         <select id="headerLanguageSelect" class="form-select form-select-sm header-lang-select" aria-label="Select Language"></select>
@@ -103,6 +103,15 @@
     </div>
 </div>
 
+<div id="areaForYou" class="container my-4 d-none area">
+    <h1 class="mb-4 text-center">For You</h1>
+    <div class="list-group">
+        <a href="#" id="myRecordingsLink" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#recordingsModal">My Recordings</a>
+        <a href="#" class="list-group-item list-group-item-action">My Practices</a>
+        <a href="#" class="list-group-item list-group-item-action">My Progress</a>
+    </div>
+</div>
+
 <nav class="nav-bottom">
     <div class="nav-items">
         <a href="#" id="navHome" class="nav-item active">
@@ -113,7 +122,7 @@
             <i class="bi bi-question-circle-fill"></i>
             <span>Help</span>
         </a>
-        <a href="#" id="navPractice" class="nav-item">
+        <a href="#" id="navPrePractice" class="nav-item">
             <i class="bi bi-mic-fill"></i>
             <span>Practice</span>
         </a>
@@ -121,7 +130,7 @@
             <i class="bi bi-sliders"></i>
             <span>Options</span>
         </a>
-        <a href="#" id="navForYou" class="nav-item" data-bs-toggle="modal" data-bs-target="#recordingsModal">
+        <a href="#" id="navForYou" class="nav-item">
             <i class="bi bi-person-fill"></i>
             <span>For You</span>
         </a>
