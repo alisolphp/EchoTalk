@@ -1,5 +1,3 @@
-// --- Imports ---
-// Main CSS and JS files for styling and functionality
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -8,7 +6,6 @@ import { Modal } from 'bootstrap';
 import './../css/style.css';
 import confetti from 'canvas-confetti';
 
-// --- Type Definitions ---
 // Define the structure for a recording object
 interface Recording {
     sentence: string;
@@ -71,11 +68,8 @@ String.prototype.hashCode = function(): string {
     // Return a unique string with a prefix to avoid conflicts
     return 'h' + Math.abs(hash);
 };
-// =================================================================
-// The Main Application Class
-// =================================================================
+
 export class EchoTalkApp {
-    // --- Constants ---
     // Keys for storing data in localStorage to manage application state
     private readonly STORAGE_KEYS = {
         sentence: 'shadow_sentence',
@@ -91,7 +85,7 @@ export class EchoTalkApp {
         spellApiKey: 'shadow_spell_api_key',
         spellCheckerIsAvailable: 'shadow_spell_checker_is_available'
     };
-    // --- State Properties ---
+
     private sentence: string = '';
     private words: string[] = [];
     private reps: number = 3;
@@ -104,19 +98,16 @@ export class EchoTalkApp {
     private isRecordingEnabled: boolean = false;
     private practiceMode: 'skip' | 'check' | 'auto-skip' = 'skip';
 
-    // --- Media & DB Properties ---
     private mediaRecorder: MediaRecorder | undefined;
     private stream: MediaStream | null = null;
     private db!: IDBDatabase;
     private currentlyPlayingAudioElement: HTMLAudioElement | null = null;
 
-    // --- Audio Visualization Properties ---
     private audioContext: AudioContext | null = null;
     private analyser: AnalyserNode | null = null;
     private visualizerFrameId: number | null = null;
     private visualizerActive: boolean = false;
 
-    // --- Helper Properties ---
     private readonly isMobile: boolean = /Mobi|Android/i.test(navigator.userAgent);
     private autoSkipTimer: number | null = null;
     private estimatedWordsPerSecond: number = 2.5;
@@ -260,12 +251,10 @@ export class EchoTalkApp {
 
         // NOW, clear any timers. This will catch timers set by the 'onend' event above.
         this.clearAutoSkipTimer();
-
         // Stop any ongoing recording to release the microphone.
         await this.stopRecording();
 
         this.terminateMicrophoneStream();
-
         // Reset all internal state properties to their initial values.
         // We intentionally do not clear localStorage here.
         this.sentence = '';
@@ -296,15 +285,12 @@ export class EchoTalkApp {
         // }
 
         this.updateLanguageUI();
-
         // Re-initialize the words array from the loaded sentence.
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
-
         // Update the UI with the loaded state and sentence.
         this.setInputValue(this.sentence);
         this.setInputValue('');
         this.renderSampleSentence();
-
         console.log("Application reset to saved state without reloading the page.");
     }
 
@@ -312,7 +298,7 @@ export class EchoTalkApp {
         if ('serviceWorker' in navigator) {
             // Vite PWA Plugin automatically places the sw.js file at the root of the build output
             navigator.serviceWorker.register('./sw.js').then(registration => {
-                // console.log('Service Worker registered with scope:', registration.scope);
+                // Service worker registered
             }).catch(error => {
                 console.error('Service Worker registration failed:', error);
             });
@@ -338,9 +324,8 @@ export class EchoTalkApp {
         $(`#area${key}`).removeClass('d-none');
         $(`#nav${key}`).addClass('active');
     }
-    
+
     private bindEvents(): void {
-        // Binds all UI events to their corresponding methods
         $('#startBtn').on('click', () => this.startPractice());
         $('#resetBtn').on('click', () => this.resetApp());
         $('#checkBtn').on('click', () => this.handleCheckOrNext());
@@ -406,7 +391,6 @@ export class EchoTalkApp {
         });
 
         $('#showTtsWarningBtn').on('click', () => this.showTTSWarning());
-
         // Hide the install button if the app is already installed
         if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
             $('#installBtn').addClass('d-none');
@@ -425,7 +409,6 @@ export class EchoTalkApp {
                 $('#installBtn').addClass('d-none');
             });
         });
-
         window.addEventListener('hashchange', () => this.handleHashChange());
 
         document.addEventListener('show.bs.modal', () => {
@@ -433,16 +416,15 @@ export class EchoTalkApp {
                 window.location.hash = 'modal';
             }
         });
-
         document.addEventListener('hidden.bs.modal', () => {
             // Only run this logic if a modal was just closed and the hash is still '#modal'
             if (window.location.hash === '#modal') {
                 // Get current URL without the hash part
-                const urlWithoutHash = window.location.pathname + window.location.search; // Replace the current history state to clean up the URL without navigating
+                const urlWithoutHash = window.location.pathname + window.location.search;
+                // Replace the current history state to clean up the URL without navigating
                 history.replaceState(null, '', urlWithoutHash);
             }
         });
-
         document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
 
         window.addEventListener('online', () => this.updateOnlineStatusClass());
@@ -465,6 +447,7 @@ export class EchoTalkApp {
         const openModal = document.querySelector('.modal.show') as HTMLElement;
         const isPracticeVisible = !$('#practiceArea').hasClass('d-none');
 
+        // If a modal is open but the hash no longer matches (e.g., user pressed back), close the modal.
         if (hash !== '#modal' && openModal) {
             const modalInstance = Modal.getInstance(openModal);
             if (modalInstance) {
@@ -480,6 +463,7 @@ export class EchoTalkApp {
                 modalInstance.hide();
             }
         }
+        // If the user navigates away from the practice area (e.g., back button) and no modal is active, reset to the home screen.
         else if (hash !== '#practice' && isPracticeVisible && hash !== '#modal') {
             this.resetWithoutReload();
         }
@@ -502,7 +486,6 @@ export class EchoTalkApp {
         this.samples.levels.forEach((level, index) => {
             $levelSelect.append(`<option value="${index}">${level.name}</option>`);
         });
-
         const defaultLevelIndex = this.samples.levels.findIndex(l => l.name === this.defaultLevelName);
 
         // Load saved level or set default
@@ -512,7 +495,8 @@ export class EchoTalkApp {
         } else if (defaultLevelIndex !== -1) {
             $levelSelect.val(defaultLevelIndex.toString());
         } else {
-            $levelSelect.val('0'); // Fallback to first level
+            // Fallback to first level
+            $levelSelect.val('0');
         }
 
         // Populate categories based on the selected level
@@ -549,17 +533,13 @@ export class EchoTalkApp {
             // }
 
             this.updateLanguageUI();
-
             // Step 2: Asynchronously fetch the sample sentences for the selected language.
             // This replaces the existing `this.samples` with the new content (e.g., from 'sentences-nl-NL.json').
             this.samples = await this.fetchSamples();
-
             // Step 3: Re-populate the level and category dropdowns based on the newly fetched data.
             this.setupSampleOptions();
-
             // Step 4: Pick and display a new random sample sentence to immediately reflect the language change.
             this.useSample();
-
         } catch (error) {
             console.error("Failed to load new language data:", error);
             // In case of a network or file error, display a user-friendly message.
@@ -632,7 +612,6 @@ export class EchoTalkApp {
     private showTTSWarning(): void {
         // Make sure the language name in the modal is up-to-date
         $('.current-language-general-name').text(this.langGeneral);
-
         const modalElement = document.getElementById('ttsWarningModal');
         if (modalElement) {
             const modal = new Modal(modalElement);
@@ -644,7 +623,6 @@ export class EchoTalkApp {
         const $levelSelect = $('#levelSelect') as JQuery<HTMLSelectElement>;
         const $categorySelect = $('#categorySelect');
         const selectedLevelIndex = parseInt($levelSelect.val() as string);
-
         // Save the selected level
         localStorage.setItem('selectedLevelIndex', selectedLevelIndex.toString());
 
@@ -653,7 +631,6 @@ export class EchoTalkApp {
         categories.forEach((category, index) => {
             $categorySelect.append(`<option value="${index}">${category.name} (${category.sentences.length})</option>`);
         });
-
         const defaultCategoryIndex = categories.findIndex(c => c.name === this.defaultCategoryName);
 
         // Load saved category or set default
@@ -663,11 +640,12 @@ export class EchoTalkApp {
         } else if (defaultCategoryIndex !== -1) {
             $categorySelect.val(defaultCategoryIndex.toString());
         } else {
-            $categorySelect.val('0'); // Fallback to first category
+            // Fallback to first category
+            $categorySelect.val('0');
         }
     }
 
-    // Populates the "Reps" dropdown with specific options (1, 2, 3, 5, 10, 20)
+    // Populates the "Reps" dropdown with a curated list of repetition options.
     private setupRepOptions(): void {
         for (let i = 1; i <= 20; i++) {
             if ([1, 2, 3, 5, 10, 20].includes(i)) {
@@ -675,8 +653,6 @@ export class EchoTalkApp {
             }
         }
     }
-
-    // --- State & Data Management ---
 
     private loadState(): void {
         // Loads application state from localStorage
@@ -692,7 +668,6 @@ export class EchoTalkApp {
         ($('#languageSelect') as JQuery<HTMLSelectElement>).val(this.lang);
 
         this.spellCheckerIsAvailable = localStorage.getItem(this.STORAGE_KEYS.spellCheckerIsAvailable) === 'true';
-
         // Load saved level and category, or set defaults
         const savedLevelIndex = localStorage.getItem('selectedLevelIndex');
         const savedCategoryIndex = localStorage.getItem('selectedCategoryIndex');
@@ -700,8 +675,6 @@ export class EchoTalkApp {
         const savedRate = parseFloat(localStorage.getItem(this.STORAGE_KEYS.speechRate) || '1');
         this.speechRate = isNaN(savedRate) ? 1 : savedRate;
         $('#speechRateSelect').val(this.speechRate.toString());
-
-
         if (savedLevelIndex) {
             ($('#levelSelect') as JQuery<HTMLSelectElement>).val(savedLevelIndex);
         }
@@ -727,13 +700,13 @@ export class EchoTalkApp {
     }
 
     private fetchSamples(): Promise<SampleData> {
-        // Fetches a list of sample sentences from a JSON file
+        // Fetches sample sentences from a language-specific JSON file (e.g., 'sentences-en-US.json').
         return $.getJSON(`./data/sentences/sentences-${this.lang}.json`);
     }
 
     private initDB(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open('EchoTalkDB', 3); // Bump version to 3
+            const request = indexedDB.open('EchoTalkDB', 3); // Bump version for schema changes
 
             request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
@@ -758,8 +731,6 @@ export class EchoTalkApp {
         });
     }
 
-    // --- Audio and Recording ---
-
     private async initializeMicrophoneStream(): Promise<void> {
         if (!this.isRecordingEnabled || this.stream) {
             return;
@@ -776,13 +747,12 @@ export class EchoTalkApp {
                 audio: {
                     echoCancellation: false,
                     noiseSuppression: true,
-
                     autoGainControl: true
                 }
             };
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-            // --- Setup for audio visualization ---
+            // Setup for audio visualization
             this.audioContext = new AudioContext();
             const source = this.audioContext.createMediaStreamSource(this.stream);
             this.analyser = this.audioContext.createAnalyser();
@@ -802,7 +772,7 @@ export class EchoTalkApp {
             this.mediaRecorder.onstop = () => {
                 const audioBlob = new Blob(localAudioChunks, { type: this.mediaRecorder?.mimeType });
                 if (audioBlob.size > 0) {
-                    this.saveRecording(audioBlob, this.currentPhrase);
+                    this.saveRecording(audioBlob);
                 }
                 localAudioChunks = [];
             };
@@ -871,7 +841,6 @@ export class EchoTalkApp {
         this.visualizerActive = false;
 
         $('#feedback-text').html('').removeClass('recording-text-indicator');
-
         return new Promise(resolve => {
             if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
                 this.mediaRecorder.addEventListener('stop', () => resolve(), { once: true });
@@ -882,16 +851,14 @@ export class EchoTalkApp {
         });
     }
 
-    // --- UI and Rendering ---
-
     private monitorAudioLevel(): void {
         if (!this.analyser) return;
-
         const visualizerElement = document.getElementById('soundWaveVisualizer');
         if (!visualizerElement) return;
 
         const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
-        const threshold = 20; // Sensitivity threshold for detecting sound
+        // Sensitivity threshold for detecting sound
+        const threshold = 20;
 
         const checkSound = () => {
             if (!this.analyser) return;
@@ -899,7 +866,6 @@ export class EchoTalkApp {
 
             // Calculate average energy
             const energy = dataArray.reduce((acc, val) => acc + val, 0) / dataArray.length;
-
             if (energy > threshold) {
                 // Sound detected: transition to active state
                 if (!this.visualizerActive) {
@@ -907,7 +873,8 @@ export class EchoTalkApp {
                     visualizerElement.classList.add('active');
 
                     // Set random height as requested
-                    const randomHeight = 40 + Math.random() * 10; // Random height between 30vh and 40vh
+                    // Random height between 30vh and 40vh
+                    const randomHeight = 40 + Math.random() * 10;
                     visualizerElement.style.height = `${randomHeight}vh`;
                 }
             } else {
@@ -925,7 +892,7 @@ export class EchoTalkApp {
     }
 
     private renderSampleSentence(): void {
-        // Renders the sentence for 'sample mode'
+        // Renders the sentence on the home screen, highlighting the starting word for practice.
         $('#sampleSentence').empty();
         this.words.forEach((w, i) => {
             const cls = i === this.currentIndex ? 'current-word' : '';
@@ -980,8 +947,6 @@ export class EchoTalkApp {
         }
     }
 
-    // --- Core Logic Methods ---
-
     private getMaxWordsBasedOnLevel(): Number {
         const $levelSelect = $('#levelSelect');
         const level = Number($levelSelect.val());
@@ -995,18 +960,16 @@ export class EchoTalkApp {
 
     private practiceStep(speed: number = 1): void {
         this.clearAutoSkipTimer();
-
         // Main function to advance the practice session
         if (this.currentIndex >= this.words.length) {
             this.finishSession();
             return;
         }
         // Get the boundaries of the current phrase
-        const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel());
+        const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel() as number);
         const startIndex = this.getStartOfCurrentPhrase();
         const phrase = this.words.slice(startIndex, endIndex).join(' ');
         this.currentPhrase = this.removeJunkCharsFromText(phrase);
-
         if (this.isRecordingEnabled) {
             const listeningMessages = [
                 '👂 Listen carefully...',
@@ -1033,7 +996,6 @@ export class EchoTalkApp {
         };
 
         this.speakAndHighlight(phrase, this.isRecordingEnabled ? startRecordingCallback : null, speed);
-
         // Add a click event to each word to look up its meaning or other options
         $('#sentence-container').off('click', '.word').on('click', '.word', (e) => this.showWordActionsModal(e.currentTarget));
     }
@@ -1056,9 +1018,7 @@ export class EchoTalkApp {
         $('#searchExamplesLink').attr('href', `https://www.google.com/search?q=${encodedWord}+in+a+sentence`);
         $('#searchSentenceMeaningLink').off('click').on('click', () => this.openTranslate(this.currentPhrase));
         $('#translateWithGptBtn').off('click').on('click', () => this.handleTranslateWithGpt(this.currentPhrase));
-
         // --- AI Prompt Actions ---
-        // Note: We pass e.currentTarget to provide visual feedback on the button itself.
         $('#translateWithGptBtn').off('click').on('click', (e) => {
             e.preventDefault();
             this.handleTranslateWithGpt(e.currentTarget);
@@ -1079,7 +1039,6 @@ export class EchoTalkApp {
             e.preventDefault();
             this.handleCreativePractice(e.currentTarget);
         });
-
         // Speak the word and show the modal
         this.speak(word, null, 1, this.lang);
         const modalElement = document.getElementById('wordActionsModal');
@@ -1089,11 +1048,12 @@ export class EchoTalkApp {
         }
     }
 
-    private openTranslate(text) {
+    // Opens Google Translate in a new tab. A temporary HTML page is created
+    // to perform a redirect, which can help bypass some popup blockers.
+    private openTranslate(text: string) {
         const url = "https://translate.google.com/?sl=auto&tl=auto"
             + "&op=translate&text="
             + encodeURIComponent(text);
-
         const newWin = window.open("", "_blank");
 
         if (newWin) {
@@ -1266,14 +1226,12 @@ Sentence:
      * @param element The HTML element (button) that was clicked.
      * @param url The URL to open in a new tab.
      */
-
     private showCopySuccessFeedback(element: HTMLElement, url: string): void {
         // --- Step 1: Give immediate feedback on the clicked button ---
         const $element = $(element);
         const originalHtml = $element.html();
         $element.html('<i class="bi bi-check-lg"></i> Copied!');
         $element.prop('disabled', true);
-
         setTimeout(() => {
             $element.html(originalHtml);
             $element.prop('disabled', false);
@@ -1285,10 +1243,8 @@ Sentence:
 
         const confirmBtn = modalElement.querySelector('#confirmGoToGptBtn');
         if (!confirmBtn) return;
-
         // Correctly get the Modal instance from the imported class
         const confirmationModal = Modal.getOrCreateInstance(modalElement);
-
         // A function to handle the redirection
         const redirectToGpt = () => {
             window.open(url, '_blank');
@@ -1297,7 +1253,6 @@ Sentence:
 
         // Use .one() to ensure the click event is only handled once
         $(confirmBtn).off('click').one('click', redirectToGpt);
-
         confirmationModal.show();
     }
 
@@ -1341,12 +1296,11 @@ Sentence:
     }
 
     private async checkAnswer(): Promise<void> {
-        // Checks the user's spoken answer against the target phrase
         if (this.isRecordingEnabled) {
             await this.stopRecording();
         }
 
-        const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel());
+        const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel() as number);
         const startIndex = this.getStartOfCurrentPhrase();
         const target = this.cleanText(this.words.slice(startIndex, endIndex).join(' '));
 
@@ -1354,17 +1308,18 @@ Sentence:
         let answer = this.cleanText(userInput.val() as string);
 
         this.currentCount++;
-
+        // Handle cases where the user just presses enter without speaking
         if (answer === "") {
-            // Handle cases where the user just presses enter without speaking
             if (this.currentCount >= this.reps) {
                 if (this.practiceMode === 'check') {
                     if (this.reps >= 2) {
                         $('#feedback-text').html(`<div class="correct">(0 of ${this.reps} attempts)</div>`);
                     }
-                    setTimeout(() => this.advanceToNextPhrase(), 1200); // Delay only in check mode
+                    // Delay only in check mode
+                    setTimeout(() => this.advanceToNextPhrase(), 1200);
                 } else {
-                    this.advanceToNextPhrase(); // Instant in skip mode
+                    // Instant in skip mode
+                    this.advanceToNextPhrase();
                 }
             } else {
                 if(this.reps >= 2) {
@@ -1411,7 +1366,7 @@ Sentence:
         if (this.isRecordingEnabled) {
             this.stopRecording();
         }
-        const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel());
+        const endIndex = this.getPhraseBounds(this.currentIndex, this.getMaxWordsBasedOnLevel() as number);
         this.currentIndex = endIndex;
         this.currentCount = 0;
         if (this.currentIndex >= this.words.length) {
@@ -1452,9 +1407,8 @@ Sentence:
 
     private finishSession(): void {
         this.clearAutoSkipTimer();
-
         this.terminateMicrophoneStream();
-        this.triggerCelebrationAnimation(); // <-- This is the new line
+        this.triggerCelebrationAnimation();
         // Displays a celebratory message and ends the practice session
         const messages = ["You nailed it!", "That was sharp!", "Boom!", "Bravo!", "That was smooth!", "Great shadowing!", "You crushed it!", "Smart move!", "Echo mastered.", "That was fire!"];
         const emojis = ["🔥", "🎯", "💪", "🎉", "🚀", "👏", "🌟", "🧠", "🎧", "💥"];
@@ -1462,8 +1416,7 @@ Sentence:
         const emoji = emojis[Math.floor(Math.random() * emojis.length)];
         let displayMsg = `${emoji} ${ttsMsg}`;
         if (this.practiceMode === 'check') {
-            const accuracy = this.attempts ?
-                Math.round((this.correctCount / this.attempts) * 100) : 100;
+            const accuracy = this.attempts ? Math.round((this.correctCount / this.attempts) * 100) : 100;
             displayMsg += ` Your accuracy: ${accuracy}%.`;
             ttsMsg += ` Your accuracy: ${accuracy}%.`;
         }
@@ -1486,8 +1439,6 @@ Sentence:
         $('#backHomeButton').addClass('d-none');
         $('#backHomeButton').removeClass('d-inline-block');
     }
-
-    // --- Helper & Utility Methods ---
 
     private getStartOfCurrentPhrase(): number {
         // Finds the index of the first word in the current phrase by looking for punctuation
@@ -1518,7 +1469,7 @@ Sentence:
         // This creates more natural-sounding practice chunks.
         // We only apply this logic if the phrase is longer than 3 words.
         const phraseLength = endIndex - startIndex;
-        if (endIndex < this.words.length && phraseLength > 3) { // This is the corrected line
+        if (endIndex < this.words.length && phraseLength > 3) {
             const lastWordInPhrase = this.words[endIndex - 1].toLowerCase().replace(/\\[.,!?;:\"\\]+$/, '');
             if (this.STOP_WORDS.includes(lastWordInPhrase)) {
                 endIndex--; // Backtrack one word
@@ -1546,7 +1497,6 @@ Sentence:
 
         const sentences = category.sentences;
         if (sentences.length === 0) return '';
-
         // Selects a random sentence from the chosen category
         return sentences[Math.floor(Math.random() * sentences.length)];
     }
@@ -1556,12 +1506,13 @@ Sentence:
         onEnd?: (() => void) | null,
         rate: number | null = null,
         lang: string | null = null,
-        volume: number | null = null // Parameter for volume
+        volume: number | null = null
     ): void {
         // Uses the SpeechSynthesis API to speak the provided text
         speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = lang || this.lang; // Use provided lang, or fallback to default
+        // Use provided lang, or fallback to default
+        u.lang = lang || this.lang;
         u.rate = typeof rate === 'number' ? rate : this.speechRate;
 
         // Set volume only if it's a valid number, clamped between 0 and 1
@@ -1594,7 +1545,6 @@ Sentence:
             container.append(span);
             if (index < wordSpans.length - 1) container.append(' ');
         });
-
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = this.lang;
         utterance.rate = speed * this.speechRate;
@@ -1603,9 +1553,9 @@ Sentence:
         utterance.onstart = () => {
             startTime = performance.now();
         };
-
         utterance.onend = () => {
-            const duration = (performance.now() - startTime) / 1000; // in seconds
+            // in seconds
+            const duration = (performance.now() - startTime) / 1000;
 
             // Recalculate estimated WPM for better accuracy on mobile
             if (this.isMobile && duration > 0.1) {
@@ -1616,10 +1566,12 @@ Sentence:
 
             // Handle Auto-Skip mode
             if (this.practiceMode === 'auto-skip') {
-                this.currentCount++; // Increment the repetition counter
+                // Increment the repetition counter
+                this.currentCount++;
 
                 const $checkBtn = $('#checkBtn');
-                const waitTime = duration * 1.5; // Wait time in seconds
+                // Wait time in seconds
+                const waitTime = duration * 1.5;
 
                 // To reliably re-trigger a CSS animation, we must remove the class,
                 // force a browser reflow, and then add the class back.
@@ -1643,7 +1595,8 @@ Sentence:
                         // If not complete, simply repeat the current phrase.
                         this.practiceStep();
                     }
-                }, (waitTime * 1000) + 50); // Add a small buffer for safety
+                    // Add a small buffer for safety
+                }, (waitTime * 1000) + 50);
 
             }
 
@@ -1667,7 +1620,8 @@ Sentence:
             utterance.onboundary = (event: SpeechSynthesisEvent) => {
                 if (event.name === 'word') {
                     let wordIndex = wordBoundaries.findIndex(boundary => event.charIndex < boundary) - 1;
-                    if (wordIndex === -2) wordIndex = wordBoundaries.length - 1; // Last word
+                    // Last word
+                    if (wordIndex === -2) wordIndex = wordBoundaries.length - 1;
                     $('.word.highlighted').removeClass('highlighted');
                     $(wordSpans[wordIndex]).addClass('highlighted');
                 }
@@ -1690,14 +1644,11 @@ Sentence:
         return text.replace(/^[\s.,;:/\\()[\]{}"'«»!?-]+|[\s.,;:/\\()[\]{}"'«»!?-]+$/g, '');
     }
 
-    // --- Event Handler Implementations ---
-
     private async startPractice(): Promise<void> {
         // Handles the start of a new practice session
         this.practiceMode = ($('#practiceModeSelect').val() as 'skip' | 'check' | 'auto-skip');
         const rawVal = $('#sentenceInput').attr('data-val');
         this.sentence = (typeof rawVal === 'string' ? rawVal.trim() : '').replace(/([^\.\?\!\n])\n/g, '$1.\n');
-
         if (this.sentence.trim() === '') {
             alert('Please enter a sentence to practice.');
             return;
@@ -1709,7 +1660,6 @@ Sentence:
         this.correctCount = 0;
         this.attempts = 0;
         this.saveState();
-
         // --- Save Practice Data ---
         try {
             const transaction = this.db.transaction(['practices'], 'readwrite');
@@ -1790,7 +1740,6 @@ Sentence:
 
             const store = transaction.objectStore('recordings');
             const clearRequest = store.clear();
-
             // On successful clearing of the database
             clearRequest.onsuccess = () => {
                 console.log("All recordings have been deleted from IndexedDB.");
@@ -1824,7 +1773,6 @@ Sentence:
         const selectedCategoryIndex = ($('#categorySelect').val() as string);
         localStorage.setItem('selectedLevelIndex', selectedLevelIndex);
         localStorage.setItem('selectedCategoryIndex', selectedCategoryIndex);
-
         // Replaces the current sentence with a random sample sentence
         this.sentence = this.pickSample();
         this.setInputValue(this.sentence);
@@ -1864,7 +1812,6 @@ Sentence:
         return correctWords / targetWords.length;
     }
 
-    // --- Recordings Modal Logic ---
     private async displayRecordings(): Promise<void> {
         // Fetches all recordings and displays them in a modal
         if (!this.db) return;
@@ -1936,12 +1883,13 @@ Sentence:
                                                     <i class="bi bi-person-fill"></i> Play Mine
                                                 </button>
                                             </div>
-                                            ${this.lang === 'en-US' && this.spellCheckerIsAvailable ? `
-                                            <div class="col-6 col-md-auto">
-                                                <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
-                                                    <i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>
-                                                </button>
-                                            </div>
+                                            ${this.lang === 'en-US' && this.spellCheckerIsAvailable ?
+                                            `
+                                                <div class="col-6 col-md-auto">
+                                                    <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
+                                                        <i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>
+                                                    </button>
+                                                </div>
                                             ` : ''}
                                             <div class="col-6 col-md-auto">
                                                 <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
@@ -1977,7 +1925,6 @@ Sentence:
             } else {
                 // Sort by most recently practiced
                 practices.sort((a, b) => b.lastPracticed.getTime() - a.lastPracticed.getTime());
-
                 practices.forEach(p => {
                     const langName = this.languageMap[p.lang] || p.lang;
                     const formattedDate = p.lastPracticed.toLocaleString();
@@ -2054,7 +2001,6 @@ Sentence:
         const record = window.modalRecordings[sentence]?.[index];
 
         const $resultContainer = $element.closest('li.list-group-item').find('.accuracy-result-container');
-
         if (!record || !record.audio) {
             $resultContainer.html('<div class="alert alert-danger p-2">Audio file not found.</div>').slideDown();
             return;
@@ -2070,12 +2016,10 @@ Sentence:
             formData.append('audioFile', record.audio, 'recording.ogg');
 
             const endpointUrl = `https://alisol.ir/Projects/GetAccuracyFromRecordedAudio/?spellApiKey=${this.spellApiKey}`;
-
             const response = await fetch(endpointUrl, {
                 method: 'POST',
                 body: formData
             });
-
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`HTTP error: ${response.status} ${response.statusText} - ${errorText}`);
@@ -2100,7 +2044,6 @@ Sentence:
 
         const words = result.real_transcripts.split(' ');
         const correctness = result.is_letter_correct_all_words.trim().split(' ');
-
         if (words.length !== correctness.length) {
             console.error('Mismatch between words and correctness data:', words, correctness);
             $container.html('<div class="alert alert-warning p-2">Could not parse the accuracy data from the server.</div>');
@@ -2113,7 +2056,6 @@ Sentence:
                 return `<span class="${isCorrect ? 'text-success' : 'text-danger'}">${char}</span>`;
             }).join('');
         }).join(' ');
-
         const overallScore = result.pronunciation_accuracy;
         const detectedTranscript = result.real_transcript;
 
@@ -2125,7 +2067,6 @@ Sentence:
         <p class="fs-5 fw-bold mt-2 mb-1">${coloredSentenceHtml}</p>
         <p class="text-muted mb-0"><small><strong>Detected:</strong> <em>${detectedTranscript}</em></small></p>
     `;
-
         $container.html(resultHtml);
     }
 
@@ -2143,7 +2084,6 @@ Sentence:
         const sentence = $(element).data('sentence') as string;
         const index = $(element).data('index') as number;
         const record = window.modalRecordings[sentence]?.[index];
-
         if (!record) {
             console.error("Could not find record for AI analysis.");
             alert("Sorry, the recording could not be found.");
@@ -2151,8 +2091,10 @@ Sentence:
         }
 
         // Step 2: Perform the copy and download actions
-        await this.copyAIPrompt(element); // We can reuse the copy logic
-        this.downloadUserAudio(element); // and the download logic
+        // We can reuse the copy logic
+        await this.copyAIPrompt(element);
+        // and the download logic
+        this.downloadUserAudio(element);
 
         // Step 3: Prepare the dynamic content for the modal
         const modalBodyContent = `
@@ -2178,7 +2120,6 @@ Sentence:
 
         // Step 4: Inject the content and show the modal
         $('#aiInstructionsModalBody').html(modalBodyContent);
-
         const modalElement = document.getElementById('aiInstructionsModal');
         if (modalElement) {
             const modal = new Modal(modalElement);
@@ -2194,7 +2135,6 @@ Sentence:
         const sentence = $(element).data('sentence') as string;
         const index = $(element).data('index') as number;
         const record = window.modalRecordings[sentence]?.[index];
-
         if (record && record.audio) {
             const audioUrl = URL.createObjectURL(record.audio);
             const link = document.createElement('a');
@@ -2247,14 +2187,12 @@ If no audio file is attached, respond ONLY with this exact message:
 
         // --- Use the new helper function ---
         const success = await this.copyTextToClipboard(promptText);
-
         if (success) {
             // Provide user feedback on success
             const $element = $(element);
             const originalHtml = $element.html();
             $element.html('<i class="bi bi-check-lg"></i> Copied!');
             $element.prop('disabled', true);
-
             setTimeout(() => {
                 $element.html(originalHtml);
                 $element.prop('disabled', false);
@@ -2295,9 +2233,7 @@ If no audio file is attached, respond ONLY with this exact message:
 }
 
 
-// =================================================================
 // Application Entry Point
-// =================================================================
 // This ensures the application is initialized when the DOM is ready,
 // but only when running outside of a test environment.
 if (import.meta.env.MODE !== 'test') {
@@ -2305,5 +2241,4 @@ if (import.meta.env.MODE !== 'test') {
         const app = new EchoTalkApp();
         app.init();
     });
-
 }
