@@ -39,6 +39,8 @@ export class UiService {
 
         $(`#area${key}`).removeClass('d-none');
         $(`#nav${key}`).addClass('active');
+
+        this.app.resetWithoutReload();
     }
 
     /**
