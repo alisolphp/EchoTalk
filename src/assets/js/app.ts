@@ -2141,7 +2141,7 @@ If no audio file is attached, respond ONLY with this exact message:
 
     private displayAppVersion(): void {
         const buildDate = __APP_BUILD_DATE__;
-        $('#app-version').text(`Build: ${buildDate}`);
+        $('#app-version').text(`build.${buildDate}`);
     }
 
     /**
