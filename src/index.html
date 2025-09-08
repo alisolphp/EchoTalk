@@ -15,9 +15,9 @@
     </div>
     <h2 class="mb-3 text-center">Offline Shadowing Practice</h2>
 
-    <div class="row mb-2">
+    <div class="row mb-2 d-none">
         <div class="col text-center">
-            <div id="backHomeButton" class="d-none">
+            <div id="backHomeButton" class="d-none backHomeButton">
                 <button class="btn btn-outline-secondary">« Back Home</button>
             </div>
             <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#quickStartModal"><i class="bi bi-info-circle-fill"></i> Quick Start</button>
@@ -25,7 +25,7 @@
     </div>
 
     <div id="configArea">
-        <div class="row mb-3">
+        <div class="row mb-3 d-none">
             <div class="col text-center d-flex justify-content-center gap-2">
                 <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#optionsModal"><i class="bi bi-sliders"></i> Options</button>
                 <button id="showRecordingsBtn" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#recordingsModal"><i class="bi bi-file-earmark-music"></i> My Records</button>
@@ -90,6 +90,29 @@
         </div>
         <div id="session-complete-container" class="d-none"></div>
     </div>
+
+    <nav class="nav-bottom">
+        <a href="#" id="navHome" class="nav-item backHomeButton">
+            <i class="bi bi-house-fill"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" id="navHelp" class="nav-item" data-bs-toggle="modal" data-bs-target="#quickStartModal">
+            <i class="bi bi-question-circle-fill"></i>
+            <span>Help</span>
+        </a>
+        <a href="#" id="navPractice" class="nav-item">
+            <i class="bi bi-mic-fill"></i>
+            <span>Practice</span>
+        </a>
+        <a href="#" id="navOptions" class="nav-item" data-bs-toggle="modal" data-bs-target="#optionsModal">
+            <i class="bi bi-sliders"></i>
+            <span>Options</span>
+        </a>
+        <a href="#" id="navForYou" class="nav-item" data-bs-toggle="modal" data-bs-target="#recordingsModal">
+            <i class="bi bi-person-fill"></i>
+            <span>My Records</span>
+        </a>
+    </nav>
 
     <div id="optionsModal" class="modal fade" tabindex="-1" aria-labelledby="optionsModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -306,7 +329,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="accordion" id="recordingsList"></div>
+                    <div class="accordion" id="recordingsList">
+                        <p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>
+                    </div>
                 </div>
             </div>
         </div>

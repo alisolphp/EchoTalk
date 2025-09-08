@@ -222,3 +222,42 @@ body {
 body.is-offline .online-only-header .bi-wifi-off {
     display: inline-block;
 }
+
+
+/* Add this at the end of your style.css file */
+
+body {
+    padding-bottom: 70px; /* Add padding to prevent content from being hidden by the nav bar */
+}
+
+.nav-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #343a40;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid #495057;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #adb5bd;
+    font-size: 0.8rem;
+    width: 20%;
+}
+
+.nav-item i {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+}
+
+.nav-item.active {
+    color: #fff;
+}

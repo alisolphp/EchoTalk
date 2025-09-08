@@ -339,7 +339,7 @@ export class EchoTalkApp {
             $(this).attr('data-val', $(this).val());
         });
         $('#categorySelect').on('change', () => this.useSample());
-        $('#backHomeButton').on('click', () => document.location.reload());
+        $('.backHomeButton').on('click', () => document.location.reload());
 
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
@@ -2123,7 +2123,7 @@ If no audio file is attached, respond ONLY with this exact message:
 
     private displayAppVersion(): void {
         const buildDate = __APP_BUILD_DATE__;
-        $('#app-version').text(`Build: ${buildDate}`);
+        $('#app-version').text(`${buildDate}`);
     }
 
     /**
