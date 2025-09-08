@@ -303,6 +303,20 @@ export class EchoTalkApp {
         }
     }
 
+    private showHomePage(): void {
+        $('#appArea').addClass('d-none');
+        $('#homeArea').removeClass('d-none');
+        $('.nav-bottom .nav-item.active').removeClass('active');
+        $('#navHome').addClass('active');
+    }
+
+    private showPracticeSetup(): void {
+        $('#homeArea').addClass('d-none');
+        $('#appArea').removeClass('d-none');
+        $('.nav-bottom .nav-item.active').removeClass('active');
+        $('#navPractice').addClass('active');
+    }
+
     private bindEvents(): void {
         // Binds all UI events to their corresponding methods
         $('#startBtn').on('click', () => this.startPractice());
@@ -339,7 +353,11 @@ export class EchoTalkApp {
             $(this).attr('data-val', $(this).val());
         });
         $('#categorySelect').on('change', () => this.useSample());
-        $('.backHomeButton').on('click', () => document.location.reload());
+
+        $('#goToPracticeBtn').on('click', () => this.showPracticeSetup());
+        $('#navPractice').on('click', () => this.showPracticeSetup());
+        $('#navHome').on('click', () => this.showHomePage());
+        $('.backHomeButton').on('click', () => this.showPracticeSetup());
 
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
@@ -2123,7 +2141,7 @@ If no audio file is attached, respond ONLY with this exact message:
 
     private displayAppVersion(): void {
         const buildDate = __APP_BUILD_DATE__;
-        $('#app-version').text(`${buildDate}`);
+        $('#app-version').text(`Build: ${buildDate}`);
     }
 
     /**

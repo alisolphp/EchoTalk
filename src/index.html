@@ -8,7 +8,16 @@
     <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-512.png">
 </head>
 <body class="d-flex flex-column h-100">
-<div class="container my-4">
+
+<div id="homeArea" class="container my-4 text-center">
+    <img src="icons/icon-512.png" style="width: 150px; margin-bottom: 1rem;">
+    <h1 class="mb-2">EchoTalk</h1>
+    <p class="lead mb-4">Your personal space for offline shadowing practice.</p>
+    <button id="goToPracticeBtn" class="btn btn-primary btn-lg">Let's get started!</button>
+</div>
+
+
+<div id="appArea" class="container my-4 d-none">
     <div class="d-flex justify-content-center align-items-center gap-2">
         <h1 class="mb-0"><img src="icons/icon-512.png" style="width: 1em;"> EchoTalk</h1>
         <select id="headerLanguageSelect" class="form-select form-select-sm header-lang-select" aria-label="Select Language"></select>
@@ -18,7 +27,7 @@
     <div class="row mb-2 d-none">
         <div class="col text-center">
             <div id="backHomeButton" class="d-none backHomeButton">
-                <button class="btn btn-outline-secondary">« Back Home</button>
+                <button class="btn btn-outline-secondary"><< Back Home</button>
             </div>
             <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#quickStartModal"><i class="bi bi-info-circle-fill"></i> Quick Start</button>
         </div>
@@ -67,7 +76,7 @@
                 <div id="sentence-container" class="fs-3 fw-bold mb-3 d-inline"></div>
             </div>
             <div class="row mb-3">
-                <div class="d-inline w-auto" id="instructionText">Now it’s your turn. Tap the mic icon on your keyboard and speak the word.</div>
+                <div class="d-inline w-auto" id="instructionText">Now it's your turn. Tap the mic icon on your keyboard and speak the word.</div>
                 <div class="d-inline w-auto">
                     <button id="showTtsWarningBtn" class="btn btn-sm btn-outline-warning d-inline-block">
                         <i class="bi bi-volume-mute"></i> I can't hear anything...
@@ -90,345 +99,346 @@
         </div>
         <div id="session-complete-container" class="d-none"></div>
     </div>
+</div>
 
-    <nav class="nav-bottom">
-        <a href="#" id="navHome" class="nav-item backHomeButton">
-            <i class="bi bi-house-fill"></i>
-            <span>Home</span>
-        </a>
-        <a href="#" id="navHelp" class="nav-item" data-bs-toggle="modal" data-bs-target="#quickStartModal">
-            <i class="bi bi-question-circle-fill"></i>
-            <span>Help</span>
-        </a>
-        <a href="#" id="navPractice" class="nav-item">
-            <i class="bi bi-mic-fill"></i>
-            <span>Practice</span>
-        </a>
-        <a href="#" id="navOptions" class="nav-item" data-bs-toggle="modal" data-bs-target="#optionsModal">
-            <i class="bi bi-sliders"></i>
-            <span>Options</span>
-        </a>
-        <a href="#" id="navForYou" class="nav-item" data-bs-toggle="modal" data-bs-target="#recordingsModal">
-            <i class="bi bi-person-fill"></i>
-            <span>My Records</span>
-        </a>
-    </nav>
+<nav class="nav-bottom">
+    <a href="#" id="navHome" class="nav-item active">
+        <i class="bi bi-house-fill"></i>
+        <span>Home</span>
+    </a>
+    <a href="#" id="navHelp" class="nav-item" data-bs-toggle="modal" data-bs-target="#quickStartModal">
+        <i class="bi bi-question-circle-fill"></i>
+        <span>Help</span>
+    </a>
+    <a href="#" id="navPractice" class="nav-item">
+        <i class="bi bi-mic-fill"></i>
+        <span>Practice</span>
+    </a>
+    <a href="#" id="navOptions" class="nav-item" data-bs-toggle="modal" data-bs-target="#optionsModal">
+        <i class="bi bi-sliders"></i>
+        <span>Options</span>
+    </a>
+    <a href="#" id="navForYou" class="nav-item" data-bs-toggle="modal" data-bs-target="#recordingsModal">
+        <i class="bi bi-person-fill"></i>
+        <span>My Records</span>
+    </a>
+</nav>
 
-    <div id="optionsModal" class="modal fade" tabindex="-1" aria-labelledby="optionsModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="optionsModalLabel">Practice Options <small class="text-muted">(Auto save)</small></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
+<div id="optionsModal" class="modal fade" tabindex="-1" aria-labelledby="optionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="optionsModalLabel">Practice Options <small class="text-muted">(Auto save)</small></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
 
-                    <div class="card bg-dark-subtle mb-3">
-                        <div class="card-body">
-                            <h6 class="card-title mb-3">Select Content to Practice</h6>
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label for="languageSelect" class="form-label fw-bold"><i class="bi bi-translate" style="color: #677fff;"></i> Select Language:</label>
-                                    <select id="languageSelect" class="form-select"></select>
-                                </div>
+                <div class="card bg-dark-subtle mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Select Content to Practice</h6>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="languageSelect" class="form-label fw-bold"><i class="bi bi-translate" style="color: #677fff;"></i> Select Language:</label>
+                                <select id="languageSelect" class="form-select"></select>
                             </div>
-                            <div class="row">
-                                <div class="col">
-                                    <label for="levelSelect" class="form-label fw-bold"><i class="bi bi-bar-chart-line-fill" style="color: #39bc58;"></i> Level:</label>
-                                    <select id="levelSelect" class="form-select"></select>
-                                </div>
-                                <div class="col">
-                                    <label for="categorySelect" class="form-label fw-bold"><i class="bi bi-folder-fill" style="color: #ffcb00;"></i> Category:</label>
-                                    <select id="categorySelect" class="form-select"></select>
-                                </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <label for="levelSelect" class="form-label fw-bold"><i class="bi bi-bar-chart-line-fill" style="color: #39bc58;"></i> Level:</label>
+                                <select id="levelSelect" class="form-select"></select>
+                            </div>
+                            <div class="col">
+                                <label for="categorySelect" class="form-label fw-bold"><i class="bi bi-folder-fill" style="color: #ffcb00;"></i> Category:</label>
+                                <select id="categorySelect" class="form-select"></select>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="card bg-dark-subtle mb-3">
-                        <div class="card-body">
-                            <h6 class="card-title mb-3">Practice Configuration</h6>
+                <div class="card bg-dark-subtle mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3">Practice Configuration</h6>
 
-                            <div class="mb-3">
-                                <label for="practiceModeSelect" class="form-label fw-bold">Practice Mode:</label>
-                                <select id="practiceModeSelect" class="form-select">
-                                    <option value="skip">🎧 Skip-Only (Listen &amp; Repeat)</option>
-                                    <option value="auto-skip">🕒 Auto-Skip (Practice Within Time)</option>
-                                    <option value="check">🎤 Check Mode (Use Keyboard's Mic)</option>
+                        <div class="mb-3">
+                            <label for="practiceModeSelect" class="form-label fw-bold">Practice Mode:</label>
+                            <select id="practiceModeSelect" class="form-select">
+                                <option value="skip">🎧 Skip-Only (Listen &amp; Repeat)</option>
+                                <option value="auto-skip">🕒 Auto-Skip (Practice Within Time)</option>
+                                <option value="check">🎤 Check Mode (Use Keyboard's Mic)</option>
+                            </select>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="speechRateSelect" class="form-label fw-bold">Speech Speed:</label>
+                                <select id="speechRateSelect" class="form-select">
+                                    <option value="0.6">🐢 Slow</option>
+                                    <option value="0.8">🧍 Medium</option>
+                                    <option value="1">🚶 Normal</option>
+                                    <option value="1.2">🏃 Fast</option>
+                                    <option value="1.4">🚗 Furious</option>
                                 </select>
                             </div>
 
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label for="speechRateSelect" class="form-label fw-bold">Speech Speed:</label>
-                                    <select id="speechRateSelect" class="form-select">
-                                        <option value="0.6">🐢 Slow</option>
-                                        <option value="0.8">🧍 Medium</option>
-                                        <option value="1">🚶 Normal</option>
-                                        <option value="1.2">🏃 Fast</option>
-                                        <option value="1.4">🚗 Furious</option>
-                                    </select>
-                                </div>
-
-                                <div class="col">
-                                    <label for="repsSelect" class="form-label fw-bold">Repetitions:</label>
-                                    <select id="repsSelect" class="form-select"></select>
-                                </div>
-                            </div>
-
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
-                                <label class="form-check-label" for="recordToggle"><i class="bi bi-mic-fill" style="color: #ffb300;"></i> <strong>Record my voice</strong> to compare later (completely locally)</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card border-danger p-0">
-                        <details>
-                            <summary class="card-title text-danger small p-2 m-0">Danger Zone</summary>
-                            <div class="card-body">
-                                <p class="card-text small text-muted">This will permanently delete all your data and recordings.</p>
-                                <button id="resetBtn" class="btn btn-danger w-100">Reset App</button>
-                            </div>
-                        </details>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-success opacity-50" data-bs-dismiss="modal">
-                            <i class="bi bi-check-square-fill"></i>
-                            <small>Saved Automatically</small>
-                        </button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="quickStartModal" tabindex="-1" aria-labelledby="quickStartModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="quickStartModalLabel">Quick Start Guide & Features</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>This tool is designed for Shadowing practice and works completely offline. To get started, you can either enter your own sentence or use one of the provided samples.</p>
-                    <h5>Quick Start Guide:</h5>
-                    <ol>
-                        <li><strong>Enter your sentence:</strong> Type the text you want to practice into the text box.</li>
-                        <li><strong>Or use a sample:</strong> Click the <strong>"Use a random Sample"</strong> button to load a random sentence.</li>
-                        <li><strong>Select a Practice Mode:</strong>
-                            <ul>
-                                <li><strong>Check Mode:</strong> After listening, repeat the phrase using your keyboard's mic and press "Check" to evaluate your pronunciation.</li>
-                                <li><strong>Skip-Only Mode:</strong> Simply listen, repeat to yourself, and then press "Next Step" to proceed. (This is the default mode).</li>
-                            </ul>
-                        </li>
-                        <li>Press the <strong>"Start Practice"</strong> button to begin.</li>
-                    </ol>
-                    <hr>
-                    <h5>Other Features:</h5>
-                    <ul>
-                        <li><strong>Start From Any Word:</strong> Before starting, click any word in the full sentence to set it as your starting point.</li>
-                        <li><strong>Re-listen at Slow Speed:</strong> During practice, click the <i class="bi bi-play-fill"></i> button at the beginning of the phrase to hear it again at a slower speed.</li>
-                        <li><strong>Look Up Word Meanings:</strong> Click on any word in the phrase being displayed to search for its meaning on Google in a new tab.</li>
-                        <li><strong>Record Your Voice:</strong> You can enable voice recording to save your attempts locally in your browser and compare them with the original audio later.</li>
-                        <li><strong>Auto-Save Progress:</strong> Your settings and current progress are automatically saved, allowing you to easily continue your practice later.</li>
-                        <li><strong>Analyze with AI:</strong> In the 'My Records' modal, click the <i class="bi bi-magic"></i> <strong>Analyze with AI</strong> button next to your recording. This instantly copies a detailed prompt to your clipboard and downloads your audio file. You can then upload the file to an AI chatbot (like Gemini) and paste the prompt to get a free, fast, and accurate analysis of your pronunciation.</li>
-                    </ul>
-
-                    <hr>
-                    <div class="alert alert-info d-flex align-items-center" role="alert">
-                        <i class="bi bi-lightbulb-fill flex-shrink-0 me-2"></i>
-                        <div>
-                            <strong>Pro-Tip:</strong> For the fastest performance, turn off your internet connection. This ensures the app uses your device's local speech engines, which are much faster than online services.
-                        </div>
-                    </div>
-
-                    <hr>
-                    <p class="small text-muted">This tool works completely offline. No internet connection is required, and your privacy is protected as no data is sent to any server. Please ensure you have the
-                        <span class="current-language-general-name">English</span>
-                        TTS (Text-to-Speech) engine installed on your device.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="wordActionsModal" tabindex="-1" aria-labelledby="wordActionsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="wordActionsModalLabel"></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="d-grid mb-3">
-                        <button id="playWordBtn" class="btn btn-primary"><i class="bi bi-play-fill"></i> Play Word Again</button>
-                    </div>
-
-                    <div class="accordion" id="wordActionsAccordion">
-
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingGoogle">
-                                <button class="accordion-button collapsed online-only-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGoogle" aria-expanded="false" aria-controls="collapseGoogle">
-                                    <i class="bi bi-google me-2"></i> Google Integrations
-                                    <i class="bi bi-wifi-off text-danger ms-auto me-2" title="Requires internet connection"></i>
-                                </button>
-                            </h2>
-                            <div id="collapseGoogle" class="accordion-collapse collapse" aria-labelledby="headingGoogle" data-bs-parent="#wordActionsAccordion">
-                                <div class="accordion-body p-2">
-                                    <div class="d-grid gap-2">
-                                        <a id="searchPronunciationLink" href="#" target="_blank" class="btn btn-outline-info btn-sm">
-                                            <i class="bi bi-soundwave me-2"></i>How to Pronounce
-                                        </a>
-                                        <a id="searchExamplesLink" href="#" target="_blank" class="btn btn-outline-warning btn-sm">
-                                            <i class="bi bi-blockquote-left me-2"></i>Usage Examples
-                                        </a>
-                                        <a id="searchMeaningLink" href="#" target="_blank" class="btn btn-outline-success btn-sm">
-                                            <i class="bi bi-book me-2"></i>Word Meaning
-                                        </a>
-                                        <a id="searchSentenceMeaningLink" href="#" class="btn btn-outline-light btn-sm">
-                                            <i class="bi bi-translate me-2"></i>Sentence Meaning
-                                        </a>
-                                    </div>
-                                </div>
+                            <div class="col">
+                                <label for="repsSelect" class="form-label fw-bold">Repetitions:</label>
+                                <select id="repsSelect" class="form-select"></select>
                             </div>
                         </div>
 
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingAI">
-                                <button class="accordion-button collapsed online-only-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAI" aria-expanded="false" aria-controls="collapseAI">
-                                    <i class="bi bi-robot me-2"></i> AI Integrations
-                                    <i class="bi bi-wifi-off text-danger ms-auto me-2" title="Requires internet connection"></i>
-                                </button>
-                            </h2>
-                            <div id="collapseAI" class="accordion-collapse collapse" aria-labelledby="headingAI" data-bs-parent="#wordActionsAccordion">
-                                <div class="accordion-body p-2">
-                                    <div class="d-grid gap-2">
-                                        <a id="translateWithGptBtn" href="#" class="btn btn-outline-primary btn-sm"><i class="bi bi-translate me-1"></i> AI Deep Translation</a>
-                                        <a id="grammarAnalysisBtn" href="#" class="btn btn-outline-success btn-sm"><i class="bi bi-diagram-3 me-1"></i> AI Grammar Analysis</a>
-                                        <a id="vocabExpansionBtn" href="#" class="btn btn-outline-warning btn-sm"><i class="bi bi-stack me-1"></i> AI Vocabulary Expansion</a>
-                                        <a id="contextNuanceBtn" href="#" class="btn btn-outline-info btn-sm"><i class="bi bi-chat-quote me-1"></i> AI Context & Nuance</a>
-                                        <a id="creativePracticeBtn" href="#" class="btn btn-outline-danger btn-sm"><i class="bi bi-lightbulb me-1"></i> AI Creative Practice</a>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
+                            <label class="form-check-label" for="recordToggle"><i class="bi bi-mic-fill" style="color: #ffb300;"></i> <strong>Record my voice</strong> to compare later (completely locally)</label>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="modal fade" id="recordingsModal" tabindex="-1" aria-labelledby="recordingsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="recordingsModalLabel">My Recordings</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="card border-danger p-0">
+                    <details>
+                        <summary class="card-title text-danger small p-2 m-0">Danger Zone</summary>
+                        <div class="card-body">
+                            <p class="card-text small text-muted">This will permanently delete all your data and recordings.</p>
+                            <button id="resetBtn" class="btn btn-danger w-100">Reset App</button>
+                        </div>
+                    </details>
                 </div>
-                <div class="modal-body">
-                    <div class="accordion" id="recordingsList">
-                        <p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="modal fade" id="ttsWarningModal" tabindex="-1" aria-labelledby="ttsWarningModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ttsWarningModalLabel"><i class="bi bi-exclamation-triangle-fill text-warning"></i> TTS Engine Problem: Missing or Incorrect Voice</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>It appears the Text-to-Speech (TTS) engine for <strong class="current-language-general-name">English</strong> language is not properly configured on your device. This can happen if the voice is missing or the pronunciation is incorrect.</p>
-                    <p>You may not hear any audio, or the audio may sound robotic or have the wrong accent. For the best experience, it's recommended to install the correct voice engine for this language from your device's settings.</p>
-                    <hr>
-                    <div class="mt-3">
-                        <p class="fw-bold">Recommended Solution:</p>
-                        <p>For the best offline experience, please install the TTS engine for <strong class="current-language-general-name">English</strong> language from your device's settings:</p>
-
-                        <details class="card bg-dark-subtle border-secondary mb-2">
-                            <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
-                                › On Mobile
-                            </summary>
-                            <div class="card-body pt-0">
-                                <p>Check your device's <code>Accessibility</code> or <code>Text-to-speech</code> settings.</p>
-                                <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
-                            </div>
-                        </details>
-
-                        <details class="card bg-dark-subtle border-secondary mb-2">
-                            <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
-                                › On Windows
-                            </summary>
-                            <div class="card-body pt-0">
-                                <p>Go to <code>Settings > Time & Language > Speech</code> and click "Add voices".</p>
-                                <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
-                            </div>
-                        </details>
-
-                        <details class="card bg-dark-subtle border-secondary">
-                            <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
-                                › On macOS
-                            </summary>
-                            <div class="card-body pt-0">
-                                <p>Go to <code>System Settings > Accessibility > Spoken Content</code> and select "Manage Voices...".</p>
-                                <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
-                            </div>
-                        </details>
-
-                    </div>
-                </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+                    <button type="button" class="btn btn-success opacity-50" data-bs-dismiss="modal">
+                        <i class="bi bi-check-square-fill"></i>
+                        <small>Saved Automatically</small>
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
+
             </div>
         </div>
     </div>
+</div>
 
-    <div class="modal fade" id="aiInstructionsModal" tabindex="-1" aria-labelledby="aiInstructionsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="aiInstructionsModalLabel"><i class="bi bi-robot text-info"></i> AI Analysis Guide</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="quickStartModal" tabindex="-1" aria-labelledby="quickStartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickStartModalLabel">Quick Start Guide & Features</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>This tool is designed for Shadowing practice and works completely offline. To get started, you can either enter your own sentence or use one of the provided samples.</p>
+                <h5>Quick Start Guide:</h5>
+                <ol>
+                    <li><strong>Enter your sentence:</strong> Type the text you want to practice into the text box.</li>
+                    <li><strong>Or use a sample:</strong> Click the <strong>"Use a random Sample"</strong> button to load a random sentence.</li>
+                    <li><strong>Select a Practice Mode:</strong>
+                        <ul>
+                            <li><strong>Check Mode:</strong> After listening, repeat the phrase using your keyboard's mic and press "Check" to evaluate your pronunciation.</li>
+                            <li><strong>Skip-Only Mode:</strong> Simply listen, repeat to yourself, and then press "Next Step" to proceed. (This is the default mode).</li>
+                        </ul>
+                    </li>
+                    <li>Press the <strong>"Start Practice"</strong> button to begin.</li>
+                </ol>
+                <hr>
+                <h5>Other Features:</h5>
+                <ul>
+                    <li><strong>Start From Any Word:</strong> Before starting, click any word in the full sentence to set it as your starting point.</li>
+                    <li><strong>Re-listen at Slow Speed:</strong> During practice, click the <i class="bi bi-play-fill"></i> button at the beginning of the phrase to hear it again at a slower speed.</li>
+                    <li><strong>Look Up Word Meanings:</strong> Click on any word in the phrase being displayed to search for its meaning on Google in a new tab.</li>
+                    <li><strong>Record Your Voice:</strong> You can enable voice recording to save your attempts locally in your browser and compare them with the original audio later.</li>
+                    <li><strong>Auto-Save Progress:</strong> Your settings and current progress are automatically saved, allowing you to easily continue your practice later.</li>
+                    <li><strong>Analyze with AI:</strong> In the 'My Records' modal, click the <i class="bi bi-magic"></i> <strong>Analyze with AI</strong> button next to your recording. This instantly copies a detailed prompt to your clipboard and downloads your audio file. You can then upload the file to an AI chatbot (like Gemini) and paste the prompt to get a free, fast, and accurate analysis of your pronunciation.</li>
+                </ul>
+
+                <hr>
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                    <i class="bi bi-lightbulb-fill flex-shrink-0 me-2"></i>
+                    <div>
+                        <strong>Pro-Tip:</strong> For the fastest performance, turn off your internet connection. This ensures the app uses your device's local speech engines, which are much faster than online services.
+                    </div>
                 </div>
-                <div class="modal-body" id="aiInstructionsModalBody">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Got it</button>
-                    <a href="https://gemini.google.com/" target="_blank" class="btn btn-primary">Go to Gemini <i class="bi bi-box-arrow-up-right"></i></a>
-                </div>
+
+                <hr>
+                <p class="small text-muted">This tool works completely offline. No internet connection is required, and your privacy is protected as no data is sent to any server. Please ensure you have the
+                    <span class="current-language-general-name">English</span>
+                    TTS (Text-to-Speech) engine installed on your device.</p>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmationModalLabel"><i class="bi bi-check-circle-fill text-success"></i> Prompt Copied!</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="wordActionsModal" tabindex="-1" aria-labelledby="wordActionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="wordActionsModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid mb-3">
+                    <button id="playWordBtn" class="btn btn-primary"><i class="bi bi-play-fill"></i> Play Word Again</button>
                 </div>
-                <div class="modal-body">
-                    <p>Now, just paste the prompt in the new tab and enjoy the AI analysis.</p>
-                    <p class="small text-muted mb-0">To continue, click the "Go to ChatGPT" button.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmGoToGptBtn">Let's Go to ChatGPT</button>
+
+                <div class="accordion" id="wordActionsAccordion">
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingGoogle">
+                            <button class="accordion-button collapsed online-only-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGoogle" aria-expanded="false" aria-controls="collapseGoogle">
+                                <i class="bi bi-google me-2"></i> Google Integrations
+                                <i class="bi bi-wifi-off text-danger ms-auto me-2" title="Requires internet connection"></i>
+                            </button>
+                        </h2>
+                        <div id="collapseGoogle" class="accordion-collapse collapse" aria-labelledby="headingGoogle" data-bs-parent="#wordActionsAccordion">
+                            <div class="accordion-body p-2">
+                                <div class="d-grid gap-2">
+                                    <a id="searchPronunciationLink" href="#" target="_blank" class="btn btn-outline-info btn-sm">
+                                        <i class="bi bi-soundwave me-2"></i>How to Pronounce
+                                    </a>
+                                    <a id="searchExamplesLink" href="#" target="_blank" class="btn btn-outline-warning btn-sm">
+                                        <i class="bi bi-blockquote-left me-2"></i>Usage Examples
+                                    </a>
+                                    <a id="searchMeaningLink" href="#" target="_blank" class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-book me-2"></i>Word Meaning
+                                    </a>
+                                    <a id="searchSentenceMeaningLink" href="#" class="btn btn-outline-light btn-sm">
+                                        <i class="bi bi-translate me-2"></i>Sentence Meaning
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingAI">
+                            <button class="accordion-button collapsed online-only-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAI" aria-expanded="false" aria-controls="collapseAI">
+                                <i class="bi bi-robot me-2"></i> AI Integrations
+                                <i class="bi bi-wifi-off text-danger ms-auto me-2" title="Requires internet connection"></i>
+                            </button>
+                        </h2>
+                        <div id="collapseAI" class="accordion-collapse collapse" aria-labelledby="headingAI" data-bs-parent="#wordActionsAccordion">
+                            <div class="accordion-body p-2">
+                                <div class="d-grid gap-2">
+                                    <a id="translateWithGptBtn" href="#" class="btn btn-outline-primary btn-sm"><i class="bi bi-translate me-1"></i> AI Deep Translation</a>
+                                    <a id="grammarAnalysisBtn" href="#" class="btn btn-outline-success btn-sm"><i class="bi bi-diagram-3 me-1"></i> AI Grammar Analysis</a>
+                                    <a id="vocabExpansionBtn" href="#" class="btn btn-outline-warning btn-sm"><i class="bi bi-stack me-1"></i> AI Vocabulary Expansion</a>
+                                    <a id="contextNuanceBtn" href="#" class="btn btn-outline-info btn-sm"><i class="bi bi-chat-quote me-1"></i> AI Context & Nuance</a>
+                                    <a id="creativePracticeBtn" href="#" class="btn btn-outline-danger btn-sm"><i class="bi bi-lightbulb me-1"></i> AI Creative Practice</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<footer class="text-center text-muted small mt-auto py-2 opacity-25">
+<div class="modal fade" id="recordingsModal" tabindex="-1" aria-labelledby="recordingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="recordingsModalLabel">My Recordings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="recordingsList">
+                    <p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ttsWarningModal" tabindex="-1" aria-labelledby="ttsWarningModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ttsWarningModalLabel"><i class="bi bi-exclamation-triangle-fill text-warning"></i> TTS Engine Problem: Missing or Incorrect Voice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>It appears the Text-to-Speech (TTS) engine for <strong class="current-language-general-name">English</strong> language is not properly configured on your device. This can happen if the voice is missing or the pronunciation is incorrect.</p>
+                <p>You may not hear any audio, or the audio may sound robotic or have the wrong accent. For the best experience, it's recommended to install the correct voice engine for this language from your device's settings.</p>
+                <hr>
+                <div class="mt-3">
+                    <p class="fw-bold">Recommended Solution:</p>
+                    <p>For the best offline experience, please install the TTS engine for <strong class="current-language-general-name">English</strong> language from your device's settings:</p>
+
+                    <details class="card bg-dark-subtle border-secondary mb-2">
+                        <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
+                            › On Mobile
+                        </summary>
+                        <div class="card-body pt-0">
+                            <p>Check your device's <code>Accessibility</code> or <code>Text-to-speech</code> settings.</p>
+                            <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
+                        </div>
+                    </details>
+
+                    <details class="card bg-dark-subtle border-secondary mb-2">
+                        <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
+                            › On Windows
+                        </summary>
+                        <div class="card-body pt-0">
+                            <p>Go to <code>Settings > Time & Language > Speech</code> and click "Add voices".</p>
+                            <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
+                        </div>
+                    </details>
+
+                    <details class="card bg-dark-subtle border-secondary">
+                        <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
+                            › On macOS
+                        </summary>
+                        <div class="card-body pt-0">
+                            <p>Go to <code>System Settings > Accessibility > Spoken Content</code> and select "Manage Voices...".</p>
+                            <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
+                        </div>
+                    </details>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="aiInstructionsModal" tabindex="-1" aria-labelledby="aiInstructionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="aiInstructionsModalLabel"><i class="bi bi-robot text-info"></i> AI Analysis Guide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="aiInstructionsModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Got it</button>
+                <a href="https://gemini.google.com/" target="_blank" class="btn btn-primary">Go to Gemini <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel"><i class="bi bi-check-circle-fill text-success"></i> Prompt Copied!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Now, just paste the prompt in the new tab and enjoy the AI analysis.</p>
+                <p class="small text-muted mb-0">To continue, click the "Go to ChatGPT" button.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmGoToGptBtn">Let's Go to ChatGPT</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<footer class="text-end text-muted small mt-auto pt-2 opacity-25" style="margin-bottom: -10px;">
     <div id="app-version"></div>
 </footer>
 
