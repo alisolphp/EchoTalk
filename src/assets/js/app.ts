@@ -424,9 +424,16 @@ export class EchoTalkApp {
      */
     private handleVisibilityChange(): void {
         if (document.visibilityState === 'hidden') {
-            this.audioService.stopRecording().then(() => {
-                this.audioService.terminateMicrophoneStream();
-            });
+            const isPracticing = this.area === 'Practice';
+            const shouldResetPractice = isPracticing && (this.isRecordingEnabled || this.practiceMode === 'auto-skip');
+
+            if (shouldResetPractice) {
+                this.uiService.showPracticeSetup();
+            } else {
+                this.audioService.stopRecording().then(() => {
+                    this.audioService.terminateMicrophoneStream();
+                });
+            }
         }
     }
 
