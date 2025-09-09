@@ -24,6 +24,11 @@ export class UiService {
         this.showPage('PrePractice');
     }
 
+    /** Displays the Options page area. */
+    public showOptionsPage(): void {
+        this.showPage('Options');
+    }
+
     /** Displays the Practice Setup page area. */
     public showForYouPage(): void {
         this.showPage('ForYou');

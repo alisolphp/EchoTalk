@@ -50,7 +50,7 @@ export class EchoTalkApp {
     public words: string[] = [];
 
     /** The number of repetitions for each phrase. */
-    public reps: number = 3;
+    public reps: number = 0;
 
     /** The index of the current word in the `words` array where practice is focused. */
     public currentIndex: number = 0;
@@ -346,6 +346,9 @@ export class EchoTalkApp {
         $('#recordingsModal').on('hidden.bs.modal', () => this.audioService.stopAllPlayback());
 
         $('#languageSelect, #headerLanguageSelect').on('change', (e) => {
+            if (this.area === 'Practice') {
+                this.uiService.showPracticeSetup();
+            }
             const newLang = $(e.currentTarget).val() as string;
             $('#languageSelect, #headerLanguageSelect').val(newLang);
             this.handleLanguageChange();
@@ -361,8 +364,9 @@ export class EchoTalkApp {
         $('#categorySelect').on('change', () => this.practiceService.useSample());
 
         $('#goToPracticeBtn').on('click', () => this.uiService.showPracticeSetup());
-        $('#navPrePractice').on('click', () => this.uiService.showPracticeSetup());
         $('#navHome').on('click', () => this.uiService.showHomePage());
+        $('#navPrePractice').on('click', () => this.uiService.showPracticeSetup());
+        $('#navOptions').on('click', () => this.uiService.showOptionsPage());
         $('#navForYou').on('click', () => this.uiService.showForYouPage());
         $('#myRecordingsLink').on('click', () => this.dataService.displayRecordings());
         $('.backHomeButton').on('click', () => this.uiService.showPracticeSetup());

@@ -38,7 +38,6 @@
     <div id="configArea">
         <div class="row mb-3 d-none">
             <div class="col text-center d-flex justify-content-center gap-2">
-                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#optionsModal"><i class="bi bi-sliders"></i> Options</button>
                 <button id="showRecordingsBtn" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#recordingsModal"><i class="bi bi-file-earmark-music"></i> My Records</button>
             </div>
         </div>
@@ -103,6 +102,92 @@
     </div>
 </div>
 
+<div id="areaOptions" class="container my-4 d-none area">
+    <h1 class="mb-4 text-center">Options <small class="text-muted">(Auto save)</small></h1>
+
+    <div>
+        <div class="card bg-dark-subtle mb-3">
+            <div class="card-body">
+                <h6 class="card-title mb-3">Select Content to Practice</h6>
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="languageSelect" class="form-label fw-bold"><i class="bi bi-translate" style="color: #677fff;"></i> Select Language:</label>
+                        <select id="languageSelect" class="form-select"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label for="levelSelect" class="form-label fw-bold"><i class="bi bi-bar-chart-line-fill" style="color: #39bc58;"></i> Level:</label>
+                        <select id="levelSelect" class="form-select"></select>
+                    </div>
+                    <div class="col">
+                        <label for="categorySelect" class="form-label fw-bold"><i class="bi bi-folder-fill" style="color: #ffcb00;"></i> Category:</label>
+                        <select id="categorySelect" class="form-select"></select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-dark-subtle mb-3">
+            <div class="card-body">
+                <h6 class="card-title mb-3">Practice Configuration</h6>
+
+                <div class="mb-3">
+                    <label for="practiceModeSelect" class="form-label fw-bold">Practice Mode:</label>
+                    <select id="practiceModeSelect" class="form-select">
+                        <option value="skip">🎧 Skip-Only (Listen &amp; Repeat)</option>
+                        <option value="auto-skip">🕒 Auto-Skip (Practice Within Time)</option>
+                        <option value="check">🎤 Check Mode (Use Keyboard's Mic)</option>
+                    </select>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="speechRateSelect" class="form-label fw-bold">Speech Speed:</label>
+                        <select id="speechRateSelect" class="form-select">
+                            <option value="0.6">🐢 Slow</option>
+                            <option value="0.8">🧍 Medium</option>
+                            <option value="1">🚶 Normal</option>
+                            <option value="1.2">🏃 Fast</option>
+                            <option value="1.4">🚗 Furious</option>
+                        </select>
+                    </div>
+
+                    <div class="col">
+                        <label for="repsSelect" class="form-label fw-bold">Repetitions:</label>
+                        <select id="repsSelect" class="form-select"></select>
+                    </div>
+                </div>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
+                    <label class="form-check-label" for="recordToggle"><i class="bi bi-mic-fill" style="color: #ffb300;"></i> <strong>Record my voice</strong> to compare later (completely locally)</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-danger p-0">
+            <details>
+                <summary class="card-title text-danger small p-2 m-0">Danger Zone</summary>
+                <div class="card-body">
+                    <p class="card-text small text-muted">This will permanently delete all your data and recordings.</p>
+                    <button id="resetBtn" class="btn btn-danger w-100">Reset App</button>
+                </div>
+            </details>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success opacity-50" data-bs-dismiss="modal">
+                <i class="bi bi-check-square-fill"></i>
+                <small>Saved Automatically</small>
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+    </div>
+
+</div>
+
+
 <div id="areaForYou" class="container my-4 d-none area">
     <h1 class="mb-4 text-center">For You</h1>
     <div class="list-group">
@@ -135,7 +220,7 @@
             <i class="bi bi-mic-fill"></i>
             <span>Practice</span>
         </a>
-        <a href="#" id="navOptions" class="nav-item" data-bs-toggle="modal" data-bs-target="#optionsModal">
+        <a href="#" id="navOptions" class="nav-item">
             <i class="bi bi-sliders"></i>
             <span>Options</span>
         </a>
@@ -145,98 +230,6 @@
         </a>
     </div>
 </nav>
-
-<div id="optionsModal" class="modal fade" tabindex="-1" aria-labelledby="optionsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="optionsModalLabel">Practice Options <small class="text-muted">(Auto save)</small></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-
-                <div class="card bg-dark-subtle mb-3">
-                    <div class="card-body">
-                        <h6 class="card-title mb-3">Select Content to Practice</h6>
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label for="languageSelect" class="form-label fw-bold"><i class="bi bi-translate" style="color: #677fff;"></i> Select Language:</label>
-                                <select id="languageSelect" class="form-select"></select>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <label for="levelSelect" class="form-label fw-bold"><i class="bi bi-bar-chart-line-fill" style="color: #39bc58;"></i> Level:</label>
-                                <select id="levelSelect" class="form-select"></select>
-                            </div>
-                            <div class="col">
-                                <label for="categorySelect" class="form-label fw-bold"><i class="bi bi-folder-fill" style="color: #ffcb00;"></i> Category:</label>
-                                <select id="categorySelect" class="form-select"></select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card bg-dark-subtle mb-3">
-                    <div class="card-body">
-                        <h6 class="card-title mb-3">Practice Configuration</h6>
-
-                        <div class="mb-3">
-                            <label for="practiceModeSelect" class="form-label fw-bold">Practice Mode:</label>
-                            <select id="practiceModeSelect" class="form-select">
-                                <option value="skip">🎧 Skip-Only (Listen &amp; Repeat)</option>
-                                <option value="auto-skip">🕒 Auto-Skip (Practice Within Time)</option>
-                                <option value="check">🎤 Check Mode (Use Keyboard's Mic)</option>
-                            </select>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label for="speechRateSelect" class="form-label fw-bold">Speech Speed:</label>
-                                <select id="speechRateSelect" class="form-select">
-                                    <option value="0.6">🐢 Slow</option>
-                                    <option value="0.8">🧍 Medium</option>
-                                    <option value="1">🚶 Normal</option>
-                                    <option value="1.2">🏃 Fast</option>
-                                    <option value="1.4">🚗 Furious</option>
-                                </select>
-                            </div>
-
-                            <div class="col">
-                                <label for="repsSelect" class="form-label fw-bold">Repetitions:</label>
-                                <select id="repsSelect" class="form-select"></select>
-                            </div>
-                        </div>
-
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
-                            <label class="form-check-label" for="recordToggle"><i class="bi bi-mic-fill" style="color: #ffb300;"></i> <strong>Record my voice</strong> to compare later (completely locally)</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card border-danger p-0">
-                    <details>
-                        <summary class="card-title text-danger small p-2 m-0">Danger Zone</summary>
-                        <div class="card-body">
-                            <p class="card-text small text-muted">This will permanently delete all your data and recordings.</p>
-                            <button id="resetBtn" class="btn btn-danger w-100">Reset App</button>
-                        </div>
-                    </details>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success opacity-50" data-bs-dismiss="modal">
-                        <i class="bi bi-check-square-fill"></i>
-                        <small>Saved Automatically</small>
-                    </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="modal fade" id="quickStartModal" tabindex="-1" aria-labelledby="quickStartModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">

@@ -185,8 +185,10 @@ describe('Practice Logic', () => {
         ($('#sentenceInput') as any).val('This is a test');
         ($('#sentenceInput') as any).attr('data-val', 'This is a test');
         ($('#repsSelect') as any).val('3');
-        $('#mode-check').prop('checked', true);
-        $('#startBtn').trigger('click');
+        $('#practiceModeSelect').val('check');
+
+        await app.practiceService.startPractice();
+        await vi.runAllTimers();
 
         app.currentCount = 0;
 
@@ -246,8 +248,10 @@ describe('Practice Logic', () => {
         ($('#sentenceInput') as any).val('This is a test');
         ($('#sentenceInput') as any).attr('data-val', 'This is a test');
         ($('#repsSelect') as any).val('3');
-        $('#mode-check').prop('checked', true);
-        $('#startBtn').trigger('click');
+        $('#practiceModeSelect').val('check');
+
+        await app.practiceService.startPractice();
+        await vi.runAllTimers();
 
         app.currentCount = 0;
         app.currentIndex = 0;
