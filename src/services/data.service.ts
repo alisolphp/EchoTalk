@@ -387,15 +387,27 @@ export class DataService {
                 myStreakModalLabel.text("Welcome!");
                 motivationalTextEl.text("Ready to build your streak? Complete your first practice session today!");
             } else {
-                myStreakModalLabel.text("Congratulations!");
-                const messages = [
-                    "You're on a roll! Keep up the amazing work.",
-                    "Consistency is key. You're doing great!",
-                    "Another day, another step towards mastery.",
-                    "Look at you go! Your dedication is paying off."
-                ];
-                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-                motivationalTextEl.text(randomMessage);
+                if(currentStreak > 0){
+                    myStreakModalLabel.text("Congratulations!");
+                    const messages = [
+                        "You're on a roll! Keep up the amazing work.",
+                        "Consistency is key. You're doing great!",
+                        "Another day, another step towards mastery.",
+                        "Look at you go! Your dedication is paying off."
+                    ];
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    motivationalTextEl.text(randomMessage);
+                } else {
+                    myStreakModalLabel.text("Welcome Back!");
+                    const messages = [
+                        "Every master was once a beginner. Let's start a new streak today!",
+                        "Don't worry about yesterday. Today is a new opportunity to learn.",
+                        "The best time to start again is now. Let's do this!",
+                        "Falling down is part of learning. What matters is getting back up."
+                    ];
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    motivationalTextEl.text(randomMessage);
+                }
             }
 
             const calendarContainer = $('#streakCalendar');
@@ -419,16 +431,20 @@ export class DataService {
                 let circleClass = '';
                 let circleContent = '';
 
+                if(offset < 0){
+                    circleClass = 'bg-danger bi bi-x';
+                }
+
                 if (offset === 0) {
                     circleClass = 'today';
                 }
 
                 if (practiceDates.has(dateStr)) {
-                    circleClass += ' bg-success bi bi-check-lg';
+                    circleClass = ' bg-success bi bi-check-lg';
                 }
 
                 if (offset === 0 && !practiceDates.has(dateStr)) {
-                    circleClass += `bg-warning bi bi-fire`;
+                    circleClass = `today bg-warning bi bi-fire`;
                 }
 
                 const dayHtml = `
