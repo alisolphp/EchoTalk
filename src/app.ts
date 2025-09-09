@@ -254,6 +254,11 @@ export class EchoTalkApp {
 
         this.loadState();
         this.uiService.updateLanguageUI();
+
+        if (!this.sentence) {
+            this.sentence = this.utilService.pickSample();
+        }
+
         this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
         this.uiService.setInputValue(this.sentence);
         this.uiService.setInputValue('');
