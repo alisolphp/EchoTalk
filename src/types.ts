@@ -11,7 +11,7 @@ export interface Practice {
     sentence: string;
     lang: string;
     count: number;
-    lastPracticed: Date;
+    practiceHistory: Date[]; // Updated to store an array of practice dates
 }
 
 /** Defines the structure for a category of sentences (e.g., "Interview"). */

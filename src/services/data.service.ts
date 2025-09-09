@@ -40,7 +40,6 @@ export class DataService {
                 if (!db.objectStoreNames.contains('practices')) {
                     const store =
                         db.createObjectStore('practices', { keyPath: 'sentence' });
-                    store.createIndex('lastPracticed', 'lastPracticed', { unique: false });
                 }
             };
             request.onsuccess = (event) => {
@@ -175,7 +174,6 @@ export class DataService {
      * and displays it in the practices modal.
      */
     public async displayPractices(): Promise<void> {
-        // This method remains unchanged
         const transaction = this.app.db.transaction(['practices'], 'readonly');
         const store = transaction.objectStore('practices');
         const request = store.getAll();
@@ -202,7 +200,12 @@ export class DataService {
                         const langName = this.app.languageMap[lang] || lang;
                         const uniqueId = `lang-${lang.replace(/[^a-zA-Z0-9]/g, '')}`;
                         const practicesForLang = groupedByLang[lang];
-                        practicesForLang.sort((a, b) => b.lastPracticed.getTime() - a.lastPracticed.getTime());
+
+                        practicesForLang.sort((a, b) => {
+                            const lastA = a.practiceHistory && a.practiceHistory.length > 0 ? a.practiceHistory[a.practiceHistory.length - 1].getTime() : 0;
+                            const lastB = b.practiceHistory && b.practiceHistory.length > 0 ? b.practiceHistory[b.practiceHistory.length - 1].getTime() : 0;
+                            return lastB - lastA;
+                        });
 
                         accordionHtml += `
                             <div class="accordion-item">
@@ -214,7 +217,8 @@ export class DataService {
                                 <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#${accordionId}">
                                     <div class="accordion-body">`;
                         practicesForLang.forEach(p => {
-                            const formattedDate = p.lastPracticed.toLocaleString();
+                            const lastPracticedDate = p.practiceHistory && p.practiceHistory.length > 0 ? p.practiceHistory[p.practiceHistory.length - 1] : 'Never';
+                            const formattedDate = lastPracticedDate !== 'Never' ? lastPracticedDate.toLocaleString() : lastPracticedDate;
                             const truncatedSentence = this.app.utilService.truncateSentence(p.sentence);
                             const sentenceAttr = p.sentence.replace(/"/g, '&quot;');
                             accordionHtml += `
@@ -247,9 +251,14 @@ export class DataService {
                     accordionHtml += `</div>`;
                     $practicesList.html(accordionHtml);
                 } else {
-                    practices.sort((a, b) => b.lastPracticed.getTime() - a.lastPracticed.getTime());
+                    practices.sort((a, b) => {
+                        const lastA = a.practiceHistory && a.practiceHistory.length > 0 ? a.practiceHistory[a.practiceHistory.length - 1].getTime() : 0;
+                        const lastB = b.practiceHistory && b.practiceHistory.length > 0 ? b.practiceHistory[b.practiceHistory.length - 1].getTime() : 0;
+                        return lastB - lastA;
+                    });
                     practices.forEach(p => {
-                        const formattedDate = p.lastPracticed.toLocaleString();
+                        const lastPracticedDate = p.practiceHistory && p.practiceHistory.length > 0 ? p.practiceHistory[p.practiceHistory.length - 1] : 'Never';
+                        const formattedDate = lastPracticedDate !== 'Never' ? lastPracticedDate.toLocaleString() : lastPracticedDate;
                         const truncatedSentence = this.app.utilService.truncateSentence(p.sentence);
                         const sentenceAttr = p.sentence.replace(/"/g, '&quot;');
                         const practiceHTML = `
@@ -287,32 +296,55 @@ export class DataService {
     }
 
     private async _calculateStreak(practices: Practice[]): Promise<number> {
-        const practiceDates = new Set(
-            practices.map(p => p.lastPracticed.toISOString().split('T')[0])
+        if (!practices || practices.length === 0) {
+            return 0;
+        }
+
+        // Combine all practice history dates into a single array
+        const allPracticeDates = practices.flatMap(p => p.practiceHistory);
+
+        // Collect all unique practice dates as YYYY-MM-DD strings
+        const uniquePracticeDates = new Set(
+            allPracticeDates.map(timestamp => {
+                const date = new Date(timestamp);
+                date.setHours(0, 0, 0, 0);
+                return date.toISOString().split('T')[0];
+            })
         );
+
+        const sortedDates = Array.from(uniquePracticeDates).sort();
+
+        if (sortedDates.length === 0) {
+            return 0;
+        }
+
         let currentStreak = 0;
-        if (practiceDates.size > 0) {
-            const today = new Date();
-            const yesterday = new Date();
-            yesterday.setDate(today.getDate() - 1);
+        let dayToCheck = new Date();
+        dayToCheck.setHours(0, 0, 0, 0);
 
-            const todayStr = today.toISOString().split('T')[0];
-            const yesterdayStr = yesterday.toISOString().split('T')[0];
-            let lastPracticeDay = new Date(0);
-            practiceDates.forEach(dateStr => {
-                const practiceDate = new Date(dateStr + 'T00:00:00');
-                if (practiceDate > lastPracticeDay) {
-                    lastPracticeDay = practiceDate;
-                }
-            });
-            if (practiceDates.has(todayStr) || practiceDates.has(yesterdayStr)) {
-                currentStreak = 1;
-                let dayToCheck = new Date(lastPracticeDay);
-                dayToCheck.setDate(dayToCheck.getDate() - 1);
+        // Check if the most recent practice was today or yesterday
+        const mostRecentPracticeDateStr = sortedDates[sortedDates.length - 1];
+        const mostRecentPracticeDate = new Date(mostRecentPracticeDateStr);
 
-                while (practiceDates.has(dayToCheck.toISOString().split('T')[0])) {
+        const todayStr = dayToCheck.toISOString().split('T')[0];
+        const yesterday = new Date(dayToCheck);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        if (mostRecentPracticeDateStr === todayStr || mostRecentPracticeDateStr === yesterdayStr) {
+            currentStreak = 1;
+            dayToCheck = new Date(mostRecentPracticeDate);
+            dayToCheck.setDate(dayToCheck.getDate() - 1);
+
+            let i = sortedDates.length - 2;
+            while (i >= 0) {
+                const dayToCheckStr = dayToCheck.toISOString().split('T')[0];
+                if (sortedDates[i] === dayToCheckStr) {
                     currentStreak++;
                     dayToCheck.setDate(dayToCheck.getDate() - 1);
+                    i--;
+                } else {
+                    break;
                 }
             }
         }
@@ -334,9 +366,14 @@ export class DataService {
             const totalSentences = practices.length;
             const totalPractices = practices.reduce((sum, p) => sum + p.count, 0);
 
-            // The logic is now self-contained and doesn't make another async call
             const currentStreak = await this._calculateStreak(practices);
-            const practiceDates = new Set(practices.map(p => p.lastPracticed.toISOString().split('T')[0]));
+
+            const allPracticeDates = practices.flatMap(p => p.practiceHistory || []);
+            const practiceDates = new Set(allPracticeDates.map(timestamp => {
+                const date = new Date(timestamp);
+                date.setHours(0, 0, 0, 0);
+                return date.toISOString().split('T')[0];
+            }));
 
             $('#streakDays').text(currentStreak);
             $('#streakDaysHeader').text(currentStreak);
@@ -355,7 +392,6 @@ export class DataService {
                     "You're on a roll! Keep up the amazing work.",
                     "Consistency is key. You're doing great!",
                     "Another day, another step towards mastery.",
-                    "Keep that fire burning! Awesome progress.",
                     "Look at you go! Your dedication is paying off."
                 ];
                 const randomMessage = messages[Math.floor(Math.random() * messages.length)];
@@ -365,7 +401,9 @@ export class DataService {
             const calendarContainer = $('#streakCalendar');
             calendarContainer.empty();
             const todayForCalendar = new Date();
+            todayForCalendar.setHours(0, 0, 0, 0);
             const daysToShow = [-2, -1, 0, 1, 2];
+
             const dayFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
 
             daysToShow.forEach(offset => {
@@ -376,29 +414,26 @@ export class DataService {
                 let dayLabel;
                 if (offset === 0) dayLabel = 'Today';
                 else if (offset === -1) dayLabel = 'Yesterday';
-                else if (offset === 1) dayLabel = 'Tomorrow';
                 else dayLabel = dayFormatter.format(date);
 
                 let circleClass = '';
-                let circleContent = ``;
+                let circleContent = '';
 
-                if (offset < 0) {
-                    if (practiceDates.has(dateStr)) {
-                        circleClass = 'checked';
-                        circleContent = `<i class="bi bi-check-lg"></i>`;
-                    }
-                } else if (offset === 0) {
+                if (offset === 0) {
                     circleClass = 'today';
-                    if (practiceDates.has(dateStr)) {
-                        circleContent = `<i class="bi bi-check-lg"></i>`;
-                    } else {
-                        circleContent = `<i class="bi bi-fire"></i>`;
-                    }
+                }
+
+                if (practiceDates.has(dateStr)) {
+                    circleClass += ' bg-success bi bi-check-lg';
+                }
+
+                if (offset === 0 && !practiceDates.has(dateStr)) {
+                    circleClass += `bg-warning bi bi-fire`;
                 }
 
                 const dayHtml = `
-                    <div class="day">
-                        <div class="circle ${circleClass}">${circleContent}</div>
+                    <div class="day text-center">
+                        <div class="d-inline-flex circle ${circleClass}">${circleContent}</div>
                         <div class="day-label">${dayLabel}</div>
                     </div>
                 `;

@@ -23,13 +23,13 @@ export class PracticeService {
         this.app.practiceMode = ($('#practiceModeSelect').val() as 'skip' | 'check' | 'auto-skip');
         const rawVal = $('#sentenceInput').attr('data-val');
         this.app.sentence = (typeof rawVal === 'string' ? rawVal.trim() : '').replace(/([^\.\?\!\n])\n/g, '$1.\n');
+
         if (this.app.sentence.trim() === '') {
             alert('Please enter a sentence to practice.');
             return;
         }
 
         const selectedReps = parseInt($('#repsSelect').val() as string);
-
         this.app.words = this.app.sentence.split(/\s+/).filter(w => w.length > 0);
         this.app.currentCount = 0;
         this.app.correctCount = 0;
@@ -42,12 +42,15 @@ export class PracticeService {
             const request = store.get(this.app.sentence);
 
             request.onsuccess = () => {
-                const data: Practice |
-                    undefined = request.result;
+                const data: Practice | undefined = request.result;
                 if (data) {
                     this.currentSentencePracticeCount = data.count;
                     data.count++;
-                    data.lastPracticed = new Date();
+                    if (!data.practiceHistory) {
+                        data.practiceHistory = [new Date()];
+                    } else {
+                        data.practiceHistory.push(new Date());
+                    }
                     store.put(data);
                 } else {
                     this.currentSentencePracticeCount = 0;
@@ -55,8 +58,7 @@ export class PracticeService {
                         sentence: this.app.sentence,
                         lang: this.app.lang,
                         count: 1,
-
-                        lastPracticed: new Date()
+                        practiceHistory: [new Date()]
                     };
                     store.add(newPractice);
                 }
@@ -67,7 +69,7 @@ export class PracticeService {
                     this.app.reps = selectedReps;
                 }
             };
-            // Move UI setup and the first practiceStep call inside oncomplete
+
             transaction.oncomplete = async () => {
                 $('#session-complete-container').addClass('d-none').empty();
                 $('#practice-ui-container').removeClass('d-none');
@@ -79,7 +81,6 @@ export class PracticeService {
                 this.app.uiService.setupPracticeUI();
                 this.app.uiService.renderFullSentence();
 
-                // Now, practiceStep is called only after the DB transaction is complete
                 this.practiceStep();
                 location.hash = 'practice';
             };
