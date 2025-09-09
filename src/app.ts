@@ -219,6 +219,7 @@ export class EchoTalkApp {
             this.handleHashChange();
             await this.aiService.checkSpellApiKey();
             this.uiService.updateOnlineStatusClass();
+            this.dataService.updateStreakCounters();
         } catch (error) {
             console.error("Initialization failed:", error);
             $('#configArea').html('<div class="alert alert-danger">Failed to initialize the application. Please refresh the page.</div>');
@@ -375,7 +376,6 @@ export class EchoTalkApp {
         $('#navForYou').on('click', () => this.uiService.showForYouPage());
         $('#myRecordingsLink').on('click', () => this.dataService.displayRecordings());
         $('.backHomeButton').on('click', () => this.uiService.showPracticeSetup());
-
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
             this.speechRate = isNaN(val) ? 1 : val;
@@ -392,7 +392,6 @@ export class EchoTalkApp {
                 this.audioService.speak(sentence, null, val, 'en-US');
             }
         });
-
         $('#showTtsWarningBtn').on('click', () => this.uiService.showTTSWarning());
 
         if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
@@ -411,11 +410,27 @@ export class EchoTalkApp {
                 $('#installBtn').addClass('d-none');
             });
         });
-
         window.addEventListener('hashchange', () => this.handleHashChange());
         document.addEventListener('show.bs.modal', () => {
             if (window.location.hash !== '#modal') window.location.hash = 'modal';
         });
+
+        // A single, reliable native event listener for all modals.
+        document.addEventListener('show.bs.modal', (event) => {
+            // Generic logic for hash management
+            if (window.location.hash !== '#modal') {
+                window.location.hash = 'modal';
+            }
+
+            // Specific logic for myStreakModal
+            const modal = event.target as HTMLElement;
+            if (modal.id === 'myStreakModal') {
+                console.log("myStreakModal is opening, firing events...");
+                this.dataService.populateStreakModal();
+                this.uiService.showStaticConfetti(); // Changed from triggerCelebrationAnimation
+            }
+        });
+
         document.addEventListener('hidden.bs.modal', () => {
             if (window.location.hash === '#modal') {
                 history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -424,7 +439,7 @@ export class EchoTalkApp {
         document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
         window.addEventListener('online', () => this.uiService.updateOnlineStatusClass());
         window.addEventListener('offline', () => this.uiService.updateOnlineStatusClass());
-        $('#myStreakModal').on('show.bs.modal', () => this.dataService.populateStreakModal());
+        $('#continueLearningBtn').on('click', () => this.uiService.showPracticeSetup());
     }
 
     /**

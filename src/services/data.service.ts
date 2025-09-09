@@ -9,6 +9,7 @@ import { Recording, Practice, SampleData } from '../types';
  */
 export class DataService {
     private app: EchoTalkApp;
+    private lastKnownStreak: number = -1; // Added to track streak changes for animation
 
     constructor(app: EchoTalkApp) {
         this.app = app;
@@ -37,7 +38,8 @@ export class DataService {
                     store.createIndex('sentence', 'sentence', { unique: false });
                 }
                 if (!db.objectStoreNames.contains('practices')) {
-                    const store = db.createObjectStore('practices', { keyPath: 'sentence' });
+                    const store =
+                        db.createObjectStore('practices', { keyPath: 'sentence' });
                     store.createIndex('lastPracticed', 'lastPracticed', { unique: false });
                 }
             };
@@ -72,6 +74,7 @@ export class DataService {
      * and renders them into the recordings modal.
      */
     public async displayRecordings(): Promise<void> {
+        // This method remains unchanged
         if (!this.app.db) return;
         const transaction = this.app.db.transaction(['recordings'], 'readonly');
         const store = transaction.objectStore('recordings');
@@ -112,7 +115,6 @@ export class DataService {
                 <h2 class="accordion-header" id="heading-${uniqueId}">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${uniqueId}" aria-expanded="false">
                         <div class="w-100 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
-          
                            <span class="fw-bold mb-1 mb-sm-0">${truncated}</span>
                             <div class="d-flex align-items-center">
                                 <span class="badge bg-secondary me-2">${count} recording${count > 1 ?
@@ -120,63 +122,46 @@ export class DataService {
                                 <small class="text-muted">${lastRecTime.toLocaleString()}</small>
                             </div>
                         </div>
-             
                  </button>
                 </h2>
                 <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#recordingsList" data-sentence="${sentence.replace(/"/g, '&quot;')}">
                     <div class="accordion-body">
                         <ul class="list-group">
-         
                            ${recordings.map((rec, index) => `
                                 <li class="list-group-item">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap">
-     
                                         <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
                                         <div class="row g-2 justify-content-center">
-              
-                                           <div class="col-6 col-md-auto">
-                                                <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}" data-lang="${rec.lang}">
-              
-                                                   <i class="bi bi-robot"></i> Play Bot
-                                                </button>
-          
-                                               </div>
                                             <div class="col-6 col-md-auto">
-                    
-                                         <button class="btn btn-sm btn-primary play-user-audio w-100" data-sentence="${sentence}" data-index="${index}">
-                                                    <i class="bi bi-person-fill"></i> Play Mine
-         
-                                                 </button>
+                                                <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}" data-lang="${rec.lang}">
+                                                    <i class="bi bi-robot"></i> Play Bot
+                                                </button>
                                             </div>
-                 
-                                           ${rec.lang === 'en-US' && this.app.spellCheckerIsAvailable ?
+                                            <div class="col-6 col-md-auto">
+                                                <button class="btn btn-sm btn-primary play-user-audio w-100" data-sentence="${sentence}" data-index="${index}">
+                                                    <i class="bi bi-person-fill"></i> Play Mine
+                                                </button>
+                                            </div>
+                                            ${rec.lang === 'en-US' && this.app.spellCheckerIsAvailable ?
                 `
                                                 <div class="col-6 col-md-auto">
-                                                  
-                                                   <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
+                                                    <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
                                                         <i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>
-                          
                                                     </button>
                                                 </div>
-                          
-                                           ` : ''}
+                                            ` : ''}
                                             <div class="col-6 col-md-auto">
-                                  
-                                               <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                                <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
                                                     <i class="bi bi-magic"></i> Full <span class="text-nowrap">AI Analyze</span>
-             
-                                                 </button>
+                                                </button>
                                             </div>
-                     
-                                         </div>
+                                        </div>
                                     </div>
                                     <div class="accuracy-result-container mt-2 border-top pt-2" style="display: none;"></div>
-   
-                                         </li>
+                                </li>
                             `).join('')}
                         </ul>
-                   
-                 </div>
+                    </div>
                 </div>
             </div>`;
             $list.append(sentenceHtml);
@@ -191,6 +176,7 @@ export class DataService {
      * and displays it in the practices modal.
      */
     public async displayPractices(): Promise<void> {
+        // This method remains unchanged
         const transaction = this.app.db.transaction(['practices'], 'readonly');
         const store = transaction.objectStore('practices');
         const request = store.getAll();
@@ -207,7 +193,6 @@ export class DataService {
                     (acc[p.lang] = acc[p.lang] || []).push(p);
                     return acc;
                 }, {} as Record<string, Practice[]>);
-
                 const languages = Object.keys(groupedByLang);
 
                 if (languages.length > 1) {
@@ -229,7 +214,6 @@ export class DataService {
                                 </h2>
                                 <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#${accordionId}">
                                     <div class="accordion-body">`;
-
                         practicesForLang.forEach(p => {
                             const formattedDate = p.lastPracticed.toLocaleString();
                             const truncatedSentence = this.app.utilService.truncateSentence(p.sentence);
@@ -303,58 +287,81 @@ export class DataService {
         };
     }
 
+    private async _calculateStreak(practices: Practice[]): Promise<number> {
+        const practiceDates = new Set(
+            practices.map(p => p.lastPracticed.toISOString().split('T')[0])
+        );
+        let currentStreak = 0;
+        if (practiceDates.size > 0) {
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+
+            const todayStr = today.toISOString().split('T')[0];
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            let lastPracticeDay = new Date(0);
+            practiceDates.forEach(dateStr => {
+                const practiceDate = new Date(dateStr + 'T00:00:00');
+                if (practiceDate > lastPracticeDay) {
+                    lastPracticeDay = practiceDate;
+                }
+            });
+            if (practiceDates.has(todayStr) || practiceDates.has(yesterdayStr)) {
+                currentStreak = 1;
+                let dayToCheck = new Date(lastPracticeDay);
+                dayToCheck.setDate(dayToCheck.getDate() - 1);
+
+                while (practiceDates.has(dayToCheck.toISOString().split('T')[0])) {
+                    currentStreak++;
+                    dayToCheck.setDate(dayToCheck.getDate() - 1);
+                }
+            }
+        }
+        return currentStreak;
+    }
+
     public async populateStreakModal(): Promise<void> {
+        if (!this.app.db) return;
         const transaction = this.app.db.transaction(['practices'], 'readonly');
         const store = transaction.objectStore('practices');
         const request = store.getAll();
 
         request.onerror = (event) => {
-            console.error('Error fetching practices for streak:', (event.target as IDBRequest).error);
-            $('#streakDays').text('?');
+            console.error('Error fetching practices for streak modal:', (event.target as IDBRequest).error);
         };
 
-        request.onsuccess = () => {
+        request.onsuccess = async () => {
             const practices: Practice[] = request.result;
-
             const totalSentences = practices.length;
             const totalPractices = practices.reduce((sum, p) => sum + p.count, 0);
 
-            const practiceDates = new Set(
-                practices.map(p => p.lastPracticed.toISOString().split('T')[0])
-            );
-
-            let currentStreak = 0;
-            if (practiceDates.size > 0) {
-                const today = new Date();
-                const yesterday = new Date();
-                yesterday.setDate(today.getDate() - 1);
-
-                const todayStr = today.toISOString().split('T')[0];
-                const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-                let lastPracticeDay = new Date(0);
-                practiceDates.forEach(dateStr => {
-                    const practiceDate = new Date(dateStr + 'T00:00:00');
-                    if (practiceDate > lastPracticeDay) {
-                        lastPracticeDay = practiceDate;
-                    }
-                });
-
-                if (practiceDates.has(todayStr) || practiceDates.has(yesterdayStr)) {
-                    currentStreak = 1;
-                    let dayToCheck = new Date(lastPracticeDay);
-                    dayToCheck.setDate(dayToCheck.getDate() - 1);
-
-                    while (practiceDates.has(dayToCheck.toISOString().split('T')[0])) {
-                        currentStreak++;
-                        dayToCheck.setDate(dayToCheck.getDate() - 1);
-                    }
-                }
-            }
+            // The logic is now self-contained and doesn't make another async call
+            const currentStreak = await this._calculateStreak(practices);
+            const practiceDates = new Set(practices.map(p => p.lastPracticed.toISOString().split('T')[0]));
 
             $('#streakDays').text(currentStreak);
+            $('#streakDaysHeader').text(currentStreak);
             $('#streakSentences').text(totalSentences);
             $('#streakPractices').text(totalPractices);
+
+            const isFirstVisit = totalSentences === 0 && totalPractices === 0;
+            const myStreakModalLabel = $('#myStreakModalLabel');
+            const motivationalTextEl = $('#streak-motivational-text');
+            if (isFirstVisit) {
+                myStreakModalLabel.text("Welcome!");
+                motivationalTextEl.text("Ready to build your streak? Complete your first practice session today!");
+            } else {
+                myStreakModalLabel.text("Congratulations!");
+                const messages = [
+                    "You're on a roll! Keep up the amazing work.",
+                    "Consistency is key. You're doing great!",
+                    "Another day, another step towards mastery.",
+                    "Keep that fire burning! Awesome progress.",
+                    "Look at you go! Your dedication is paying off."
+                ];
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                motivationalTextEl.text(randomMessage);
+            }
 
             const calendarContainer = $('#streakCalendar');
             calendarContainer.empty();
@@ -398,6 +405,36 @@ export class DataService {
                 `;
                 calendarContainer.append(dayHtml);
             });
+        };
+    }
+
+    public async updateStreakCounters(): Promise<void> {
+        if (!this.app.db) return;
+        const transaction = this.app.db.transaction(['practices'], 'readonly');
+        const store = transaction.objectStore('practices');
+        const request = store.getAll();
+
+        request.onerror = (event) => {
+            console.error('Error fetching practices for streak counters:', (event.target as IDBRequest).error);
+        };
+
+        request.onsuccess = async () => {
+            const practices: Practice[] = request.result;
+            const currentStreak = await this._calculateStreak(practices);
+            const streakNumberEl = $('.day-streak-number');
+
+            // Always show, even if 0
+            streakNumberEl.text(currentStreak).show();
+
+            // Animate if the number has changed
+            if (currentStreak !== this.lastKnownStreak && this.lastKnownStreak !== -1) {
+                streakNumberEl.addClass('streak-updated');
+                setTimeout(() => {
+                    streakNumberEl.removeClass('streak-updated');
+                }, 500); // Animation duration in ms
+            }
+
+            this.lastKnownStreak = currentStreak;
         };
     }
 }

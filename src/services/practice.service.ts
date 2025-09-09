@@ -237,6 +237,7 @@ export class PracticeService {
             return;
         }
         this.app.saveState();
+        this.app.dataService.updateStreakCounters();
         this.app.uiService.renderFullSentence();
         this.practiceStep();
     }
@@ -278,6 +279,7 @@ export class PracticeService {
      * It shows a completion message, plays a victory sound, and clears session-specific state.
      */
     public finishSession(): void {
+        this.app.dataService.updateStreakCounters();
         this.app.utilService.clearAutoSkipTimer();
         this.app.audioService.terminateMicrophoneStream();
         if(this.app.area === 'Practice') {

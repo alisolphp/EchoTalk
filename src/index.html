@@ -15,7 +15,7 @@
     <p class="lead mb-4">Your personal space for offline shadowing practice.</p>
     <div class="d-flex justify-content-center align-items-center gap-2">
         <button id="goToPracticeBtn" class="btn btn-primary btn-lg">Let's get started!</button>
-        <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#myStreakModal" title="My Streak">🔥</button>
+        <button class="btn btn-outline-warning px-2 ps-1" data-bs-toggle="modal" data-bs-target="#myStreakModal" title="My Streak">🔥 <span class="day-streak-number"></span></button>
     </div>
     <footer class="text-end text-muted small pt-3 opacity-25">
         <div id="app-version"></div>
@@ -24,8 +24,8 @@
 
 <div id="areaPrePractice" class="container my-4 d-none area">
     <div class="d-flex justify-content-center align-items-center gap-2">
-        <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#myStreakModal" title="My Streak">🔥</button>
-        <h1 class="mb-0"><img src="icons/icon-512.png" style="width: 1em;"> EchoTalk</h1>
+        <button class="btn btn-outline-warning px-2 ps-1" data-bs-toggle="modal" data-bs-target="#myStreakModal" title="My Streak">🔥 <span class="day-streak-number"></span></button>
+        <h1 class="mb-0"><img src="icons/icon-512.png" class="d-none" style="width: 1em;"> EchoTalk</h1>
         <select id="headerLanguageSelect" class="form-select form-select-sm header-lang-select" aria-label="Select Language"></select>
     </div>
     <h2 class="mb-3 text-center">Offline Shadowing Practice</h2>
@@ -195,19 +195,19 @@
     <h1 class="mb-4 text-center">For You</h1>
     <div class="list-group">
         <a href="#" id="myRecordingsLink" class="list-group-item list-group-item-action">
-            <i class="bi bi-file-earmark-music"></i>
+            <i class="bi bi-file-earmark-music" style="color: #ff00d7;"></i>
             My Recordings
         </a>
         <a href="#" id="showPracticesBtn" class="list-group-item list-group-item-action">
-            <i class="bi bi-journal-check"></i>
+            <i class="bi bi-journal-check" style="color: #78ff65;"></i>
             My Practices
         </a>
-        <a href="#" id="showProgressBtn" class="list-group-item list-group-item-action">
+        <a href="#" id="showProgressBtn" class="list-group-item list-group-item-action d-none">
             <i class="bi bi-bar-chart-line-fill"></i>
             My Progress
         </a>
         <a href="#" id="showStreakBtn" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#myStreakModal">
-            <i class="bi bi-fire"></i>
+            <i class="bi bi-fire" style="color: #ff8f3d;"></i>
             My Streak
         </a>
     </div>
@@ -480,9 +480,14 @@
 <div class="modal fade" id="myStreakModal" tabindex="-1" aria-labelledby="myStreakModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-center" id="streak-modal-content">
+
+            <div class="confetti-container"></div>
+
             <div class="modal-body p-4">
-                <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
-                <div class="streak-badge">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                <div class="streak-counter"><i class="bi bi-fire"></i> <span id="streakDaysHeader">0</span></div>
+                <div class="streak-badge" id="streak-trophy-badge">
                     <i class="bi bi-trophy-fill"></i>
                 </div>
                 <h1 id="myStreakModalLabel" class="h4">Congratulations!</h1>
@@ -506,8 +511,11 @@
                 <div id="streakCalendar" class="d-flex justify-content-center gap-2 my-4">
                 </div>
 
+                <button id="continueLearningBtn" class="btn btn-primary w-100 mt-4" data-bs-dismiss="modal"><i class="bi bi-play-fill me-2"></i>Continue Learning</button>
+
                 <p class="small text-muted fst-italic mt-4">
-                    Master your pronunciation with EchoTalk, the free offline shadowing app. Share your progress and inspire others!
+                    Master your pronunciation with EchoTalk,
+                    the free offline shadowing app. Share your progress and inspire others!
                 </p>
             </div>
         </div>

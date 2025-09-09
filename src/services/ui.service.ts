@@ -373,4 +373,39 @@ export class UiService {
             }
         }());
     }
+
+    public showStaticConfetti(): void {
+        const container = document.querySelector('#myStreakModal .confetti-container');
+        if (!container || container.querySelector('.confetti')) {
+            // Do nothing if confetti already exists to prevent duplication
+            return;
+        }
+
+        const colors = ['#ff7a00', '#2575fc', '#6a11cb', '#ff5252', '#4caf50'];
+        const confettiCount = 30; // A lower count looks better for a continuous animation
+
+        for (let i = 0; i < confettiCount; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+
+            // Random horizontal position
+            confetti.style.left = Math.random() * 100 + '%';
+
+            // Random size
+            const size = Math.random() * 12 + 5; // Size between 5px and 17px
+            confetti.style.width = `${size}px`;
+            confetti.style.height = `${size}px`;
+
+            // Random background color
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            // Random animation duration for varied speeds (very slow)
+            confetti.style.animationDuration = `${Math.random() * 15 + 10}s`; // 10 to 25 seconds
+
+            // Random animation delay to stagger their start
+            confetti.style.animationDelay = `${Math.random() * 10}s`;
+
+            container.appendChild(confetti);
+        }
+    }
 }

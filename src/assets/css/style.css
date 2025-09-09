@@ -1,13 +1,14 @@
 :root {
-    --bg-color: #212529; /* Default dark theme background */
+    --bg-color: #212529;
     --text-color: #dee2e6;
-    --highlight-color: #fdd835; /* Yellow highlight color */
+    --highlight-color: #fdd835;
     --current-color: #fb8c00;
 }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
+    padding-bottom: 70px;
 }
 
 #sampleSentence span {
@@ -27,150 +28,89 @@ body {
 }
 
 .correct {
-    color: #198754; /* Bootstrap success green */
+    color: #198754;
 }
 
 .incorrect {
-    color: #dc3545; /* Bootstrap danger red */
+    color: #dc3545;
 }
 
 .recording-indicator {
-    color: #0dcaf0; /* Bootstrap info cyan */
+    color: #0dcaf0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
 .listening-indicator {
-    color: #8adeff; /* A calm, light blue for listening state */
+    color: #8adeff;
     font-style: italic;
     opacity: 0.9;
 }
 
-/* An improved animation for the recording dot.
-  This version adds a subtle scaling effect and a glow,
-  making it look more like a real pulsing light.
-  You can replace your existing .dot and @keyframes pulse with this.
-*/
 .recording-indicator .dot {
     display: inline-block;
     width: 10px;
     height: 10px;
-    background-color: #dc3545; /* Bootstrap danger red */
+    background-color: #dc3545;
     border-radius: 50%;
-    box-shadow: 0 0 5px #dc3545, 0 0 10px #dc3545; /* Added glow effect */
+    box-shadow: 0 0 5px #dc3545, 0 0 10px #dc3545;
     animation: pulse-revised 1.5s infinite;
 }
-
-@keyframes pulse-revised {
-    0% {
-        transform: scale(0.9);
-        opacity: 0.7;
-    }
-    50% {
-        transform: scale(1.1);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(0.9);
-        opacity: 0.7;
-    }
-}
-
-/* --- START: New section for karaoke-style highlighting --- */
 
 #sentence-container {
     line-height: 1.5;
 }
+
 #sentence-container .word {
     cursor: pointer;
-}
-
-/* Default word styling */
-#sentence-container .word {
-    /* Default color matches main text color */
     color: var(--text-color);
-    /* Smooth transition for color changes */
     transition: color 0.2s ease-in-out;
 }
 
-/* Class added to highlight the currently playing word */
 #sentence-container .word.highlighted {
-    color: var(--highlight-color); /* Yellow highlight color */
+    color: var(--highlight-color);
 }
 
-/* --- END: End of karaoke-style section --- */
-
-
 .recording-text-indicator {
-    color: #0dcaf0; /* Bootstrap info cyan */
+    color: #0dcaf0;
     text-align: center;
     padding-top: 10px;
 }
 
-/* --- START: Changes for .visualizer-container --- */
 .visualizer-container {
-    /* position: relative; */ /* Original line removed or commented out */
-    position: fixed;      /* NEW: Fix position to viewport */
-    bottom: 0;            /* NEW: Align to the bottom edge */
-    left: 0;              /* NEW: Align to the left edge */
+    position: fixed;
+    bottom: 0;
+    left: 0;
     width: 100%;
     display: flex;
     justify-content: center;
-    /* align-items: center; */ /* Original line changed below */
-    align-items: flex-end;    /* CHANGED: Align content to bottom for upward expansion */
-    margin-bottom: 0;         /* CHANGED: No margin needed for fixed element */
-    pointer-events: none;     /* NEW: Prevent container from blocking clicks on elements behind it */
-    z-index: 1000;            /* NEW: Ensure it renders on top of other content */
+    align-items: flex-end;
+    margin-bottom: 0;
+    pointer-events: none;
+    z-index: 1000;
 }
-/* --- END: Changes for .visualizer-container --- */
 
-
-/**
- * Visualizer Idle State (#soundWaveVisualizer)
- * Defines the base appearance and the transition for fading out.
- */
 #soundWaveVisualizer {
     width: 100%;
-    height: 0vh; /* Base height when idle or returning to idle */
+    height: 0vh;
     filter: blur(3em);
     opacity: 0.7;
-    object-fit: cover; /* Ensures image covers the area, even if clipped */
-
+    object-fit: cover;
     mask-image: linear-gradient(to top, black 40%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to top, black 40%, transparent 100%); /* Vendor prefix for compatibility */
-
-    /**
-     * Asymmetric Transition: Slow Return to Idle (Fade Out / Shrink Animation)
-     * This transition applies when the '.active' class is removed.
-     * The longer durations create a smooth, gradual disappearance effect.
-     */
+    -webkit-mask-image: linear-gradient(to top, black 40%, transparent 100%);
     transition: height 1.5s ease-in-out,
     filter 2.0s ease-in-out,
     opacity 2.0s ease-in-out;
 }
 
-/**
- * Visualizer Active State (#soundWaveVisualizer.active)
- * Defines the appearance when sound is detected and overrides the transition for fading in.
- */
 #soundWaveVisualizer.active {
     filter: blur(3em);
     opacity: 1;
-    /* Note: The 'height' property during activation is set dynamically via JavaScript. */
-
-    /**
-     * Asymmetric Transition: Fast Activation (Fade In / Grow Animation)
-     * This transition overrides the base settings when the '.active' class is added.
-     * The shorter durations provide immediate feedback when sound starts.
-     */
     transition: height 0.5s ease-out,
     filter 0.7s ease-out,
     opacity 0.7s ease-out;
 }
-
-
-
 
 .header-lang-select {
     width: auto;
@@ -186,48 +126,24 @@ body {
     box-shadow: none;
 }
 
-/* --- START: Auto-skip animation (Robust Version) --- */
-
-@keyframes progress-animation {
-    from {
-        background-position: 100% 0;
-    }
-    to {
-        background-position: 0% 0;
-    }
-}
-
 .auto-skip-progress {
     background-image: linear-gradient(to right, rgba(255, 255, 255, 0.25) 50%, transparent 50%);
     background-size: 200% 100%;
-    background-position: 100% 0; /* Set initial state */
+    background-position: 100% 0;
 }
 
 .auto-skip-progress.loading {
-    /* The animation-duration will be set via JavaScript */
     animation-name: progress-animation;
     animation-timing-function: linear;
-    animation-fill-mode: forwards; /* Keep the 'to' state after the animation ends */
+    animation-fill-mode: forwards;
 }
 
-/* --- END: Auto-skip animation --- */
-
-
-/* By default, the offline (wifi-off) icon is hidden */
 .online-only-header .bi-wifi-off {
     display: none;
 }
 
-/* When the body has the 'is-offline' class, show the offline icon */
 body.is-offline .online-only-header .bi-wifi-off {
     display: inline-block;
-}
-
-
-/* Add this at the end of your style.css file */
-
-body {
-    padding-bottom: 70px; /* Add padding to prevent content from being hidden by the nav bar */
 }
 
 .nav-bottom {
@@ -275,14 +191,47 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 80vh; /* Adjust as needed */
+    height: 80vh;
 }
 
-/* Streak Modal Styles */
+/* --- Streak Modal & Confetti Styles --- */
+
 #streak-modal-content {
     background: #343a40;
     border-radius: 1rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 1rem;
+    overflow: hidden;
+    z-index: 0;
+}
+
+#myStreakModal .modal-body {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+}
+
+.confetti {
+    position: absolute;
+    opacity: 0.5;
+    z-index: 0;
+
+    /* Set the starting vertical position directly */
+    top: 100%;
+
+    /* Animation properties */
+    animation-name: confetti-drift;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
 }
 
 .streak-badge {
@@ -298,6 +247,10 @@ body {
     font-size: 30px;
     box-shadow: 0 10px 20px rgba(255, 122, 0, 0.3);
     border: 4px solid #343a40;
+}
+
+#streak-trophy-badge {
+    animation: bounce 2s infinite;
 }
 
 .stat-item .stat-value {
@@ -340,4 +293,94 @@ body {
     background: linear-gradient(135deg, #ff9a00 0%, #ff7a00 100%);
     color: white;
     box-shadow: 0 4px 10px rgba(255, 122, 0, 0.4);
+    animation: today-pulse 2s infinite;
+}
+
+.day-streak-number {
+    font-weight: bold;
+    margin-left: 2px;
+}
+
+.streak-updated {
+    animation: number-pop 0.5s ease-in-out;
+}
+
+.streak-counter {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: auto;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ff7a00;
+    background: rgba(255, 122, 0, 0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    z-index: 1;
+}
+
+.streak-counter i {
+    margin-right: 5px;
+    animation: pulse 1.5s infinite;
+}
+
+/* --- Keyframes --- */
+
+@keyframes pulse-revised {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+}
+
+@keyframes progress-animation {
+    from {
+        background-position: 100% 0;
+    }
+    to {
+        background-position: 0% 0;
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-20px); }
+    60% { transform: translateY(-10px); }
+}
+
+@keyframes number-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); color: var(--highlight-color); }
+    100% { transform: scale(1); }
+}
+
+@keyframes confetti-drift {
+    from {
+        /* Start with no vertical movement from its initial position */
+        transform: rotate(0deg);
+    }
+    to {
+        /* Move up by 100 viewport heights while rotating */
+        transform: translateY(-100vh) rotate(720deg);
+    }
+}
+
+@keyframes today-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 122, 0, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 122, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 122, 0, 0); }
 }
