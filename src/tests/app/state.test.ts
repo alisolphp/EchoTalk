@@ -11,11 +11,13 @@ describe('State Management and Event Handlers', () => {
             "levels": [
                 {
                     "name": "Beginner (A1-A2)",
+
                     "categories": []
                 },
                 {
                     "name": "Intermediate (B1-B2)",
                     "categories": [
+
                         {
                             "name": "Interview",
                             "sentences": [
@@ -23,6 +25,7 @@ describe('State Management and Event Handlers', () => {
                             ]
                         }
                     ]
+
                 },
                 {
                     "name": "Advanced (C1-C2)",
@@ -30,28 +33,33 @@ describe('State Management and Event Handlers', () => {
                 }
             ]
         });
+
         localStorage.clear();
         app = new EchoTalkApp();
-
         const mockDbStore: { [key: string]: any } = {};
         const mockDbObject = {
+            objectStoreNames: ['recordings', 'practices'],
             transaction: vi.fn(() => {
                 const transaction = {
                     objectStore: () => ({
                         get: vi.fn((key: string) => {
+
                             const request: { onsuccess?: () => void, result?: any } = {};
                             setTimeout(() => {
                                 request.result = mockDbStore[key];
                                 if (request.onsuccess) request.onsuccess();
                             }, 0);
                             return request;
+
                         }),
                         add: vi.fn((data: any) => {
                             mockDbStore[data.sentence] = data;
                         }),
+
                         clear: vi.fn().mockImplementation(function () {
                             const request: { onsuccess?: () => void } = {};
                             setTimeout(() => {
+
                                 if (request.onsuccess) {
                                     request.onsuccess();
                                 }
@@ -59,7 +67,8 @@ describe('State Management and Event Handlers', () => {
                             return request;
                         })
                     }),
-                    oncomplete: null as (() => void) | null
+                    oncomplete: null as (() => void) |
+                        null
                 };
                 setTimeout(() => {
                     if (transaction.oncomplete) transaction.oncomplete();

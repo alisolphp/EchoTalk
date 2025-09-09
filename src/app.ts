@@ -564,7 +564,18 @@ export class EchoTalkApp {
                 window.location.reload();
                 return resolve();
             }
-            const transaction = this.db.transaction(['recordings'], 'readwrite');
+            const storeNames = Array.from(this.db.objectStoreNames);
+            if (storeNames.length === 0) {
+                localStorage.clear();
+                window.location.reload();
+                return resolve();
+            }
+            const transaction = this.db.transaction(storeNames, 'readwrite');
+            transaction.oncomplete = () => {
+                localStorage.clear();
+                window.location.reload();
+                resolve();
+            };
             transaction.onerror = (event) => {
                 const error = (event.target as IDBTransaction).error;
                 console.error("Transaction error during reset:", error);
@@ -572,20 +583,9 @@ export class EchoTalkApp {
                 window.location.reload();
                 reject(error);
             };
-            const store = transaction.objectStore('recordings');
-            const clearRequest = store.clear();
-            clearRequest.onsuccess = () => {
-                localStorage.clear();
-                window.location.reload();
-                resolve();
-            };
-            clearRequest.onerror = (event) => {
-                const error = (event.target as IDBRequest).error;
-                console.error("Error deleting recordings from IndexedDB:", error);
-                localStorage.clear();
-                window.location.reload();
-                reject(error);
-            };
+            storeNames.forEach(storeName => {
+                transaction.objectStore(storeName).clear();
+            });
         });
     }
 }

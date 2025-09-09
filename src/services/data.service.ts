@@ -80,7 +80,6 @@ export class DataService {
             request.onsuccess = () => resolve(request.result as Recording[]);
             request.onerror = err => reject(err);
         });
-
         const grouped: Record<string, Recording[]> = {};
         allRecords.forEach(rec => {
             if (!grouped[rec.sentence]) {
@@ -102,7 +101,6 @@ export class DataService {
             const lastB = Math.max(...grouped[b].map(r => r.timestamp?.getTime() || 0));
             return lastB - lastA;
         });
-
         for (const sentence of sortedSentences) {
             const recordings = grouped[sentence].sort((a, b) => (b.timestamp?.getTime() || 0) - (a.timestamp?.getTime() || 0));
             const truncated = this.app.utilService.truncateSentence(sentence);
@@ -114,51 +112,71 @@ export class DataService {
                 <h2 class="accordion-header" id="heading-${uniqueId}">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${uniqueId}" aria-expanded="false">
                         <div class="w-100 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
-                            <span class="fw-bold mb-1 mb-sm-0">${truncated}</span>
+          
+                           <span class="fw-bold mb-1 mb-sm-0">${truncated}</span>
                             <div class="d-flex align-items-center">
-                                <span class="badge bg-secondary me-2">${count} recording${count > 1 ? 's' : ''}</span>
+                                <span class="badge bg-secondary me-2">${count} recording${count > 1 ?
+                's' : ''}</span>
                                 <small class="text-muted">${lastRecTime.toLocaleString()}</small>
                             </div>
                         </div>
-                    </button>
+             
+                 </button>
                 </h2>
                 <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#recordingsList" data-sentence="${sentence.replace(/"/g, '&quot;')}">
                     <div class="accordion-body">
                         <ul class="list-group">
-                            ${recordings.map((rec, index) => `
+         
+                           ${recordings.map((rec, index) => `
                                 <li class="list-group-item">
                                     <div class="d-flex justify-content-between align-items-center flex-wrap">
+     
                                         <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
                                         <div class="row g-2 justify-content-center">
-                                            <div class="col-6 col-md-auto">
-                                                <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}">
-                                                    <i class="bi bi-robot"></i> Play Bot
+              
+                                           <div class="col-6 col-md-auto">
+                                                <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}" data-lang="${rec.lang}">
+              
+                                                   <i class="bi bi-robot"></i> Play Bot
                                                 </button>
-                                            </div>
+          
+                                               </div>
                                             <div class="col-6 col-md-auto">
-                                                <button class="btn btn-sm btn-primary play-user-audio w-100" data-sentence="${sentence}" data-index="${index}">
+                    
+                                         <button class="btn btn-sm btn-primary play-user-audio w-100" data-sentence="${sentence}" data-index="${index}">
                                                     <i class="bi bi-person-fill"></i> Play Mine
-                                                </button>
+         
+                                                 </button>
                                             </div>
-                                            ${this.app.lang === 'en-US' && this.app.spellCheckerIsAvailable ? `
+                 
+                                           ${rec.lang === 'en-US' && this.app.spellCheckerIsAvailable ?
+                `
                                                 <div class="col-6 col-md-auto">
-                                                    <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
+                                                  
+                                                   <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
                                                         <i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>
+                          
                                                     </button>
                                                 </div>
-                                            ` : ''}
+                          
+                                           ` : ''}
                                             <div class="col-6 col-md-auto">
-                                                <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                  
+                                               <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
                                                     <i class="bi bi-magic"></i> Full <span class="text-nowrap">AI Analyze</span>
-                                                </button>
+             
+                                                 </button>
                                             </div>
-                                        </div>
+                     
+                                         </div>
                                     </div>
                                     <div class="accuracy-result-container mt-2 border-top pt-2" style="display: none;"></div>
-                                </li>
+   
+                                         </li>
                             `).join('')}
                         </ul>
-                    </div>
+                   
+                 </div>
                 </div>
             </div>`;
             $list.append(sentenceHtml);

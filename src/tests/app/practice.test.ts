@@ -13,50 +13,60 @@ describe('Practice Logic', () => {
             "levels": [
                 {
                     "name": "Beginner (A1-A2)",
+
                     "categories": []
                 },
                 {
                     "name": "Intermediate (B1-B2)",
                     "categories": [
+
                         {
                             "name": "Interview",
                             "sentences": [
+
                                 "I'm a software architect with extensive experience in building scalable, resilient, and business-driven web platforms."
                             ]
                         }
                     ]
+
                 },
                 {
                     "name": "Advanced (C1-C2)",
                     "categories": []
                 }
             ]
+
         });
 
         localStorage.clear();
         app = new EchoTalkApp();
-
         // A more realistic in-memory mock for IndexedDB
         const mockDbStore: { [key: string]: any } = {};
         const mockDbObject = {
+            objectStoreNames: ['recordings', 'practices'],
             transaction: vi.fn(() => {
                 const transaction = {
                     objectStore: () => ({
                         get: vi.fn((key: string) => {
+
                             const request: { onsuccess?: () => void, result?: any } = {};
                             setTimeout(() => {
                                 request.result = mockDbStore[key];
+
                                 if (request.onsuccess) request.onsuccess();
                             }, 0);
                             return request;
+
                         }),
                         put: vi.fn((data: any) => {
                             mockDbStore[data.sentence] = data;
                         }),
+
                         add: vi.fn((data: any) => {
                             mockDbStore[data.sentence] = data;
                         }),
                         clear: vi.fn(() => {
+
                             const request: { onsuccess?: () => void } = {};
                             setTimeout(() => {
                                 Object.keys(mockDbStore).forEach(key => delete mockDbStore[key]);
@@ -65,7 +75,8 @@ describe('Practice Logic', () => {
                             return request;
                         })
                     }),
-                    oncomplete: null as (() => void) | null,
+                    oncomplete: null as (() => void) |
+                        null,
                     onerror: null
                 };
                 // Automatically trigger oncomplete after operations
@@ -79,7 +90,8 @@ describe('Practice Logic', () => {
         vi.spyOn(app.dataService, 'initDB').mockResolvedValue(mockDbObject as any);
 
         await app.init();
-        await vi.runAllTimers(); // Wait for init to complete fully
+        await vi.runAllTimers();
+        // Wait for init to complete fully
     });
 
     it('should switch to practice view when "Start Practice" is clicked', async () => {
