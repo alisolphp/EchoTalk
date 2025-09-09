@@ -236,8 +236,9 @@ export class AudioService {
      * @param text The text to speak and highlight.
      * @param onEnd An optional callback to run after speech is complete.
      * @param speed The playback speed multiplier.
+     * @param rateOverride
      */
-    public speakAndHighlight(text: string, onEnd?: (() => void) | null, speed: number = 1): void {
+    public speakAndHighlight(text: string, onEnd?: (() => void) | null, speed: number = 1, rateOverride: number | null = null): void {
         const container = $('#sentence-container');
         container.empty();
         speechSynthesis.cancel();
@@ -247,19 +248,15 @@ export class AudioService {
             container.append(span);
             if (index < wordSpans.length - 1) container.append(' ');
         });
-
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = this.app.lang;
-        utterance.rate = speed * this.app.speechRate;
+        utterance.rate = rateOverride ?? (speed * this.app.speechRate);
         let startTime: number;
-
         utterance.onstart = () => {
             startTime = performance.now();
         };
-
         utterance.onend = () => {
             const duration = (performance.now() - startTime) / 1000;
-
             if (this.app.isMobile && duration > 0.1) {
                 const currentWPS = phraseWords.length / duration;
                 this.app.estimatedWordsPerSecond = (this.app.estimatedWordsPerSecond * this.app.phrasesSpokenCount + currentWPS) / (this.app.phrasesSpokenCount + 1);
@@ -279,13 +276,13 @@ export class AudioService {
                 void $checkBtn[0].offsetHeight;
                 $checkBtn.css('animation-duration', `${waitTime}s`);
                 $checkBtn.addClass('loading');
-
                 this.app.autoSkipTimer = setTimeout(() => {
                     if (this.app.area !== 'Practice') return;
 
                     if (this.app.currentCount >= this.app.reps) {
                         this.app.practiceService.advanceToNextPhrase();
                     } else {
+
                         this.app.practiceService.practiceStep();
                     }
                 }, (waitTime * 1000) + 50);

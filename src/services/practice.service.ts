@@ -134,7 +134,6 @@ export class PracticeService {
             $('#feedback-text').html(`<div class="listening-indicator">${randomMessage}</div>`);
         } else {
             $('#feedback-text').html('');
-
             if (this.app.reps > 1 && this.app.currentCount >= 0) {
                 const repetitionMessages = [
                     `Repetition ${this.app.currentCount + 1} of ${this.app.reps}`,
@@ -156,7 +155,22 @@ export class PracticeService {
             }
         };
 
-        this.app.audioService.speakAndHighlight(phrase, this.app.isRecordingEnabled ? startRecordingCallback : null, speed);
+        let finalRate: number | null = null;
+        // speechRate value `0` means automatic.
+        if (this.app.speechRate === 0) {
+            let automaticBaseRate: number;
+            const practiceCountToday = this.currentSentencePracticeCount;
+            if (practiceCountToday === 0) { // 1st time
+                automaticBaseRate = 0.8; // Medium
+            } else if (practiceCountToday === 1 || practiceCountToday === 2) { // 2nd and 3rd
+                automaticBaseRate = 1.0; // Normal
+            } else { // 4th+
+                automaticBaseRate = 1.2; // Fast
+            }
+            finalRate = speed * automaticBaseRate;
+        }
+
+        this.app.audioService.speakAndHighlight(phrase, this.app.isRecordingEnabled ? startRecordingCallback : null, speed, finalRate);
         $('#sentence-container').off('click', '.word').on('click', '.word', (e) => this.app.uiService.showWordActionsModal(e.currentTarget));
     }
 

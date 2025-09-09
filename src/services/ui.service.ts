@@ -154,7 +154,7 @@ export class UiService {
         if ($repsSelect.find('option').length > 0) {
             return;
         }
-        $repsSelect.append(`<option value="0">Auto (recommended)</option>`);
+        $repsSelect.append(`<option value="0">🔁 Auto (recommended)</option>`);
         for (let i = 1; i <= 20; i++) {
             if ([1, 2, 3, 5, 10, 20].includes(i)) {
                 $repsSelect.append(`<option value="${i}">${i}</option>`);
