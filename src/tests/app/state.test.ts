@@ -6,6 +6,7 @@ describe('State Management and Event Handlers', () => {
     let app: EchoTalkApp;
 
     beforeEach(async () => {
+        vi.useFakeTimers();
         vi.spyOn($, 'getJSON').mockResolvedValue({
             "levels": [
                 {
@@ -32,26 +33,44 @@ describe('State Management and Event Handlers', () => {
         localStorage.clear();
         app = new EchoTalkApp();
 
+        const mockDbStore: { [key: string]: any } = {};
         const mockDbObject = {
-            transaction: vi.fn(() => ({
-                objectStore: () => ({
-                    getAll: vi.fn(),
-                    add: vi.fn(),
-                    clear: vi.fn().mockImplementation(function() {
-                        const request: { onsuccess?: () => void } = {};
-                        setTimeout(() => {
-                            if (request.onsuccess) {
-                                request.onsuccess();
-                            }
-                        }, 0);
-                        return request;
-                    })
-                })
-            }))
+            transaction: vi.fn(() => {
+                const transaction = {
+                    objectStore: () => ({
+                        get: vi.fn((key: string) => {
+                            const request: { onsuccess?: () => void, result?: any } = {};
+                            setTimeout(() => {
+                                request.result = mockDbStore[key];
+                                if (request.onsuccess) request.onsuccess();
+                            }, 0);
+                            return request;
+                        }),
+                        add: vi.fn((data: any) => {
+                            mockDbStore[data.sentence] = data;
+                        }),
+                        clear: vi.fn().mockImplementation(function () {
+                            const request: { onsuccess?: () => void } = {};
+                            setTimeout(() => {
+                                if (request.onsuccess) {
+                                    request.onsuccess();
+                                }
+                            }, 0);
+                            return request;
+                        })
+                    }),
+                    oncomplete: null as (() => void) | null
+                };
+                setTimeout(() => {
+                    if (transaction.oncomplete) transaction.oncomplete();
+                }, 0);
+                return transaction;
+            })
         };
         vi.spyOn(app.dataService, 'initDB').mockResolvedValue(mockDbObject as any);
 
         await app.init();
+        await vi.runAllTimers();
     });
 
     it('should correctly load a sample sentence and reset state', async () => {
@@ -106,10 +125,6 @@ describe('State Management and Event Handlers', () => {
     });
 
     it('should initialize practice state from UI values on start', async () => {
-        vi.spyOn($, 'getJSON').mockResolvedValueOnce({
-            levels: []
-        });
-
         const customSentence = 'I\'m a software architect with extensive experience in building scalable, resilient, and business-driven web platforms.';
         ($('#sentenceInput') as any).val(customSentence);
         ($('#sentenceInput') as any).attr('data-val', customSentence);
@@ -117,6 +132,7 @@ describe('State Management and Event Handlers', () => {
         $('#practiceModeSelect').val('check');
 
         await app.practiceService.startPractice();
+        await vi.runAllTimers();
 
         expect(app.sentence).toBe(customSentence);
         expect(app.reps).toBe(5);

@@ -15,7 +15,8 @@ export class PracticeService {
     }
 
     /**
-     * Starts a new practice session. It initializes state, saves the practice attempt
+     * Starts a new practice session.
+     * It initializes state, saves the practice attempt
      * to IndexedDB, sets up the UI, and begins the first practice step.
      */
     public async startPractice(): Promise<void> {
@@ -27,21 +28,22 @@ export class PracticeService {
             return;
         }
 
+        const selectedReps = parseInt($('#repsSelect').val() as string);
+
         this.app.words = this.app.sentence.split(/\s+/).filter(w => w.length > 0);
-        this.app.reps = parseInt(($('#repsSelect').val() as string));
         this.app.currentCount = 0;
         this.app.correctCount = 0;
         this.app.attempts = 0;
         this.app.area = 'Practice';
         this.app.saveState();
-
         try {
             const transaction = this.app.db.transaction(['practices'], 'readwrite');
             const store = transaction.objectStore('practices');
             const request = store.get(this.app.sentence);
 
             request.onsuccess = () => {
-                const data: Practice | undefined = request.result;
+                const data: Practice |
+                    undefined = request.result;
                 if (data) {
                     this.currentSentencePracticeCount = data.count;
                     data.count++;
@@ -53,12 +55,18 @@ export class PracticeService {
                         sentence: this.app.sentence,
                         lang: this.app.lang,
                         count: 1,
+
                         lastPracticed: new Date()
                     };
                     store.add(newPractice);
                 }
-            };
 
+                if (selectedReps === 0) {
+                    this.app.reps = Math.max(1, 5 - this.currentSentencePracticeCount);
+                } else {
+                    this.app.reps = selectedReps;
+                }
+            };
             // Move UI setup and the first practiceStep call inside oncomplete
             transaction.oncomplete = async () => {
                 $('#session-complete-container').addClass('d-none').empty();

@@ -310,6 +310,7 @@ describe('Practice Logic', () => {
         $('#practiceModeSelect').val('check');
 
         await app.practiceService.startPractice();
+        await vi.runAllTimers();
 
         app.currentCount = 1;
         app.currentIndex = 0;
