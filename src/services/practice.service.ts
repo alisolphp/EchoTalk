@@ -338,6 +338,8 @@ export class PracticeService {
             ttsMsg += ` Your accuracy: ${accuracy}%.`;
         }
 
+        ttsMsg += ` Ready for another round?`;
+
         if(this.app.area === 'Practice'){
             this.app.audioService.playSound('./sounds/victory.mp3', 2.5, 0.6);
             setTimeout(() => this.app.audioService.speak(ttsMsg, null, 1.3, 'en-US'), 1100);
