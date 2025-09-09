@@ -100,8 +100,8 @@ export class EchoTalkApp {
     /** A counter for the number of phrases spoken by TTS to refine `estimatedWordsPerSecond`. */
     public phrasesSpokenCount: number = 0;
 
-    /** The speech rate for the text-to-speech engine (0.1 to 10). */
-    public speechRate: number = 1;
+    /** The speech rate for the text-to-speech engine (0 to 10). */
+    public speechRate: number = 0;
 
     /** The API key for the spell checker service. */
     public spellApiKey: string = '';
