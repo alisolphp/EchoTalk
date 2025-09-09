@@ -8,7 +8,7 @@ describe('Practice Logic', () => {
     let app: EchoTalkApp;
 
     beforeEach(async () => {
-        vi.useRealTimers();
+        vi.useFakeTimers(); // Use fake timers to control async operations
         vi.spyOn($, 'getJSON').mockResolvedValue({
             "levels": [
                 {
@@ -32,35 +32,62 @@ describe('Practice Logic', () => {
                 }
             ]
         });
+
         localStorage.clear();
         app = new EchoTalkApp();
 
+        // A more realistic in-memory mock for IndexedDB
+        const mockDbStore: { [key: string]: any } = {};
         const mockDbObject = {
-            transaction: vi.fn(() => ({
-                objectStore: () => ({
-                    getAll: vi.fn(),
-                    add: vi.fn(),
-                    clear: vi.fn().mockImplementation(function() {
-                        const request: { onsuccess?: () => void } = {};
-                        setTimeout(() => {
-                            if (request.onsuccess) {
-                                request.onsuccess();
-                            }
-                        }, 0);
-                        return request;
-                    })
-                })
-            }))
+            transaction: vi.fn(() => {
+                const transaction = {
+                    objectStore: () => ({
+                        get: vi.fn((key: string) => {
+                            const request: { onsuccess?: () => void, result?: any } = {};
+                            setTimeout(() => {
+                                request.result = mockDbStore[key];
+                                if (request.onsuccess) request.onsuccess();
+                            }, 0);
+                            return request;
+                        }),
+                        put: vi.fn((data: any) => {
+                            mockDbStore[data.sentence] = data;
+                        }),
+                        add: vi.fn((data: any) => {
+                            mockDbStore[data.sentence] = data;
+                        }),
+                        clear: vi.fn(() => {
+                            const request: { onsuccess?: () => void } = {};
+                            setTimeout(() => {
+                                Object.keys(mockDbStore).forEach(key => delete mockDbStore[key]);
+                                if (request.onsuccess) request.onsuccess();
+                            }, 0);
+                            return request;
+                        })
+                    }),
+                    oncomplete: null as (() => void) | null,
+                    onerror: null
+                };
+                // Automatically trigger oncomplete after operations
+                setTimeout(() => {
+                    if (transaction.oncomplete) transaction.oncomplete();
+                }, 0);
+                return transaction;
+            })
         };
+
         vi.spyOn(app.dataService, 'initDB').mockResolvedValue(mockDbObject as any);
 
         await app.init();
+        await vi.runAllTimers(); // Wait for init to complete fully
     });
 
     it('should switch to practice view when "Start Practice" is clicked', async () => {
         ($('#sentenceInput') as any).val('This is a test sentence');
         ($('#sentenceInput') as any).attr('data-val', 'This is a test sentence');
+
         await app.practiceService.startPractice();
+        await vi.runAllTimers(); // Wait for the transaction.oncomplete to run
 
         expect($('#configArea').hasClass('d-none')).toBe(true);
         expect($('#practiceArea').hasClass('d-none')).toBe(false);
@@ -139,14 +166,17 @@ describe('Practice Logic', () => {
     it('should advance to the next phrase correctly in skip mode', async () => {
         ($('#sentenceInput') as any).val('one two three. four five six.');
         ($('#sentenceInput') as any).attr('data-val', 'one two three. four five six.');
-        $('#startBtn').trigger('click');
+
+        await app.practiceService.startPractice();
+        await vi.runAllTimers();
 
         app.currentIndex = 0;
         app.currentCount = 1;
 
         app.practiceService.advanceToNextPhrase();
 
-        expect(app.currentIndex).toBe(3);
+        // For a new sentence, it should only advance by 1 word
+        expect(app.currentIndex).toBe(1);
         expect(app.currentCount).toBe(0);
     });
 
@@ -174,27 +204,29 @@ describe('Practice Logic', () => {
         ($('#sentenceInput') as any).attr('data-val', 'This is a. test phrase');
         ($('#repsSelect') as any).val('2');
         $('#practiceModeSelect').val('check');
-        $('#startBtn').trigger('click');
+
+        await app.practiceService.startPractice();
+        await vi.runAllTimers();
 
         app.currentCount = 1;
         app.currentIndex = 0;
 
-        ($('#userInput') as any).val('This is a');
+        ($('#userInput') as any).val('This');
         await app.practiceService.checkAnswer();
 
-        expect(app.currentIndex).toBe(3);
+        // For a new sentence, it should only advance by 1 word
+        expect(app.currentIndex).toBe(1);
         expect(app.currentCount).toBe(0);
     });
 
     it('should advance to next phrase if user input is empty on the last repetition', async () => {
-        vi.useFakeTimers();
-
         ($('#sentenceInput') as any).val('First phrase. Second phrase.');
         ($('#sentenceInput') as any).attr('data-val', 'First phrase. Second phrase.');
         ($('#repsSelect') as any).val('2');
-        $('#mode-check').prop('checked', true);
+        $('#practiceModeSelect').val('check');
 
         await app.practiceService.startPractice();
+        await vi.runAllTimers();
 
         app.currentCount = 1;
         app.currentIndex = 0;
@@ -204,10 +236,9 @@ describe('Practice Logic', () => {
 
         await vi.runAllTimers();
 
-        expect(app.currentIndex).toBe(2);
+        // For a new sentence, it should only advance by 1 word
+        expect(app.currentIndex).toBe(1);
         expect(app.currentCount).toBe(0);
-
-        vi.useRealTimers();
     });
 
     it('should repeat the phrase on empty answer if repetitions are not complete', async () => {
@@ -312,6 +343,8 @@ describe('Practice Logic', () => {
         });
 
         await app.practiceService.startPractice();
+        await vi.runAllTimers(); // Wait for the transaction.oncomplete to run
+
         const highlightedWord = $('#sentence-container .highlighted');
         expect(highlightedWord.length).toBe(1);
         expect(highlightedWord.text()).toBe('I\'m');
