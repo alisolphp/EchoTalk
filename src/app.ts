@@ -374,7 +374,6 @@ export class EchoTalkApp {
         $('#navPrePractice').on('click', () => this.uiService.showPracticeSetup());
         $('#navOptions').on('click', () => this.uiService.showOptionsPage());
         $('#navForYou').on('click', () => this.uiService.showForYouPage());
-        $('#myRecordingsLink').on('click', () => this.dataService.displayRecordings());
         $('.backHomeButton').on('click', () => this.uiService.showPracticeSetup());
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
@@ -392,6 +391,12 @@ export class EchoTalkApp {
                 this.audioService.speak(sentence, null, val, 'en-US');
             }
         });
+
+        $('#practiceModeSelect').on('change', (e) => {
+            this.practiceMode = $(e.currentTarget).val() as 'skip' | 'check' | 'auto-skip';
+            this.saveState();
+        });
+
         $('#showTtsWarningBtn').on('click', () => this.uiService.showTTSWarning());
 
         if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
@@ -414,23 +419,19 @@ export class EchoTalkApp {
         document.addEventListener('show.bs.modal', () => {
             if (window.location.hash !== '#modal') window.location.hash = 'modal';
         });
-
-        // A single, reliable native event listener for all modals.
         document.addEventListener('show.bs.modal', (event) => {
-            // Generic logic for hash management
             if (window.location.hash !== '#modal') {
                 window.location.hash = 'modal';
             }
 
-            // Specific logic for myStreakModal
             const modal = event.target as HTMLElement;
+
             if (modal.id === 'myStreakModal') {
                 console.log("myStreakModal is opening, firing events...");
                 this.dataService.populateStreakModal();
-                this.uiService.showStaticConfetti(); // Changed from triggerCelebrationAnimation
+                this.uiService.showStaticConfetti();
             }
         });
-
         document.addEventListener('hidden.bs.modal', () => {
             if (window.location.hash === '#modal') {
                 history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -440,6 +441,16 @@ export class EchoTalkApp {
         window.addEventListener('online', () => this.uiService.updateOnlineStatusClass());
         window.addEventListener('offline', () => this.uiService.updateOnlineStatusClass());
         $('#continueLearningBtn').on('click', () => this.uiService.showPracticeSetup());
+        $('#myStreakModal .practiceRelated-stat').on('click', () => {
+            const streakModalElement = document.getElementById('myStreakModal');
+            if (streakModalElement) {
+                const streakModalInstance = Modal.getInstance(streakModalElement);
+                if (streakModalInstance) {
+                    streakModalInstance.hide();
+                }
+            }
+            this.dataService.displayPractices();
+        });
     }
 
     /**

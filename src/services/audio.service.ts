@@ -259,20 +259,30 @@ export class AudioService {
 
         utterance.onend = () => {
             const duration = (performance.now() - startTime) / 1000;
+
             if (this.app.isMobile && duration > 0.1) {
                 const currentWPS = phraseWords.length / duration;
                 this.app.estimatedWordsPerSecond = (this.app.estimatedWordsPerSecond * this.app.phrasesSpokenCount + currentWPS) / (this.app.phrasesSpokenCount + 1);
                 this.app.phrasesSpokenCount++;
             }
+
+            if (this.app.area !== 'Practice') {
+                return;
+            }
+
             if (this.app.practiceMode === 'auto-skip') {
                 this.app.currentCount++;
                 const $checkBtn = $('#checkBtn');
                 const waitTime = duration * 1.5;
+
                 $checkBtn.removeClass('loading');
                 void $checkBtn[0].offsetHeight;
                 $checkBtn.css('animation-duration', `${waitTime}s`);
                 $checkBtn.addClass('loading');
+
                 this.app.autoSkipTimer = setTimeout(() => {
+                    if (this.app.area !== 'Practice') return;
+
                     if (this.app.currentCount >= this.app.reps) {
                         this.app.practiceService.advanceToNextPhrase();
                     } else {
@@ -280,7 +290,10 @@ export class AudioService {
                     }
                 }, (waitTime * 1000) + 50);
             }
-            if (onEnd) onEnd();
+
+            if (onEnd && this.app.area === 'Practice') {
+                onEnd();
+            }
         };
 
         if (this.app.isMobile) {
@@ -308,6 +321,7 @@ export class AudioService {
         speechSynthesis.speak(utterance);
         ($('#userInput') as JQuery<HTMLInputElement>).focus();
     }
+
 
     /**
      * Plays a user's recorded audio from a Blob.

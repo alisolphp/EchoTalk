@@ -40,11 +40,6 @@
     </div>
 
     <div id="configArea">
-        <div class="row mb-3 d-none">
-            <div class="col text-center d-flex justify-content-center gap-2">
-                <button id="showRecordingsBtn" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#recordingsModal"><i class="bi bi-file-earmark-music"></i> My Records</button>
-            </div>
-        </div>
         <div class="mb-3">
             <label for="sentenceInput" class="form-label">Enter your sentence or
                 <button id="useSampleBtn" class="btn btn-secondary small py-0 px-2 me-1">Use a random Sample</button>:
@@ -181,11 +176,11 @@
         </div>
 
         <div class="modal-footer mt-3">
-            <button type="button" class="btn btn-success opacity-50" data-bs-dismiss="modal">
+            <button type="button" class="btn btn-success opacity-50 backHomeButton">
                 <i class="bi bi-check-square-fill"></i>
                 <small>Saved Automatically</small>
             </button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-secondary backHomeButton ms-2">Close</button>
         </div>
     </div>
 
@@ -194,11 +189,11 @@
 <div id="areaForYou" class="container my-4 d-none area">
     <h1 class="mb-4 text-center">For You</h1>
     <div class="list-group">
-        <a href="#" id="myRecordingsLink" class="list-group-item list-group-item-action">
+        <a href="#" id="showRecordingsBtn" class="list-group-item list-group-item-action py-3">
             <i class="bi bi-file-earmark-music" style="color: #ff00d7;"></i>
             My Recordings
         </a>
-        <a href="#" id="showPracticesBtn" class="list-group-item list-group-item-action">
+        <a href="#" id="showPracticesBtn" class="list-group-item list-group-item-action py-3">
             <i class="bi bi-journal-check" style="color: #78ff65;"></i>
             My Practices
         </a>
@@ -206,7 +201,7 @@
             <i class="bi bi-bar-chart-line-fill"></i>
             My Progress
         </a>
-        <a href="#" id="showStreakBtn" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#myStreakModal">
+        <a href="#" id="showStreakBtn" class="list-group-item list-group-item-action py-3" data-bs-toggle="modal" data-bs-target="#myStreakModal">
             <i class="bi bi-fire" style="color: #ff8f3d;"></i>
             My Streak
         </a>
@@ -498,11 +493,11 @@
                         <div id="streakDays" class="stat-value">0</div>
                         <div class="stat-label">Day Streak</div>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-item practiceRelated-stat" data-bs-dismiss="modal">
                         <div id="streakSentences" class="stat-value">0</div>
                         <div class="stat-label">Sentences Practiced</div>
                     </div>
-                    <div class="stat-item">
+                    <div class="stat-item practiceRelated-stat" data-bs-dismiss="modal">
                         <div id="streakPractices" class="stat-value">0</div>
                         <div class="stat-label">Total Practices</div>
                     </div>

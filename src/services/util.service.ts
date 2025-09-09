@@ -20,12 +20,24 @@ export class UtilService {
             clearTimeout(this.app.autoSkipTimer);
             this.app.autoSkipTimer = null;
         }
+        if (this.app.autoRestartTimer) {
+            clearTimeout(this.app.autoRestartTimer);
+            this.app.autoRestartTimer = null;
+        }
+
         const $checkBtn = $('#checkBtn');
         if ($checkBtn.hasClass('auto-skip-progress')) {
             $checkBtn.removeClass('loading');
             $checkBtn.css('animation-duration', '');
         }
+
+        const $restartBtn = $('#restartPracticeBtn');
+        if ($restartBtn.length) {
+            $restartBtn.removeClass('loading');
+            $restartBtn.css('animation-duration', '');
+        }
     }
+
 
     /**
      * Finds the starting index of the current phrase by looking backwards from the
