@@ -8,6 +8,7 @@ import { Practice } from '../types';
  */
 export class PracticeService {
     private app: EchoTalkApp;
+    private currentSentencePracticeCount: number = 0;
 
     constructor(app: EchoTalkApp) {
         this.app = app;
@@ -21,7 +22,6 @@ export class PracticeService {
         this.app.practiceMode = ($('#practiceModeSelect').val() as 'skip' | 'check' | 'auto-skip');
         const rawVal = $('#sentenceInput').attr('data-val');
         this.app.sentence = (typeof rawVal === 'string' ? rawVal.trim() : '').replace(/([^\.\?\!\n])\n/g, '$1.\n');
-
         if (this.app.sentence.trim() === '') {
             alert('Please enter a sentence to practice.');
             return;
@@ -39,13 +39,16 @@ export class PracticeService {
             const transaction = this.app.db.transaction(['practices'], 'readwrite');
             const store = transaction.objectStore('practices');
             const request = store.get(this.app.sentence);
+
             request.onsuccess = () => {
                 const data: Practice | undefined = request.result;
                 if (data) {
+                    this.currentSentencePracticeCount = data.count;
                     data.count++;
                     data.lastPracticed = new Date();
                     store.put(data);
                 } else {
+                    this.currentSentencePracticeCount = 0;
                     const newPractice: Practice = {
                         sentence: this.app.sentence,
                         lang: this.app.lang,
@@ -55,24 +58,31 @@ export class PracticeService {
                     store.add(newPractice);
                 }
             };
+
+            // Move UI setup and the first practiceStep call inside oncomplete
+            transaction.oncomplete = async () => {
+                $('#session-complete-container').addClass('d-none').empty();
+                $('#practice-ui-container').removeClass('d-none');
+                $('#configArea').addClass('d-none');
+                $('#practiceArea').removeClass('d-none');
+                $('#backHomeButton').removeClass('d-none').addClass('d-inline-block');
+
+                await this.app.audioService.initializeMicrophoneStream();
+                this.app.uiService.setupPracticeUI();
+                this.app.uiService.renderFullSentence();
+
+                // Now, practiceStep is called only after the DB transaction is complete
+                this.practiceStep();
+                location.hash = 'practice';
+            };
+
             transaction.onerror = (event) => {
                 console.error('Transaction error while saving practice:', (event.target as IDBTransaction).error);
             };
+
         } catch (error) {
             console.error('Error saving practice data:', error);
         }
-
-        $('#session-complete-container').addClass('d-none').empty();
-        $('#practice-ui-container').removeClass('d-none');
-        $('#configArea').addClass('d-none');
-        $('#practiceArea').removeClass('d-none');
-        $('#backHomeButton').removeClass('d-none').addClass('d-inline-block');
-
-        await this.app.audioService.initializeMicrophoneStream();
-        this.app.uiService.setupPracticeUI();
-        this.app.uiService.renderFullSentence();
-        this.practiceStep();
-        location.hash = 'practice';
     }
 
     /**
@@ -87,7 +97,7 @@ export class PracticeService {
             return;
         }
 
-        const endIndex = this.app.utilService.getPhraseBounds(this.app.currentIndex, this.getMaxWordsBasedOnLevel() as number);
+        const endIndex = this.app.utilService.getPhraseBounds(this.app.currentIndex, this.getDynamicMaxWords());
         const startIndex = this.app.utilService.getStartOfCurrentPhrase();
         const phrase = this.app.words.slice(startIndex, endIndex).join(' ');
         this.app.currentPhrase = this.app.utilService.removeJunkCharsFromText(phrase);
@@ -129,6 +139,15 @@ export class PracticeService {
         return wordsPerLevel[level] ?? 5;
     }
 
+    private getDynamicMaxWords(): number {
+        const levelMaxWords = this.getMaxWordsBasedOnLevel() as number;
+
+        // The newness limit now gradually increases with each practice session.
+        const newnessLimit = this.currentSentencePracticeCount + 1;
+
+        return Math.min(levelMaxWords, newnessLimit);
+    }
+
     /**
      * Checks the user's spoken or typed answer against the target phrase.
      * This method is used in 'check' mode. It calculates similarity and provides feedback.
@@ -138,14 +157,13 @@ export class PracticeService {
             await this.app.audioService.stopRecording();
         }
 
-        const endIndex = this.app.utilService.getPhraseBounds(this.app.currentIndex, this.getMaxWordsBasedOnLevel() as number);
+        const endIndex = this.app.utilService.getPhraseBounds(this.app.currentIndex, this.getDynamicMaxWords());
         const startIndex = this.app.utilService.getStartOfCurrentPhrase();
         const target = this.app.utilService.cleanText(this.app.words.slice(startIndex, endIndex).join(' '));
 
         const userInput = $('#userInput') as JQuery<HTMLInputElement>;
         let answer = this.app.utilService.cleanText(userInput.val() as string);
         this.app.currentCount++;
-
         if (answer === "") {
             if (this.app.currentCount >= this.app.reps) {
                 if (this.app.practiceMode === 'check') {
@@ -191,6 +209,7 @@ export class PracticeService {
             } else {
                 this.finishSession();
             }
+
         }, 1200);
     }
 
@@ -202,7 +221,7 @@ export class PracticeService {
         if (this.app.isRecordingEnabled) {
             this.app.audioService.stopRecording();
         }
-        const endIndex = this.app.utilService.getPhraseBounds(this.app.currentIndex, this.getMaxWordsBasedOnLevel() as number);
+        const endIndex = this.app.utilService.getPhraseBounds(this.app.currentIndex, this.getDynamicMaxWords());
         this.app.currentIndex = endIndex;
         this.app.currentCount = 0;
         if (this.app.currentIndex >= this.app.words.length) {
@@ -222,6 +241,10 @@ export class PracticeService {
             clearTimeout(this.app.autoRestartTimer);
             this.app.autoRestartTimer = null;
         }
+
+        // Since we've just practiced it, its count is now > 0 in the DB.
+        // By setting this to a non-zero value, we ensure the "newness" limit is lifted on restart.
+        this.currentSentencePracticeCount = 1;
 
         // Reset state variables for the new run
         this.app.currentIndex = 0;
