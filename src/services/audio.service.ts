@@ -273,7 +273,7 @@ export class AudioService {
             if (this.app.practiceMode === 'auto-skip') {
                 this.app.currentCount++;
                 const $checkBtn = $('#checkBtn');
-                const waitTime = duration * 1.5;
+                const waitTime = duration * 1.2;
 
                 $checkBtn.removeClass('loading');
                 void $checkBtn[0].offsetHeight;
