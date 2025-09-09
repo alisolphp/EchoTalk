@@ -424,6 +424,7 @@ export class EchoTalkApp {
         document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
         window.addEventListener('online', () => this.uiService.updateOnlineStatusClass());
         window.addEventListener('offline', () => this.uiService.updateOnlineStatusClass());
+        $('#myStreakModal').on('show.bs.modal', () => this.dataService.populateStreakModal());
     }
 
     /**

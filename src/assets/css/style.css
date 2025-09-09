@@ -277,3 +277,67 @@ body {
     align-items: center;
     height: 80vh; /* Adjust as needed */
 }
+
+/* Streak Modal Styles */
+#streak-modal-content {
+    background: #343a40;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.streak-badge {
+    width: 80px;
+    height: 80px;
+    margin: -60px auto 20px;
+    background: linear-gradient(135deg, #ff9a00 0%, #ff7a00 100%);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 30px;
+    box-shadow: 0 10px 20px rgba(255, 122, 0, 0.3);
+    border: 4px solid #343a40;
+}
+
+.stat-item .stat-value {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: var(--bs-info);
+}
+
+.stat-item .stat-label {
+    font-size: 0.9em;
+    color: var(--bs-secondary-color);
+}
+
+#streakCalendar .day .circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 1.2em;
+    transition: all 0.3s ease;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--bs-secondary-color);
+}
+
+#streakCalendar .day .day-label {
+    font-size: 0.8em;
+    color: var(--bs-secondary-color);
+}
+
+#streakCalendar .day .circle.checked {
+    background: linear-gradient(135deg, var(--bs-success) 0%, #1a7a44 100%);
+    color: white;
+    box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
+}
+
+#streakCalendar .day .circle.today {
+    background: linear-gradient(135deg, #ff9a00 0%, #ff7a00 100%);
+    color: white;
+    box-shadow: 0 4px 10px rgba(255, 122, 0, 0.4);
+}

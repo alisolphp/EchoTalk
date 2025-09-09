@@ -302,4 +302,102 @@ export class DataService {
             $('#practicesList').html('<p class="text-center text-danger">Could not load practices.</p>');
         };
     }
+
+    public async populateStreakModal(): Promise<void> {
+        const transaction = this.app.db.transaction(['practices'], 'readonly');
+        const store = transaction.objectStore('practices');
+        const request = store.getAll();
+
+        request.onerror = (event) => {
+            console.error('Error fetching practices for streak:', (event.target as IDBRequest).error);
+            $('#streakDays').text('?');
+        };
+
+        request.onsuccess = () => {
+            const practices: Practice[] = request.result;
+
+            const totalSentences = practices.length;
+            const totalPractices = practices.reduce((sum, p) => sum + p.count, 0);
+
+            const practiceDates = new Set(
+                practices.map(p => p.lastPracticed.toISOString().split('T')[0])
+            );
+
+            let currentStreak = 0;
+            if (practiceDates.size > 0) {
+                const today = new Date();
+                const yesterday = new Date();
+                yesterday.setDate(today.getDate() - 1);
+
+                const todayStr = today.toISOString().split('T')[0];
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                let lastPracticeDay = new Date(0);
+                practiceDates.forEach(dateStr => {
+                    const practiceDate = new Date(dateStr + 'T00:00:00');
+                    if (practiceDate > lastPracticeDay) {
+                        lastPracticeDay = practiceDate;
+                    }
+                });
+
+                if (practiceDates.has(todayStr) || practiceDates.has(yesterdayStr)) {
+                    currentStreak = 1;
+                    let dayToCheck = new Date(lastPracticeDay);
+                    dayToCheck.setDate(dayToCheck.getDate() - 1);
+
+                    while (practiceDates.has(dayToCheck.toISOString().split('T')[0])) {
+                        currentStreak++;
+                        dayToCheck.setDate(dayToCheck.getDate() - 1);
+                    }
+                }
+            }
+
+            $('#streakDays').text(currentStreak);
+            $('#streakSentences').text(totalSentences);
+            $('#streakPractices').text(totalPractices);
+
+            const calendarContainer = $('#streakCalendar');
+            calendarContainer.empty();
+            const todayForCalendar = new Date();
+            const daysToShow = [-2, -1, 0, 1, 2];
+            const dayFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
+
+            daysToShow.forEach(offset => {
+                const date = new Date(todayForCalendar);
+                date.setDate(date.getDate() + offset);
+                const dateStr = date.toISOString().split('T')[0];
+
+                let dayLabel;
+                if (offset === 0) dayLabel = 'Today';
+                else if (offset === -1) dayLabel = 'Yesterday';
+                else if (offset === 1) dayLabel = 'Tomorrow';
+                else dayLabel = dayFormatter.format(date);
+
+                let circleClass = '';
+                let circleContent = ``;
+
+                if (offset < 0) {
+                    if (practiceDates.has(dateStr)) {
+                        circleClass = 'checked';
+                        circleContent = `<i class="bi bi-check-lg"></i>`;
+                    }
+                } else if (offset === 0) {
+                    circleClass = 'today';
+                    if (practiceDates.has(dateStr)) {
+                        circleContent = `<i class="bi bi-check-lg"></i>`;
+                    } else {
+                        circleContent = `<i class="bi bi-fire"></i>`;
+                    }
+                }
+
+                const dayHtml = `
+                    <div class="day">
+                        <div class="circle ${circleClass}">${circleContent}</div>
+                        <div class="day-label">${dayLabel}</div>
+                    </div>
+                `;
+                calendarContainer.append(dayHtml);
+            });
+        };
+    }
 }
