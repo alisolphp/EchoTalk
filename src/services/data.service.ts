@@ -410,31 +410,48 @@ export class DataService {
 
     public async updateStreakCounters(): Promise<void> {
         if (!this.app.db) return;
-        const transaction = this.app.db.transaction(['practices'], 'readonly');
-        const store = transaction.objectStore('practices');
-        const request = store.getAll();
 
-        request.onerror = (event) => {
-            console.error('Error fetching practices for streak counters:', (event.target as IDBRequest).error);
-        };
+        try {
+            const transaction = this.app.db.transaction(['practices'], 'readonly');
+            const store = transaction.objectStore('practices');
 
-        request.onsuccess = async () => {
-            const practices: Practice[] = request.result;
-            const currentStreak = await this._calculateStreak(practices);
-            const streakNumberEl = $('.day-streak-number');
+            const practices: Practice[] = [];
+            const request = store.openCursor();
 
-            // Always show, even if 0
-            streakNumberEl.text(currentStreak).show();
+            return new Promise((resolve, reject) => {
+                request.onsuccess = (event) => {
+                    const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+                    if (cursor) {
+                        practices.push(cursor.value);
+                        cursor.continue();
+                    } else {
+                        this.processStreakCounterUpdate(practices).then(resolve).catch(reject);
+                    }
+                };
 
-            // Animate if the number has changed
-            if (currentStreak !== this.lastKnownStreak && this.lastKnownStreak !== -1) {
-                streakNumberEl.addClass('streak-updated');
-                setTimeout(() => {
-                    streakNumberEl.removeClass('streak-updated');
-                }, 500); // Animation duration in ms
-            }
+                request.onerror = (event) => {
+                    console.error('Error fetching practices for streak counters:', (event.target as IDBRequest).error);
+                    reject((event.target as IDBRequest).error);
+                };
+            });
+        } catch (error) {
+            console.error('Error in updateStreakCounters:', error);
+        }
+    }
 
-            this.lastKnownStreak = currentStreak;
-        };
+    private async processStreakCounterUpdate(practices: Practice[]): Promise<void> {
+        const currentStreak = await this._calculateStreak(practices);
+        const streakNumberEl = $('.day-streak-number');
+
+        streakNumberEl.text(currentStreak).show();
+
+        if (currentStreak !== this.lastKnownStreak && this.lastKnownStreak !== -1) {
+            streakNumberEl.addClass('streak-updated');
+            setTimeout(() => {
+                streakNumberEl.removeClass('streak-updated');
+            }, 500);
+        }
+
+        this.lastKnownStreak = currentStreak;
     }
 }

@@ -132,9 +132,33 @@ beforeEach(async () => {
                 setTimeout(() => {
                     request.result = {
                         objectStoreNames: { contains: vi.fn().mockReturnValue(false) },
-                        createObjectStore: vi.fn().mockReturnValue({ createIndex: vi.fn() }),
+                        createObjectStore: vi.fn().mockReturnValue({
+                            createIndex: vi.fn(),
+                            openCursor: vi.fn().mockReturnValue({
+                                onsuccess: null,
+                                onerror: null,
+                                result: null
+                            })
+                        }),
                         transaction: () => ({
-                            objectStore: () => ({ add: vi.fn() }),
+                            objectStore: () => ({
+                                add: vi.fn(),
+                                get: vi.fn(),
+                                getAll: vi.fn().mockReturnValue({
+                                    onsuccess: null,
+                                    onerror: null,
+                                    result: []
+                                }),
+                                openCursor: vi.fn().mockReturnValue({
+                                    onsuccess: null,
+                                    onerror: null,
+                                    result: null
+                                }),
+                                clear: vi.fn().mockReturnValue({
+                                    onsuccess: null,
+                                    onerror: null
+                                })
+                            }),
                         }),
                     };
                     if (typeof request.onsuccess === 'function') {

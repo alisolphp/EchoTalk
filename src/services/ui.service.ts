@@ -104,6 +104,7 @@ export class UiService {
         this.app.updateLanguageGeneral();
         $('.current-language-general-name').text(this.app.langGeneral);
         $('#languageSelect, #headerLanguageSelect').val(this.app.lang);
+        $('.practicing-languages-count').text(Object.keys(this.app.languageMap).length);
     }
 
     /**
