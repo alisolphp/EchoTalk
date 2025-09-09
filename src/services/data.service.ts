@@ -442,13 +442,14 @@ export class DataService {
     private async processStreakCounterUpdate(practices: Practice[]): Promise<void> {
         const currentStreak = await this._calculateStreak(practices);
         const streakNumberEl = $('.day-streak-number');
+        const streakParentEl = streakNumberEl.parent();
 
         streakNumberEl.text(currentStreak).show();
 
         if (currentStreak !== this.lastKnownStreak && this.lastKnownStreak !== -1) {
-            streakNumberEl.addClass('streak-updated');
+            streakParentEl.addClass('streak-parent-updated');
             setTimeout(() => {
-                streakNumberEl.removeClass('streak-updated');
+                streakParentEl.removeClass('streak-parent-updated');
             }, 500);
         }
 

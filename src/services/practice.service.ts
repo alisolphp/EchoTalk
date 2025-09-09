@@ -120,6 +120,18 @@ export class PracticeService {
             $('#feedback-text').html(`<div class="listening-indicator">${randomMessage}</div>`);
         } else {
             $('#feedback-text').html('');
+
+            if (this.app.reps > 1 && this.app.currentCount >= 0) {
+                const repetitionMessages = [
+                    `Repetition ${this.app.currentCount + 1} of ${this.app.reps}`,
+                    `Round ${this.app.currentCount + 1}/${this.app.reps}`,
+                    `Practice ${this.app.currentCount + 1} of ${this.app.reps}`,
+                    `Try ${this.app.currentCount + 1}/${this.app.reps}`
+                ];
+                const randomMessage = repetitionMessages[Math.floor(Math.random() * repetitionMessages.length)];
+                $('#feedback-text').html(`<div class="repetition-indicator">${randomMessage}</div>`);
+            }
+
         }
 
         const startRecordingCallback = () => {

@@ -324,7 +324,34 @@ body.is-offline .online-only-header .bi-wifi-off {
     animation: pulse 1.5s infinite;
 }
 
+
+.repetition-indicator {
+    color: #8adeff;
+    font-style: italic;
+    opacity: 0.8;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.streak-parent-updated {
+    animation: streak-parent-pulse 0.5s ease-in-out;
+}
+
 /* --- Keyframes --- */
+
+
+@keyframes streak-parent-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); background-color: rgba(255, 122, 0, 0.2); border-radius: 5px; }
+    100% { transform: scale(1); }
+}
+
+@keyframes number-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); color: var(--highlight-color); }
+    100% { transform: scale(1); }
+}
 
 @keyframes pulse-revised {
     0% {
