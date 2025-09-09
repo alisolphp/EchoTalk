@@ -1,4 +1,4 @@
-import { EchoTalkApp } from '../../assets/js/app';
+import { EchoTalkApp } from '../../app';
 import { vi } from 'vitest';
 import $ from 'jquery';
 

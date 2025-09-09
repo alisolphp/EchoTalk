@@ -1,4 +1,4 @@
-import '../../assets/js/app'; // This import attaches the hashCode to String.prototype
+import '../../app'; // This import attaches the hashCode to String.prototype
 
 describe('String.prototype.hashCode', () => {
 

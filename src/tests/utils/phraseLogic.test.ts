@@ -1,4 +1,4 @@
-import { EchoTalkApp } from '../../assets/js/app';
+import { EchoTalkApp } from '../../app';
 
 describe('Phrase Logic Utilities', () => {
     let app: EchoTalkApp;

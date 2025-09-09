@@ -1,4 +1,4 @@
-import { EchoTalkApp } from '../../assets/js/app';
+import { EchoTalkApp } from '../../app';
 
 describe('Text Cleaning Utilities', () => {
     let app: EchoTalkApp;

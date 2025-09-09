@@ -7,7 +7,7 @@ import { Modal } from 'bootstrap';
 import './utils/string.extensions';
 
 // Imports custom CSS styles and string extensions.
-import './../css/style.css';
+import './assets/css/style.css';
 
 // Imports type definitions and services used throughout the application.
 import { SampleData } from './types';
