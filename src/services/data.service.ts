@@ -140,18 +140,26 @@ export class DataService {
                                                     </button>
                                                 </div>
                                                 ${rec.lang === 'en-US' && this.app.spellCheckerIsAvailable ?
-                    `
+                                                `
                                                     <div class="col-6 col-md-auto">
                                                         <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
                                                             <i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>
                                                         </button>
                                                     </div>
-                                                ` : ''}
-                                                <div class="col-6 col-md-auto">
-                                                    <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
-                                                        <i class="bi bi-magic"></i> Full <span class="text-nowrap">AI Analyze</span>
-                                                    </button>
-                                                </div>
+                                                    <div class="col-6 col-md-auto">
+                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                                            <i class="bi bi-magic"></i> Full <span class="text-nowrap">AI Analyze</span>
+                                                        </button>
+                                                    </div>
+                                                ` : 
+                                                `
+                                                    <div class="col-12 col-md-auto">
+                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                                            <i class="bi bi-magic"></i> Comprehensive <span class="text-nowrap">AI Analyze</span>
+                                                        </button>
+                                                    </div>
+                                                `
+                                                }
                                             </div>
                                         </div>
                                         <div class="accuracy-result-container mt-2 border-top pt-2" style="display: none;"></div>

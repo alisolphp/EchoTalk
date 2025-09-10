@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import { Modal } from 'bootstrap';
 import { EchoTalkApp } from '../app';
 import {
     getTranslatePrompt,
@@ -254,6 +255,12 @@ export class AiService {
         `;
 
         $('#aiInstructionsModalBody').html(modalBodyContent);
+
+        const modalElement = document.getElementById('aiInstructionsModal');
+        if (modalElement) {
+            const modal = Modal.getOrCreateInstance(modalElement);
+            modal.show();
+        }
     }
 
     /**
