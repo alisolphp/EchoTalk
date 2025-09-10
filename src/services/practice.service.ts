@@ -23,7 +23,6 @@ export class PracticeService {
         this.app.practiceMode = ($('#practiceModeSelect').val() as 'skip' | 'check' | 'auto-skip');
         const rawVal = $('#sentenceInput').attr('data-val');
         this.app.sentence = (typeof rawVal === 'string' ? rawVal.trim() : '').replace(/([^\.\?\!\n])\n/g, '$1.\n');
-
         if (this.app.sentence.trim() === '') {
             alert('Please enter a sentence to practice.');
             return;
@@ -42,12 +41,12 @@ export class PracticeService {
             const request = store.get(this.app.sentence);
 
             request.onsuccess = () => {
-                const data: Practice | undefined = request.result;
+                const data: Practice |
+                    undefined = request.result;
                 let practicesTodayCount = 0;
 
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-
                 if (data) {
                     if (data.practiceHistory) {
                         practicesTodayCount = data.practiceHistory.filter(timestamp => {
@@ -82,7 +81,6 @@ export class PracticeService {
                     this.app.reps = selectedReps;
                 }
             };
-
             transaction.oncomplete = async () => {
                 $('#session-complete-container').addClass('d-none').empty();
                 $('#practice-ui-container').removeClass('d-none');
@@ -90,14 +88,17 @@ export class PracticeService {
                 $('#practiceArea').removeClass('d-none');
                 $('#backHomeButton').removeClass('d-none').addClass('d-inline-block');
 
+                if (this.app.practiceMode === 'auto-skip') {
+                    this.app.requestWakeLock();
+                }
+
                 await this.app.audioService.initializeMicrophoneStream();
                 this.app.uiService.setupPracticeUI();
                 this.app.uiService.renderFullSentence();
 
-                this.practiceStep();
+                await this.practiceStep();
                 location.hash = 'practice';
             };
-
             transaction.onerror = (event) => {
                 console.error('Transaction error while saving practice:', (event.target as IDBTransaction).error);
             };
@@ -112,10 +113,10 @@ export class PracticeService {
      * It determines the current phrase, speaks it using TTS, and sets up recording if enabled.
      * @param speed The playback speed for the TTS, defaults to 1.
      */
-    public practiceStep(speed: number = 1): void {
+    public async practiceStep(speed: number = 1): Promise<void> {
         this.app.utilService.clearAutoSkipTimer();
         if (this.app.currentIndex >= this.app.words.length) {
-            this.finishSession();
+            await this.finishSession();
             return;
         }
 
@@ -162,11 +163,14 @@ export class PracticeService {
             let automaticBaseRate: number;
             const practiceCountToday = this.currentSentencePracticeCount;
             if (practiceCountToday === 0) { // 1st time
-                automaticBaseRate = 0.8; // Medium
+                automaticBaseRate = 0.8;
+                // Medium
             } else if (practiceCountToday === 1 || practiceCountToday === 2) { // 2nd and 3rd
-                automaticBaseRate = 1.0; // Normal
+                automaticBaseRate = 1.0;
+                // Normal
             } else { // 4th+
-                automaticBaseRate = 1.2; // Fast
+                automaticBaseRate = 1.2;
+                // Fast
             }
             finalRate = speed * automaticBaseRate;
         }
@@ -251,12 +255,12 @@ export class PracticeService {
         }
 
         this.app.saveState();
-        setTimeout(() => {
+        setTimeout(async () => {
             if (this.app.currentIndex < this.app.words.length) {
                 this.app.uiService.renderFullSentence();
-                this.practiceStep();
+                await this.practiceStep();
             } else {
-                this.finishSession();
+                await this.finishSession();
             }
 
         }, 1200);
@@ -266,21 +270,21 @@ export class PracticeService {
      * Advances the practice session to the next phrase in the sentence.
      * Used in 'skip' and 'auto-skip' modes.
      */
-    public advanceToNextPhrase(): void {
+    public async advanceToNextPhrase(): Promise<void> {
         if (this.app.isRecordingEnabled) {
-            this.app.audioService.stopRecording();
+            await this.app.audioService.stopRecording();
         }
         const endIndex = this.app.utilService.getPhraseBounds(this.app.currentIndex, this.getDynamicMaxWords());
         this.app.currentIndex = endIndex;
         this.app.currentCount = 0;
         if (this.app.currentIndex >= this.app.words.length) {
-            this.finishSession();
+            await this.finishSession();
             return;
         }
         this.app.saveState();
         this.app.dataService.updateStreakCounters();
         this.app.uiService.renderFullSentence();
-        this.practiceStep();
+        await this.practiceStep();
     }
 
     /**
@@ -319,10 +323,13 @@ export class PracticeService {
      * Concludes the practice session when all phrases have been completed.
      * It shows a completion message, plays a victory sound, and clears session-specific state.
      */
-    public finishSession(): void {
+    public async finishSession(): Promise<void> {
         this.app.dataService.updateStreakCounters();
         this.app.utilService.clearAutoSkipTimer();
         this.app.audioService.terminateMicrophoneStream();
+        if (this.app.practiceMode === 'auto-skip') {
+            await this.app.releaseWakeLock();
+        }
         if(this.app.area === 'Practice') {
             this.app.uiService.triggerCelebrationAnimation();
         }
@@ -340,7 +347,6 @@ export class PracticeService {
         }
 
         ttsMsg += ` Ready for another round?`;
-
         if(this.app.area === 'Practice'){
             this.app.audioService.playSound('./sounds/victory.mp3', 2.5, 0.6);
             setTimeout(() => this.app.audioService.speak(ttsMsg, null, 1.3, 'en-US'), 1100);
@@ -352,14 +358,13 @@ export class PracticeService {
             ${accuracyText}
             <div class="d-grid gap-3 col-10 col-md-6 mx-auto mt-4">
                 <button id="restartPracticeBtn" class="btn btn-primary btn-lg" onclick="app.practiceService.restartCurrentPractice(); return false;">
-                    <i class="bi bi-arrow-repeat"></i> Repeat this sentence
+                     <i class="bi bi-arrow-repeat"></i> Repeat this sentence
                 </button>
                 <button class="btn btn-secondary" onclick="app.resetWithoutReload(); return false;">
                     Try a new sentence?
                 </button>
             </div>
         </div>`;
-
         $('#practice-ui-container').addClass('d-none');
         $('#session-complete-container').html(completionHtml).removeClass('d-none');
         $('#restartPracticeBtn').focus();
@@ -372,23 +377,19 @@ export class PracticeService {
         $('#backHomeButton').addClass('d-none').removeClass('d-inline-block');
 
         if (this.app.practiceMode === 'auto-skip' && this.app.area === 'Practice') {
-            const waitTime = 5; // seconds
+            const waitTime = 5;
+            // seconds
             const $restartBtn = $('#restartPracticeBtn');
 
             $restartBtn.addClass('auto-skip-progress');
-
             // Reset any previous animation state to ensure it restarts correctly
             $restartBtn.removeClass('loading');
-
             // Force a DOM reflow to apply the class removal before adding it again
             void $restartBtn[0].offsetHeight;
-
             // Set the animation duration
             $restartBtn.css('animation-duration', `${waitTime}s`);
-
             // Add the 'loading' class to trigger the animation
             $restartBtn.addClass('loading');
-
             // Set a timer to automatically restart the practice after the animation completes
             this.app.autoRestartTimer = setTimeout(() => {
                 if (!$('#session-complete-container').hasClass('d-none')) {

@@ -94,6 +94,8 @@ export class EchoTalkApp {
     /** A timer for the `auto restart current practice` in the 'auto-skip' practice mode. */
     public autoRestartTimer: number | null = null;
 
+    public wakeLockSentinel: WakeLockSentinel | null = null;
+
     public autoSkipTimerCallback: (() => void) | null = null;
     public autoSkipStartTime: number = 0;
     public autoSkipWaitTime: number = 0;
@@ -242,6 +244,7 @@ export class EchoTalkApp {
         this.utilService.clearAutoSkipTimer();
         await this.audioService.stopRecording();
         this.audioService.terminateMicrophoneStream();
+        await this.releaseWakeLock();
 
         this.autoSkipTimerCallback = null;
         this.autoSkipStartTime = 0;
@@ -270,7 +273,6 @@ export class EchoTalkApp {
 
         this.loadState();
         this.uiService.updateLanguageUI();
-
         if (!this.sentence) {
             this.sentence = this.utilService.pickSample();
         }
@@ -279,7 +281,6 @@ export class EchoTalkApp {
         this.uiService.setInputValue(this.sentence);
         this.uiService.setInputValue('');
         this.uiService.renderSampleSentence();
-        console.log("Application reset to saved state without reloading the page.");
     }
 
     /**
@@ -503,6 +504,7 @@ export class EchoTalkApp {
             }
         } else {
             if (isPracticingWithAutoSkip) {
+                this.requestWakeLock();
                 if(!$('#wordActionsModal').hasClass('show')){
                     this.resumeAutoSkip();
                 }
@@ -651,6 +653,39 @@ export class EchoTalkApp {
                 transaction.objectStore(storeName).clear();
             });
         });
+    }
+
+    /**
+     * Requests a screen wake lock to prevent the device from sleeping.
+     * This is used during 'auto-skip' practice mode.
+     */
+    public async requestWakeLock(): Promise<void> {
+        if ('wakeLock' in navigator) {
+            try {
+                // Release any existing lock before requesting a new one.
+                if (this.wakeLockSentinel) {
+                    await this.wakeLockSentinel.release();
+                    this.wakeLockSentinel = null;
+                }
+                this.wakeLockSentinel = await navigator.wakeLock.request('screen');
+                this.wakeLockSentinel.addEventListener('release', () => {
+                    // The lock can be released by the system, so we should nullify the sentinel.
+                    this.wakeLockSentinel = null;
+                });
+            } catch (err: any) {
+                // Fail silently if the request is denied.
+            }
+        }
+    }
+
+    /**
+     * Releases the active screen wake lock.
+     */
+    public async releaseWakeLock(): Promise<void> {
+        if (this.wakeLockSentinel) {
+            await this.wakeLockSentinel.release();
+            this.wakeLockSentinel = null;
+        }
     }
 
     /**
