@@ -43,8 +43,21 @@ export class PracticeService {
 
             request.onsuccess = () => {
                 const data: Practice | undefined = request.result;
+                let practicesTodayCount = 0;
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
                 if (data) {
-                    this.currentSentencePracticeCount = data.count;
+                    if (data.practiceHistory) {
+                        practicesTodayCount = data.practiceHistory.filter(timestamp => {
+                            const practiceDate = new Date(timestamp);
+                            practiceDate.setHours(0, 0, 0, 0);
+                            return practiceDate.getTime() === today.getTime();
+                        }).length;
+                    }
+
+                    this.currentSentencePracticeCount = practicesTodayCount;
                     data.count++;
                     if (!data.practiceHistory) {
                         data.practiceHistory = [new Date()];
