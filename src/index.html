@@ -238,52 +238,129 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="quickStartModalLabel">Quick Start Guide & Features</h5>
+                <h5 class="modal-title" id="quickStartModalLabel">Welcome & Quick Start Guide</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>This tool is designed for Shadowing practice and works completely offline. To get started, you can either enter your own sentence or use one of the provided samples.</p>
-                <h5>Quick Start Guide:</h5>
+
+                <h5>What is Shadowing?</h5>
+                <p>Shadowing is a powerful technique to boost your fluency and pronunciation. It involves listening to a phrase and repeating it as quickly and accurately as possible. Watch this short video to see how it works:</p>
+
+                <div class="text-center mb-4">
+                    <button class="btn btn-outline-danger" id="loadVideoBtn">
+                        <i class="bi bi-youtube"></i> Watch an Intro to Shadowing<br><small>(on YouTube)</small>
+                    </button>
+                </div>
+
+                <div id="videoContainer" class="ratio ratio-16x9 d-none"></div>
+                <script>
+                    document.getElementById("loadVideoBtn").addEventListener("click", function() {
+                        const container = document.getElementById("videoContainer");
+                        if (!container.querySelector("iframe")) {
+                            container.innerHTML = `
+                                <iframe
+                                    src="https://www.youtube.com/embed/KDpfN0TA4c4?autoplay=1"
+                                    title="YouTube video player"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen>
+                                </iframe>
+                            `;
+                        }
+                        container.classList.remove("d-none");
+                        container.scrollIntoView({ behavior: "smooth" });
+                    });
+                </script>
+
+                <hr>
+
+                <h5>What is EchoTalk?</h5>
+                <p>EchoTalk is your personal tool for mastering the Shadowing technique, helping you improve your pronunciation and fluency. It's designed with your privacy as the top priority:
+                <ul>
+                    <li><strong>Works Completely Offline:</strong> No internet connection is needed after the first load.</li>
+                    <li><strong>Your Data is Protected:</strong> All your practices and recordings stay securely on your device and are never sent to any server.</li>
+                    <li><strong>Installable on Your Phone:</strong> You can add EchoTalk to your home screen just like a regular app for easy access anytime, anywhere.</li>
+                </ul>
+                </p>
+                <hr>
+
+                <h5>Quick Start Guide</h5>
                 <ol>
-                    <li><strong>Enter your sentence:</strong> Type the text you want to practice into the text box.</li>
-                    <li><strong>Or use a sample:</strong> Click the <strong>"Use a random Sample"</strong> button to load a random sentence.</li>
-                    <li><strong>Select a Practice Mode:</strong>
-                        <ul>
-                            <li><strong>Check Mode:</strong> After listening, repeat the phrase using your keyboard's mic and press "Check" to evaluate your pronunciation.</li>
-                            <li><strong>Skip-Only Mode:</strong> Simply listen, repeat to yourself, and then press "Next Step" to proceed. (This is the default mode).</li>
-                        </ul>
-                    </li>
+                    <li><strong>Enter your sentence:</strong> Type or paste the text you want to practice or simply click <strong>"Use a Sample"</strong> to load a sentence tailored to your level.</li>
                     <li>Press the <strong>"Start Practice"</strong> button to begin.</li>
                 </ol>
+                <div class="text-center mb-4">
+                    <a class="backHomeButton btn btn-primary" data-bs-dismiss="modal">
+                        <i class="bi bi-check-square"></i> I got it. Let's dive into practicing!
+                    </a>
+                </div>
                 <hr>
-                <h5>Other Features:</h5>
+
+                <h4 class="mb-3 text-center">🚀 Discover Our Powerful Features 🚀</h4>
+
+                <h5>🧠 Smart Training & Learning Modes</h5>
                 <ul>
-                    <li><strong>Start From Any Word:</strong> Before starting, click any word in the full sentence to set it as your starting point.</li>
-                    <li><strong>Re-listen at Slow Speed:</strong> During practice, click the <i class="bi bi-play-fill"></i> button at the beginning of the phrase to hear it again at a slower speed.</li>
-                    <li><strong>Look Up Word Meanings:</strong> Click on any word in the phrase being displayed to search for its meaning on Google in a new tab.</li>
-                    <li><strong>Record Your Voice:</strong> You can enable voice recording to save your attempts locally in your browser and compare them with the original audio later.</li>
-                    <li><strong>Auto-Save Progress:</strong> Your settings and current progress are automatically saved, allowing you to easily continue your practice later.</li>
-                    <li><strong>Analyze with AI:</strong> In the 'My Records' modal, click the <i class="bi bi-magic"></i> <strong>Analyze with AI</strong> button next to your recording. This instantly copies a detailed prompt to your clipboard and downloads your audio file. You can then upload the file to an AI chatbot (like Gemini) and paste the prompt to get a free, fast, and accurate analysis of your pronunciation.</li>
+                    <li><strong>Auto-Skip Mode:</strong> Enjoy a hands-free practice experience! After each phrase plays, the app pauses for you to repeat, then automatically moves on.</li>
+                    <li><strong>Smart Auto-Settings:</strong>
+                        <ul>
+                            <li><strong>Auto Repetition:</strong> Select "Auto (recommended)," and the app intelligently sets the repetition count based on your practice history.</li>
+                            <li><strong>Auto Speed:</strong> Choose "Auto," and the playback speed adjusts during your session, starting slower and getting faster as you warm up.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Intelligent Sentence Splitting:</strong> The app breaks down sentences meaningfully, creating smaller chunks for beginners and avoiding single, low-impact words.</li>
+                    <li><strong>Repetition Counter:</strong> During practice, a counter shows how many times the current phrase will repeat, so you always know what's next.</li>
+                </ul>
+
+                <h5>🎨 Modern UI/UX</h5>
+                <ul>
+                    <li><strong>Multi-Language Support:</strong> Practice is not limited to English! You can also work with languages like Dutch, Polish, Portuguese, Russian, and more.</li>
+                    <li><strong>Enhanced Word Interaction:</strong> Click any word to open a modal with powerful tools for learning its meaning, pronunciation, and even AI-powered analysis.</li>
+                    <li><strong>Practice Streak Tracker:</strong> Stay motivated by tracking your consecutive practice days! A dedicated modal shows your streak on a calendar with detailed stats.</li>
+                    <li><strong>"My Practices" History:</strong> The app saves every sentence you've practiced. You can review your history, grouped by language, and jump right back into a past session.</li>
+                    <li><strong>Review Your Recordings:</strong> In "Check Mode," your voice recordings are saved. Access "My Recordings" to listen back to your pronunciation and track your improvement over time.</li>
+                    <li><strong>Seamless Post-Practice Flow:</strong> After finishing a sentence, easily choose to "Repeat This Sentence" or "Try a New Sentence" to continue your learning journey.</li>
+                    <li><strong>Celebration Animation:</strong> Enjoy a fun, rewarding animation after successfully completing a practice session.</li>
+                    <li><strong>Visual Recording Feedback:</strong> See live sound waves that visualize your voice as you record.</li>
+                </ul>
+
+                <h5>📝 Rich Content & Integrations</h5>
+                <ul>
+                    <li><strong>Personalized Sample Sentences:</strong> Click the "Use a Sample" button to get sentences based on your chosen level and category of interest (configurable in Settings).</li>
+                    <li><strong>Phrase Translation & Analysis:</strong> While practicing, click on any word to translate the current phrase with Google Translate or analyze it with AI chatbots.</li>
+                </ul>
+
+                <h5>⚙️ Performance & Technology</h5>
+                <ul>
+                    <li><strong>Optimized for Offline Use:</strong> The app runs fastest when you're offline, as it uses your device's powerful native speech engines for a seamless experience.</li>
+                    <li><strong>PWA with Auto-Updates:</strong> The app works as a Progressive Web App (PWA) and a smart caching strategy ensures you always have the latest version.</li>
+                    <li><strong>App Version Display:</strong> The version and build date are shown at the bottom of the page, making it easier for you to report any issues.</li>
                 </ul>
 
                 <hr>
                 <div class="alert alert-info d-flex align-items-center" role="alert">
                     <i class="bi bi-lightbulb-fill flex-shrink-0 me-2"></i>
                     <div>
-                        <strong>Pro-Tip:</strong> For the fastest performance, turn off your internet connection. This ensures the app uses your device's local speech engines, which are much faster than online services.
+                        <strong>Pro-Tip:</strong> For the best performance, turn off your internet. This ensures the app uses your device's local speech engines, which are much faster and work offline.
                     </div>
                 </div>
 
                 <hr>
                 <h5>Terms and Privacy</h5>
                 <p class="small text-muted">
-                    By using this open-source application and copying prompts into AI chatbots (like ChatGPT), you are responsible for your own actions. We provide these prompts to assist you and have strived to make them helpful and harmless. This project is open-source under the MIT License. You can view the source code on <a href="https://github.com/alisolphp/EchoTalk" target="_blank" rel="noopener noreferrer">GitHub</a>.
+                    This project is open-source under the MIT License. By using this application, you are responsible for your own actions, especially when using AI integration features. You can view the source code on <a href="https://github.com/alisolphp/EchoTalk" target="_blank" rel="noopener noreferrer">GitHub</a>.
                 </p>
 
                 <hr>
                 <p class="small text-muted">This tool works completely offline. No internet connection is required, and your privacy is protected as no data is sent to any server. Please ensure you have the
                     <span class="current-language-general-name">English</span>
                     TTS (Text-to-Speech) engine installed on your device.</p>
+
+                <div class="text-center mb-4">
+                    <a class="backHomeButton btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x"></i> Close
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>
