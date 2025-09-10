@@ -9,7 +9,7 @@ import { Recording, Practice, SampleData } from '../types';
  */
 export class DataService {
     private app: EchoTalkApp;
-    private lastKnownStreak: number = -1; // Added to track streak changes for animation
+    public lastKnownStreak: number = -1;
 
     constructor(app: EchoTalkApp) {
         this.app = app;
@@ -436,11 +436,11 @@ export class DataService {
                 else if (offset === -1) dayLabel = 'Yesterday';
                 else dayLabel = dayFormatter.format(date);
 
-                let circleClass = '';
+                let circleClass = 'bg-dark bi bi-hourglass-top';
                 let circleContent = '';
 
                 if(offset < 0){
-                    circleClass = 'bg-danger bi bi-x';
+                    circleClass = 'bg-secondary bi bi-x';
                 }
 
                 if (offset === 0) {
@@ -466,45 +466,52 @@ export class DataService {
         };
     }
 
-    public async updateStreakCounters(): Promise<void> {
-        if (!this.app.db) return;
-
+    public async updateStreakCounters(): Promise<{ newStreak: number; oldStreak: number; }> {
+        if (!this.app.db) {
+            const streak = this.lastKnownStreak > 0 ? this.lastKnownStreak : 0;
+            return { newStreak: streak, oldStreak: this.lastKnownStreak };
+        }
         try {
             const transaction = this.app.db.transaction(['practices'], 'readonly');
             const store = transaction.objectStore('practices');
 
             const practices: Practice[] = [];
             const request = store.openCursor();
-
             return new Promise((resolve, reject) => {
                 request.onsuccess = (event) => {
                     const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
                     if (cursor) {
                         practices.push(cursor.value);
+
                         cursor.continue();
                     } else {
                         this.processStreakCounterUpdate(practices).then(resolve).catch(reject);
                     }
+
                 };
 
                 request.onerror = (event) => {
                     console.error('Error fetching practices for streak counters:', (event.target as IDBRequest).error);
                     reject((event.target as IDBRequest).error);
                 };
+
             });
         } catch (error) {
             console.error('Error in updateStreakCounters:', error);
+            const streak = this.lastKnownStreak > 0 ? this.lastKnownStreak : 0;
+            return { newStreak: streak, oldStreak: this.lastKnownStreak };
         }
     }
 
-    private async processStreakCounterUpdate(practices: Practice[]): Promise<void> {
+    private async processStreakCounterUpdate(practices: Practice[]): Promise<{ newStreak: number; oldStreak: number; }> {
+        const oldStreak = this.lastKnownStreak;
         const currentStreak = await this._calculateStreak(practices);
         const streakNumberEl = $('.day-streak-number');
         const streakParentEl = streakNumberEl.parent();
 
         streakNumberEl.text(currentStreak).show();
 
-        if (currentStreak !== this.lastKnownStreak && this.lastKnownStreak !== -1) {
+        if (currentStreak > oldStreak && oldStreak !== -1) {
             streakParentEl.addClass('streak-parent-updated');
             setTimeout(() => {
                 streakParentEl.removeClass('streak-parent-updated');
@@ -512,5 +519,6 @@ export class DataService {
         }
 
         this.lastKnownStreak = currentStreak;
+        return { newStreak: currentStreak, oldStreak: oldStreak };
     }
 }

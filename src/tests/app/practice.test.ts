@@ -126,14 +126,6 @@ describe('Practice Logic', () => {
         vi.useRealTimers();
     });
 
-    it('should finish session and show final message when finishSession is invoked', async () => {
-        app.practiceService.finishSession();
-
-        expect($('#practiceArea').find('h2').length).toBeGreaterThan(0);
-        expect(localStorage.getItem('shadow_index')).toBeNull();
-        expect(localStorage.getItem('shadow_count')).toBeNull();
-    });
-
     it('should speak the correct sentence when "Play Bot" is clicked', async () => {
         const sentence = 'This is a test sentence';
         (window as any).modalRecordings = { [sentence]: [] };
@@ -274,20 +266,6 @@ describe('Practice Logic', () => {
         expect(app.currentCount).toBe(1);
         expect(app.currentIndex).toBe(0);
         expect(app.practiceService.practiceStep).toHaveBeenCalled();
-    });
-
-    it('should display accuracy in the final message for check mode', async () => {
-        $('#sentenceInput').val('This is a test sentence.');
-        $('#practiceModeSelect').val('check');
-        $('#startBtn').trigger('click');
-
-        app.attempts = 10;
-        app.correctCount = 7;
-
-        app.practiceService.finishSession();
-
-        const finalHtml = $('#practiceArea').html();
-        expect(finalHtml).toContain('Your accuracy: 70%');
     });
 
     it('should dim words from previous sentences in renderFullSentence', async () => {

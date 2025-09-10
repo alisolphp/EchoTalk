@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import { Modal } from 'bootstrap';
 import { EchoTalkApp } from '../app';
 import { Practice } from '../types';
 
@@ -36,44 +37,25 @@ export class PracticeService {
         this.app.area = 'Practice';
         this.app.saveState();
         try {
-            const transaction = this.app.db.transaction(['practices'], 'readwrite');
+            const transaction = this.app.db.transaction(['practices'], 'readonly');
             const store = transaction.objectStore('practices');
             const request = store.get(this.app.sentence);
 
             request.onsuccess = () => {
-                const data: Practice |
-                    undefined = request.result;
+                const data: Practice | undefined = request.result;
                 let practicesTodayCount = 0;
 
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                if (data) {
-                    if (data.practiceHistory) {
-                        practicesTodayCount = data.practiceHistory.filter(timestamp => {
-                            const practiceDate = new Date(timestamp);
-                            practiceDate.setHours(0, 0, 0, 0);
-                            return practiceDate.getTime() === today.getTime();
-                        }).length;
-                    }
-
-                    this.currentSentencePracticeCount = practicesTodayCount;
-                    data.count++;
-                    if (!data.practiceHistory) {
-                        data.practiceHistory = [new Date()];
-                    } else {
-                        data.practiceHistory.push(new Date());
-                    }
-                    store.put(data);
-                } else {
-                    this.currentSentencePracticeCount = 0;
-                    const newPractice: Practice = {
-                        sentence: this.app.sentence,
-                        lang: this.app.lang,
-                        count: 1,
-                        practiceHistory: [new Date()]
-                    };
-                    store.add(newPractice);
+                if (data && data.practiceHistory) {
+                    practicesTodayCount = data.practiceHistory.filter(timestamp => {
+                        const practiceDate = new Date(timestamp);
+                        practiceDate.setHours(0, 0, 0, 0);
+                        return practiceDate.getTime() === today.getTime();
+                    }).length;
                 }
+
+                this.currentSentencePracticeCount = practicesTodayCount;
 
                 if (selectedReps === 0) {
                     this.app.reps = Math.max(1, 5 - this.currentSentencePracticeCount);
@@ -100,12 +82,67 @@ export class PracticeService {
                 location.hash = 'practice';
             };
             transaction.onerror = (event) => {
-                console.error('Transaction error while saving practice:', (event.target as IDBTransaction).error);
+                console.error('Transaction error while reading practice count:', (event.target as IDBTransaction).error);
             };
 
         } catch (error) {
-            console.error('Error saving practice data:', error);
+            console.error('Error reading practice data:', error);
         }
+    }
+
+    /**
+     * Records the completion of a practice session into the database.
+     * @returns A promise that resolves with the new streak count.
+     */
+    private recordPracticeCompletion(): Promise<number> {
+        return new Promise((resolve, reject) => {
+            try {
+                const transaction = this.app.db.transaction(['practices'], 'readwrite');
+
+                transaction.oncomplete = async () => {
+                    const newStreak = await this.app.dataService.updateStreakCounters();
+                    resolve(newStreak);
+                };
+
+                transaction.onerror = (event) => {
+                    console.error('Transaction error while saving practice:', (event.target as IDBTransaction).error);
+                    reject((event.target as IDBTransaction).error);
+                };
+
+                const store = transaction.objectStore('practices');
+                const request = store.get(this.app.sentence);
+
+                request.onsuccess = () => {
+                    const data: Practice | undefined = request.result;
+                    if (data) {
+                        data.count++;
+                        if (!data.practiceHistory) {
+                            data.practiceHistory = [new Date()];
+                        } else {
+                            data.practiceHistory.push(new Date());
+                        }
+                        store.put(data);
+                    } else {
+                        const newPractice: Practice = {
+                            sentence: this.app.sentence,
+                            lang: this.app.lang,
+                            count: 1,
+                            practiceHistory: [new Date()]
+                        };
+                        store.add(newPractice);
+                    }
+                };
+
+                request.onerror = (event) => {
+                    console.error('Error fetching practice to update:', (event.target as IDBRequest).error);
+                    reject((event.target as IDBRequest).error);
+                };
+
+            } catch (error) {
+                console.error('Error initiating save practice transaction:', error);
+                reject(error);
+            }
+        });
     }
 
     /**
@@ -282,7 +319,6 @@ export class PracticeService {
             return;
         }
         this.app.saveState();
-        this.app.dataService.updateStreakCounters();
         this.app.uiService.renderFullSentence();
         await this.practiceStep();
     }
@@ -324,14 +360,24 @@ export class PracticeService {
      * It shows a completion message, plays a victory sound, and clears session-specific state.
      */
     public async finishSession(): Promise<void> {
-        this.app.dataService.updateStreakCounters();
+        const { newStreak, oldStreak } = await this.recordPracticeCompletion();
+
         this.app.utilService.clearAutoSkipTimer();
         this.app.audioService.terminateMicrophoneStream();
         if (this.app.practiceMode === 'auto-skip') {
             await this.app.releaseWakeLock();
         }
-        if(this.app.area === 'Practice') {
+        if (this.app.area === 'Practice') {
             this.app.uiService.triggerCelebrationAnimation();
+            if (newStreak > oldStreak) {
+                setTimeout(() => {
+                    const modalEl = document.getElementById('myStreakModal');
+                    if (modalEl) {
+                        const myStreakModal = Modal.getOrCreateInstance(modalEl);
+                        myStreakModal.show();
+                    }
+                }, 1500);
+            }
         }
         const messages = ["You nailed it!", "That was sharp!", "Boom!", "Bravo!", "That was smooth!", "Great shadowing!", "You crushed it!", "Smart move!", "Echo mastered.", "That was fire!"];
         const emojis = ["🔥", "🎯", "💪", "🎉", "🚀", "👏", "🌟", "🧠", "🎧", "💥"];
@@ -347,7 +393,7 @@ export class PracticeService {
         }
 
         ttsMsg += ` Ready for another round?`;
-        if(this.app.area === 'Practice'){
+        if (this.app.area === 'Practice') {
             this.app.audioService.playSound('./sounds/victory.mp3', 2.5, 0.6);
             setTimeout(() => this.app.audioService.speak(ttsMsg, null, 1.3, 'en-US'), 1100);
         }
@@ -358,7 +404,8 @@ export class PracticeService {
             ${accuracyText}
             <div class="d-grid gap-3 col-10 col-md-6 mx-auto mt-4">
                 <button id="restartPracticeBtn" class="btn btn-primary btn-lg" onclick="app.practiceService.restartCurrentPractice(); return false;">
-                     <i class="bi bi-arrow-repeat"></i> Repeat this sentence
+
+                  <i class="bi bi-arrow-repeat"></i> Repeat this sentence
                 </button>
                 <button class="btn btn-secondary" onclick="app.resetWithoutReload(); return false;">
                     Try a new sentence?
@@ -400,7 +447,8 @@ export class PracticeService {
     }
 
     /**
-     * A handler for the main practice button. In 'check' mode, it checks the answer;
+     * A handler for the main practice button.
+     * In 'check' mode, it checks the answer;
      * otherwise, it advances to the next phrase.
      */
     public handleCheckOrNext(): void {
