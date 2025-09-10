@@ -1,5 +1,3 @@
-// in: Projects\EchoTalk\src\tests\feature.test.ts
-
 import { EchoTalkApp } from '../app';
 import { vi, describe, beforeEach, it, expect, afterEach } from 'vitest';
 import $ from 'jquery';

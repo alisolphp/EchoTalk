@@ -144,7 +144,6 @@ describe('EchoTalkApp - Extra Tests', () => {
 
         (app as any).handleHashChange();
 
-        // به جای بررسی DOM، state رو چک می‌کنیم
         expect(app.currentIndex).toBe(0);
     });
 

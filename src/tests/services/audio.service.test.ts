@@ -481,4 +481,76 @@ describe('AudioService', () => {
         });
     });
 
+    describe('AudioService - Additional Tests', () => {
+
+        describe('startRecording', () => {
+            // This test ensures UI feedback is updated even if MediaRecorder is not ready
+            it('should not throw error if mediaRecorder is undefined', async () => {
+                (audioService as any).mediaRecorder = undefined;
+                await expect(audioService.startRecording()).resolves.toBeUndefined();
+                expect($('#feedback-text').text()).not.toContain('Speak aloud...');
+            });
+        });
+
+        describe('speakAndHighlight', () => {
+            // This test checks that word spans are created and highlighted on mobile simulation
+            it('should highlight words on mobile using timers', () => {
+                (app as any).isMobile = true; // simulate mobile
+                const sentence = 'one two three';
+                audioService.speakAndHighlight(sentence);
+
+                vi.advanceTimersByTime(2000); // fast forward timers
+
+                const highlighted = $('#sentence-container').find('.highlighted');
+                expect(highlighted.length).toBeGreaterThan(0);
+            });
+
+        });
+
+        describe('playBotAudio', () => {
+            // This test verifies that bot audio playback uses speak with correct params
+            it('should call speak with sentence and language', () => {
+                const speakSpy = vi.spyOn(audioService, 'speak');
+                const btn = document.createElement('button');
+                btn.dataset.sentence = 'Bonjour';
+                btn.dataset.lang = 'fr-FR';
+
+                audioService.playBotAudio(btn);
+
+                expect(speakSpy).toHaveBeenCalledWith('Bonjour', null, 1, 'fr-FR');
+            });
+        });
+
+        describe('stopAllPlayback', () => {
+            // This test ensures TTS is cancelled unless keepTTS flag is true
+            it('should cancel TTS when keepTTS is false', () => {
+                const cancelSpy = vi.spyOn(window.speechSynthesis, 'cancel');
+                audioService.stopAllPlayback();
+                expect(cancelSpy).toHaveBeenCalled();
+            });
+
+            it('should not cancel TTS when keepTTS is true', () => {
+                const cancelSpy = vi.spyOn(window.speechSynthesis, 'cancel');
+                audioService.stopAllPlayback(true);
+                expect(cancelSpy).not.toHaveBeenCalled();
+            });
+
+            // This test ensures that any currently playing audio element is stopped and revoked
+            it('should stop and revoke currently playing audio element', () => {
+                const mockAudio = {
+                    pause: vi.fn(),
+                    src: 'blob:test',
+                } as any;
+                app.currentlyPlayingAudioElement = mockAudio;
+
+                const revokeSpy = vi.spyOn(URL, 'revokeObjectURL');
+                audioService.stopAllPlayback();
+
+                expect(mockAudio.pause).toHaveBeenCalled();
+                expect(revokeSpy).toHaveBeenCalledWith('blob:test');
+                expect(app.currentlyPlayingAudioElement).toBeNull();
+            });
+        });
+    });
+
 });
