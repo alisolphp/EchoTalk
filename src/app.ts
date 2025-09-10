@@ -369,7 +369,12 @@ export class EchoTalkApp {
         });
         $('#categorySelect').on('change', () => this.practiceService.useSample());
 
-        $('#goToPracticeBtn').on('click', () => this.uiService.showPracticeSetup());
+        $('#goToPracticeBtn').on('click', () => {
+            this.uiService.showPracticeSetup();
+            if( localStorage.getItem(this.STORAGE_KEYS.sentence) === null ){
+                Modal.getOrCreateInstance($('#quickStartModal')[0]).show();
+            }
+        });
         $('#navHome').on('click', () => this.uiService.showHomePage());
         $('#navPrePractice').on('click', () => this.uiService.showPracticeSetup());
         $('#navOptions').on('click', () => this.uiService.showOptionsPage());
@@ -377,7 +382,7 @@ export class EchoTalkApp {
         $('.backHomeButton').on('click', () => this.uiService.showPracticeSetup());
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
-            this.speechRate = isNaN(val) ? 1 : val;
+            this.speechRate = isNaN(val) ? 0 : val;
             localStorage.setItem(this.STORAGE_KEYS.speechRate, this.speechRate.toString());
             const sampleSentences: Record<number, string> = {
                 0.6: "I’m taking my time… like a turtle on vacation.",
@@ -542,8 +547,8 @@ export class EchoTalkApp {
         if (savedLevelIndex) ($('#levelSelect') as JQuery<HTMLSelectElement>).val(savedLevelIndex);
         if (savedCategoryIndex) ($('#categorySelect') as JQuery<HTMLSelectElement>).val(savedCategoryIndex);
 
-        const savedRate = parseFloat(localStorage.getItem(this.STORAGE_KEYS.speechRate) || '1');
-        this.speechRate = isNaN(savedRate) ? 1 : savedRate;
+        const savedRate = parseFloat(localStorage.getItem(this.STORAGE_KEYS.speechRate) || '0');
+        this.speechRate = isNaN(savedRate) ? 0 : savedRate;
         $('#speechRateSelect').val(this.speechRate.toString());
 
         this.practiceMode = (localStorage.getItem(this.STORAGE_KEYS.practiceMode) as 'skip' | 'check' | 'auto-skip') || 'skip';
