@@ -82,13 +82,24 @@ describe('EchoTalkApp - Additional Tests', () => {
     });
 
     // --- handleVisibilityChange ---
-    it('should stop recording when tab becomes hidden (not practicing)', async () => {
-        const stopSpy = vi.spyOn(app.audioService, 'stopRecording').mockResolvedValue();
+    it('should stop recording when tab becomes hidden and recording is enabled', async () => {
+        // Arrange
+        app.isRecordingEnabled = true; // Set the required condition for the logic to trigger
+        const stopRecordingSpy = vi.spyOn(app.audioService, 'stopRecording').mockResolvedValue(undefined);
+        const terminateStreamSpy = vi.spyOn(app.audioService, 'terminateMicrophoneStream').mockImplementation(() => {});
+        const showPracticeSetupSpy = vi.spyOn(app.uiService, 'showPracticeSetup').mockImplementation(() => {});
         Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
 
+        // Act
         (app as any).handleVisibilityChange();
 
-        expect(stopSpy).toHaveBeenCalled();
+        // Wait for promises to resolve
+        await new Promise(process.nextTick);
+
+        // Assert
+        expect(showPracticeSetupSpy).toHaveBeenCalled();
+        expect(stopRecordingSpy).toHaveBeenCalled();
+        expect(terminateStreamSpy).toHaveBeenCalled();
     });
 
     // --- modal events ---
