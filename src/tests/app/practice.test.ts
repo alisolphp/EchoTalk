@@ -366,4 +366,173 @@ describe('Practice Logic', () => {
         expect(highlightedWord.length).toBe(1);
         expect(highlightedWord.text()).toBe('I\'m');
     });
+
+    // Describes a test suite for the startPractice method.
+    describe('startPractice', () => {
+        // This test verifies that an alert is shown if the user tries to start practice with an empty sentence.
+        it('should alert if the sentence is empty', async () => {
+            const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+            ($('#sentenceInput') as any).attr('data-val', '   ');
+
+            await app.practiceService.startPractice();
+
+            expect(alertSpy).toHaveBeenCalledWith('Please enter a sentence to practice.');
+        });
+
+        // This test ensures that when repetition is set to 'Auto' (value 0), the actual repetition count
+        // is calculated based on practice history. For a new sentence, it should default to 5 reps.
+        it('should set reps based on practice history when "Auto" is selected (new sentence)', async () => {
+            ($('#sentenceInput') as any).attr('data-val', 'A new sentence for testing.');
+            // Set value and trigger change to simulate user interaction
+            ($('#repsSelect') as any).val('0').trigger('change');
+
+            await app.practiceService.startPractice();
+            await vi.runAllTimers();
+
+            // For a brand new sentence (0 practices today), auto reps should be 5.
+            expect(app.reps).toBe(5);
+        });
+
+    });
+
+    // Describes a test suite for the practiceStep method.
+    describe('practiceStep', () => {
+        // This test ensures that the finishSession method is called when the practice index
+        // goes beyond the number of words in the sentence, indicating the session is complete.
+        it('should call finishSession if the currentIndex is at the end of the sentence', () => {
+            const finishSessionSpy = vi.spyOn(app.practiceService, 'finishSession');
+            app.words = ['end', 'of', 'practice'];
+            app.currentIndex = 3; // Index is equal to words.length
+
+            app.practiceService.practiceStep();
+
+            expect(finishSessionSpy).toHaveBeenCalled();
+            finishSessionSpy.mockRestore();
+        });
+
+        // This test checks if the automatic speech rate is adjusted correctly based on how many times
+        // a sentence has been practiced. For the first time, it should be slower.
+        it('should use a slower automatic speech rate for the first practice of a sentence', () => {
+            const speakAndHighlightSpy = vi.spyOn(app.audioService, 'speakAndHighlight');
+            app.speechRate = 0; // Auto speech rate
+            (app.practiceService as any).currentSentencePracticeCount = 0; // First time practicing
+            app.words = ['This', 'is', 'a', 'test'];
+            app.currentIndex = 0;
+
+            app.practiceService.practiceStep();
+
+            // The final rate should be 0.8 for the first time.
+            const finalRate = speakAndHighlightSpy.mock.calls[0][3];
+            expect(finalRate).toBe(0.8);
+            speakAndHighlightSpy.mockRestore();
+        });
+
+        // This test verifies that for subsequent practices of the same sentence, the automatic
+        // speech rate increases to the normal level.
+        it('should use a normal automatic speech rate for the second practice', () => {
+            const speakAndHighlightSpy = vi.spyOn(app.audioService, 'speakAndHighlight');
+            app.speechRate = 0; // Auto speech rate
+            (app.practiceService as any).currentSentencePracticeCount = 1; // Second time
+            app.words = ['This', 'is', 'a', 'test'];
+            app.currentIndex = 0;
+
+            app.practiceService.practiceStep();
+
+            // The final rate should be 1.0 for the second time.
+            const finalRate = speakAndHighlightSpy.mock.calls[0][3];
+            expect(finalRate).toBe(1.0);
+            speakAndHighlightSpy.mockRestore();
+        });
+    });
+
+    // Describes a test suite for the restartCurrentPractice method.
+    describe('restartCurrentPractice', () => {
+        // This test confirms that restarting a practice correctly resets the state variables
+        // and sets currentSentencePracticeCount to 1 to ensure subsequent automatic settings are adjusted.
+        it('should reset state and start practice from the beginning', async () => {
+            const practiceStepSpy = vi.spyOn(app.practiceService, 'practiceStep');
+            app.currentIndex = 5;
+            app.currentCount = 2;
+            app.correctCount = 3;
+            app.attempts = 4;
+            (app.practiceService as any).currentSentencePracticeCount = 0;
+
+            await app.practiceService.restartCurrentPractice();
+
+            expect(app.currentIndex).toBe(0);
+            expect(app.currentCount).toBe(0);
+            expect(app.correctCount).toBe(0);
+            expect(app.attempts).toBe(0);
+            // It should be set to 1 to lift the "newness" limit on phrase length and speed.
+            expect((app.practiceService as any).currentSentencePracticeCount).toBe(1);
+            expect(practiceStepSpy).toHaveBeenCalled();
+            practiceStepSpy.mockRestore();
+        });
+    });
+
+    // Describes a test suite for the handleCheckOrNext method.
+    describe('handleCheckOrNext', () => {
+        // This test ensures that in 'auto-skip' mode, clicking the main button does nothing,
+        // as the practice advances automatically.
+        it('should do nothing if practiceMode is "auto-skip"', () => {
+            const checkAnswerSpy = vi.spyOn(app.practiceService, 'checkAnswer');
+            app.practiceMode = 'auto-skip';
+
+            app.practiceService.handleCheckOrNext();
+
+            expect(checkAnswerSpy).not.toHaveBeenCalled();
+            checkAnswerSpy.mockRestore();
+        });
+
+        // This test verifies that in 'check' mode, the method correctly calls checkAnswer.
+        it('should call checkAnswer if practiceMode is "check"', () => {
+            const checkAnswerSpy = vi.spyOn(app.practiceService, 'checkAnswer');
+            app.practiceMode = 'check';
+
+            app.practiceService.handleCheckOrNext();
+
+            expect(checkAnswerSpy).toHaveBeenCalled();
+            checkAnswerSpy.mockRestore();
+        });
+    });
+
+    // Describes a test suite for the getMaxWordsBasedOnLevel private method (tested via getDynamicMaxWords).
+    describe('getDynamicMaxWords', () => {
+        // This test verifies that for beginners (level 0), the maximum phrase length is 2 words.
+        it('should return a max of 2 words for beginner level', () => {
+            ($('#levelSelect') as any).val('0'); // Beginner
+            // The newness limit is 1 on the first try, so it returns min(2, 1) = 1.
+            // Let's set the practice count higher to test the level limit.
+            (app.practiceService as any).currentSentencePracticeCount = 5;
+            const maxWordsAfterPractice = (app.practiceService as any).getDynamicMaxWords();
+            expect(maxWordsAfterPractice).toBe(2);
+        });
+
+        // This test verifies that for intermediate users (level 1), the max phrase length is 5 words.
+        it('should return a max of 5 words for intermediate level', () => {
+            ($('#levelSelect') as any).val('1'); // Intermediate
+            (app.practiceService as any).currentSentencePracticeCount = 10;
+            const maxWords = (app.practiceService as any).getDynamicMaxWords();
+            expect(maxWords).toBe(5);
+        });
+
+        // This test verifies that for advanced users (level 2), the max phrase length is 7 words.
+        it('should return a max of 7 words for advanced level', () => {
+            ($('#levelSelect') as any).val('2'); // Advanced
+            (app.practiceService as any).currentSentencePracticeCount = 10;
+            const maxWords = (app.practiceService as any).getDynamicMaxWords();
+            expect(maxWords).toBe(7);
+        });
+
+        // This test checks the "newness" logic: on the first try, the phrase should only be 1 word long,
+        // regardless of the difficulty level, to ease the user in.
+        it('should return a max of 1 word for the very first practice of a sentence', () => {
+            ($('#levelSelect') as any).val('2'); // Advanced level (max 7)
+            (app.practiceService as any).currentSentencePracticeCount = 0; // First time
+            const maxWords = (app.practiceService as any).getDynamicMaxWords();
+            // newnessLimit is practiceCount + 1 = 1. Returns min(7, 1).
+            expect(maxWords).toBe(1);
+        });
+    });
+
 });
