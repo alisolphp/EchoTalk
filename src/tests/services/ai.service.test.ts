@@ -164,4 +164,81 @@ describe('AiService', () => {
             expect(window.alert).toHaveBeenCalledWith("Sorry, the audio file could not be found.");
         });
     });
+
+    describe('AiService Additional Tests', () => {
+        it('should handle error during spell API key validation', async () => {
+            // Mock fetch to throw an error
+            (global.fetch as any).mockRejectedValue(new Error('Network error'));
+            await app.aiService.checkSpellApiKey();
+            // App should remain with spellCheckerIsAvailable = false
+            expect(app.spellCheckerIsAvailable).toBe(false);
+        });
+
+        it('should render warning if accuracy result is malformed', () => {
+            const container = $('<div></div>');
+            const badResult = { real_transcripts: 'hi', is_letter_correct_all_words: '', pronunciation_accuracy: 80 };
+            (app.aiService as any).renderAccuracyResult(badResult, container);
+            // Should render a warning message
+            expect(container.html()).toContain('unexpected response');
+        });
+
+        it('should render accuracy with mismatched word lengths', () => {
+            const container = $('<div></div>');
+            const badResult = {
+                real_transcripts: 'hello world',
+                is_letter_correct_all_words: '11111', // Missing second word data
+                pronunciation_accuracy: 90
+            };
+            (app.aiService as any).renderAccuracyResult(badResult, container);
+            // Should render warning for mismatch
+            expect(container.html()).toContain('Could not parse');
+        });
+
+        it('should show error if copyAIPrompt fails', async () => {
+            app.utilService.copyTextToClipboard = vi.fn().mockResolvedValue(false);
+            const element = document.createElement('button');
+            await (app.aiService as any).copyAIPrompt(element);
+            // Should trigger alert since copy failed
+            expect(window.alert).toHaveBeenCalledWith("Could not copy the prompt to your clipboard. Please try again.");
+        });
+
+        it('should do nothing if no API key is provided', async () => {
+            localStorage.removeItem(app.STORAGE_KEYS.spellApiKey); // Ensure no key in storage
+            Object.defineProperty(window, 'location', {
+                value: { search: '' } // No key in query string
+            });
+
+            await app.aiService.checkSpellApiKey();
+
+            // Expect that spellCheckerIsAvailable remains false
+            expect(app.spellCheckerIsAvailable).toBe(false);
+            expect(localStorage.getItem(app.STORAGE_KEYS.spellApiKey)).toBeNull();
+        });
+
+    });
+
+    describe('copyAIPrompt', () => {
+        it('should restore button text after timeout', async () => {
+            vi.useFakeTimers();
+            app.utilService.copyTextToClipboard = vi.fn().mockResolvedValue(true);
+
+            const button = document.createElement('button');
+            button.innerHTML = 'Original';
+            document.body.appendChild(button);
+
+            await (app.aiService as any).copyAIPrompt(button);
+
+            // After copy it should say "Copied!"
+            expect(button.innerHTML).toContain('Copied!');
+
+            // Fast-forward timers
+            vi.advanceTimersByTime(2000);
+
+            // After 2s, it should restore
+            expect(button.innerHTML).toBe('Original');
+
+            vi.useRealTimers();
+        });
+    });
+
 });
