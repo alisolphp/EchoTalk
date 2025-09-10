@@ -9,7 +9,7 @@ EchoTalk is a **privacy-first, offline language training tool** that helps you m
 
 🔗 [**Live Demo**](https://alisol.ir/Projects/EchoTalk)
 
-<img src="public/screenshots/echotalk-screenshots.gif" width="600" alt="EchoTalk Demo">
+<img src="public/screenshots/echotalk-screenshots.gif" width="370" alt="EchoTalk Demo">
 
 ---
 
