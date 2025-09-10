@@ -127,44 +127,41 @@ beforeEach(async () => {
     // Simulate basic indexedDB operations
     Object.defineProperty(window, 'indexedDB', {
         value: {
-            open: vi.fn().mockImplementation(() => {
+            open: vi.fn(() => {
                 const request: any = {};
-                setTimeout(() => {
-                    request.result = {
-                        objectStoreNames: { contains: vi.fn().mockReturnValue(false) },
-                        createObjectStore: vi.fn().mockReturnValue({
-                            createIndex: vi.fn(),
-                            openCursor: vi.fn().mockReturnValue({
-                                onsuccess: null,
-                                onerror: null,
-                                result: null
-                            })
-                        }),
-                        transaction: () => ({
-                            objectStore: () => ({
-                                add: vi.fn(),
-                                get: vi.fn(),
-                                getAll: vi.fn().mockReturnValue({
-                                    onsuccess: null,
-                                    onerror: null,
-                                    result: []
-                                }),
-                                openCursor: vi.fn().mockReturnValue({
-                                    onsuccess: null,
-                                    onerror: null,
-                                    result: null
-                                }),
-                                clear: vi.fn().mockReturnValue({
-                                    onsuccess: null,
-                                    onerror: null
-                                })
+                const dbConnection = {
+                    transaction: (stores: string[], mode: string) => {
+                        const objectStore = {
+                            add: vi.fn(),
+                            get: vi.fn(key => {
+                                const getRequest: any = {};
+                                setTimeout(() => getRequest.onsuccess?.({ target: { result: undefined } }), 0);
+                                return getRequest;
                             }),
-                        }),
-                    };
-                    if (typeof request.onsuccess === 'function') {
-                        request.onsuccess({ target: request });
-                    }
+                            getAll: vi.fn(() => {
+                                const getAllRequest: any = {};
+                                setTimeout(() => getAllRequest.onsuccess?.({ target: { result: [] } }), 0);
+                                return getAllRequest;
+                            }),
+                            openCursor: vi.fn(() => {
+                                const cursorRequest: any = {};
+                                setTimeout(() => cursorRequest.onsuccess?.({ target: { result: null } }), 0);
+                                return cursorRequest;
+                            }),
+                            clear: vi.fn(),
+                        };
+                        return { objectStore: () => objectStore };
+                    },
+                    close: vi.fn(),
+                    objectStoreNames: { contains: () => true },
+                    createObjectStore: () => ({ createIndex: vi.fn() }),
+                };
+
+                setTimeout(() => {
+                    request.result = dbConnection;
+                    request.onsuccess?.({ target: request });
                 }, 0);
+
                 return request;
             }),
         },
