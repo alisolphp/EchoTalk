@@ -94,6 +94,12 @@ export class EchoTalkApp {
     /** A timer for the `auto restart current practice` in the 'auto-skip' practice mode. */
     public autoRestartTimer: number | null = null;
 
+    public autoSkipTimerCallback: (() => void) | null = null;
+    public autoSkipStartTime: number = 0;
+    public autoSkipWaitTime: number = 0;
+    public autoSkipRemainingTime: number = 0;
+    public autoSkipIsPaused: boolean = false;
+
     /** An estimated words-per-second rate for TTS on mobile to simulate word highlighting. */
     public estimatedWordsPerSecond: number = 2.5;
 
@@ -236,6 +242,12 @@ export class EchoTalkApp {
         this.utilService.clearAutoSkipTimer();
         await this.audioService.stopRecording();
         this.audioService.terminateMicrophoneStream();
+
+        this.autoSkipTimerCallback = null;
+        this.autoSkipStartTime = 0;
+        this.autoSkipWaitTime = 0;
+        this.autoSkipRemainingTime = 0;
+        this.autoSkipIsPaused = false;
 
         this.sentence = '';
         this.words = [];
@@ -427,9 +439,6 @@ export class EchoTalkApp {
             });
         });
         window.addEventListener('hashchange', () => this.handleHashChange());
-        document.addEventListener('show.bs.modal', () => {
-            if (window.location.hash !== '#modal') window.location.hash = 'modal';
-        });
         document.addEventListener('show.bs.modal', (event) => {
             if (window.location.hash !== '#modal') {
                 window.location.hash = 'modal';
@@ -437,15 +446,24 @@ export class EchoTalkApp {
 
             const modal = event.target as HTMLElement;
 
+            if (modal.id === 'wordActionsModal' && this.practiceMode === 'auto-skip' && this.area === 'Practice') {
+                this.pauseAutoSkip();
+            }
+
             if (modal.id === 'myStreakModal') {
                 console.log("myStreakModal is opening, firing events...");
                 this.dataService.populateStreakModal();
                 this.uiService.showStaticConfetti();
             }
         });
-        document.addEventListener('hidden.bs.modal', () => {
+        document.addEventListener('hidden.bs.modal', (event) => {
             if (window.location.hash === '#modal') {
                 history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+
+            const modal = event.target as HTMLElement;
+            if (modal.id === 'wordActionsModal' && this.autoSkipIsPaused) {
+                this.resumeAutoSkip();
             }
         });
         document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
@@ -470,16 +488,24 @@ export class EchoTalkApp {
      * and prevent unexpected behavior.
      */
     private handleVisibilityChange(): void {
-        if (document.visibilityState === 'hidden') {
-            const isPracticing = this.area === 'Practice';
-            const shouldResetPractice = isPracticing && (this.isRecordingEnabled || this.practiceMode === 'auto-skip');
+        const isPracticing = this.area === 'Practice';
+        const isPracticingWithAutoSkip = isPracticing && this.practiceMode === 'auto-skip';
 
-            if (shouldResetPractice) {
+        if (document.visibilityState === 'hidden') {
+            if (isPracticingWithAutoSkip) {
+                this.pauseAutoSkip();
+            }
+            if(this.isRecordingEnabled){
                 this.uiService.showPracticeSetup();
-            } else {
                 this.audioService.stopRecording().then(() => {
                     this.audioService.terminateMicrophoneStream();
                 });
+            }
+        } else {
+            if (isPracticingWithAutoSkip) {
+                if(!$('#wordActionsModal').hasClass('show')){
+                    this.resumeAutoSkip();
+                }
             }
         }
     }
@@ -626,6 +652,64 @@ export class EchoTalkApp {
             });
         });
     }
+
+    /**
+     * Pauses the auto-skip timer, progress animation, and active speech synthesis.
+     * This is typically triggered when a modal opens during practice.
+     */
+    public pauseAutoSkip(): void {
+        if (this.practiceMode !== 'auto-skip' || this.area !== 'Practice' || this.autoSkipIsPaused) {
+            return;
+        }
+
+        this.autoSkipIsPaused = true;
+
+        // Pause speech synthesis if it's currently speaking
+        if (speechSynthesis.speaking) {
+            speechSynthesis.pause();
+        }
+
+        // Pause the timer if it's running (post-TTS)
+        if (this.autoSkipTimer) {
+            const pauseTime = Date.now();
+            clearTimeout(this.autoSkipTimer);
+            this.autoSkipTimer = null;
+            const elapsed = pauseTime - this.autoSkipStartTime;
+            this.autoSkipRemainingTime = this.autoSkipWaitTime - elapsed;
+        }
+
+        // Pause the button's CSS animation
+        $('#checkBtn').css('animation-play-state', 'paused');
+    }
+
+    /**
+     * Resumes the auto-skip timer, progress animation, and paused speech synthesis.
+     * This is triggered when a modal is closed after being paused.
+     */
+    public resumeAutoSkip(): void {
+        if (!this.autoSkipIsPaused) {
+            return;
+        }
+
+        this.autoSkipIsPaused = false;
+
+        // Resume speech synthesis if it was paused
+        if (speechSynthesis.paused) {
+            speechSynthesis.resume();
+        }
+
+        // Resume the timer if it was paused
+        if (this.autoSkipRemainingTime > 0 && this.autoSkipTimerCallback) {
+            this.autoSkipTimer = setTimeout(this.autoSkipTimerCallback, this.autoSkipRemainingTime);
+            this.autoSkipStartTime = Date.now();
+            this.autoSkipWaitTime = this.autoSkipRemainingTime;
+            this.autoSkipRemainingTime = 0;
+        }
+
+        // Resume the button's CSS animation
+        $('#checkBtn').css('animation-play-state', 'running');
+    }
+
 }
 
 // --- Application Entry Point ---

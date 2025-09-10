@@ -271,21 +271,31 @@ export class AudioService {
                 this.app.currentCount++;
                 const $checkBtn = $('#checkBtn');
                 const waitTime = duration * 1.3;
+                const waitTimeMs = (waitTime * 1000) + 50;
 
                 $checkBtn.removeClass('loading');
                 void $checkBtn[0].offsetHeight;
                 $checkBtn.css('animation-duration', `${waitTime}s`);
                 $checkBtn.addClass('loading');
-                this.app.autoSkipTimer = setTimeout(() => {
-                    if (this.app.area !== 'Practice') return;
 
+                this.app.autoSkipTimerCallback = () => {
+                    if (this.app.area !== 'Practice') return;
+                    this.app.autoSkipTimerCallback = null;
                     if (this.app.currentCount >= this.app.reps) {
                         this.app.practiceService.advanceToNextPhrase();
                     } else {
-
                         this.app.practiceService.practiceStep();
                     }
-                }, (waitTime * 1000) + 50);
+                };
+
+                this.app.autoSkipWaitTime = waitTimeMs;
+
+                if (this.app.autoSkipIsPaused) {
+                    this.app.autoSkipRemainingTime = waitTimeMs;
+                } else {
+                    this.app.autoSkipStartTime = Date.now();
+                    this.app.autoSkipTimer = setTimeout(this.app.autoSkipTimerCallback, this.app.autoSkipWaitTime);
+                }
             }
 
             if (onEnd && this.app.area === 'Practice') {
