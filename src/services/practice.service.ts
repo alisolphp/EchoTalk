@@ -133,6 +133,7 @@ export class PracticeService {
             const randomMessage = listeningMessages[Math.floor(Math.random() * listeningMessages.length)];
             $('#feedback-text').html(`<div class="listening-indicator">${randomMessage}</div>`);
         } else {
+            $('#checkBtn').focus();
             $('#feedback-text').html('');
             if (this.app.reps > 1 && this.app.currentCount >= 0) {
                 const repetitionMessages = [
@@ -361,6 +362,7 @@ export class PracticeService {
 
         $('#practice-ui-container').addClass('d-none');
         $('#session-complete-container').html(completionHtml).removeClass('d-none');
+        $('#restartPracticeBtn').focus();
 
         localStorage.removeItem(this.app.STORAGE_KEYS.index);
         localStorage.removeItem(this.app.STORAGE_KEYS.count);

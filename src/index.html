@@ -14,7 +14,7 @@
     <h1 class="mb-2">EchoTalk</h1>
     <p class="lead mb-4">Your personal space for offline shadowing practice in <span class="practicing-languages-count">1</span> languages & 3 levels.</p>
     <div class="d-flex justify-content-center align-items-center gap-2">
-        <button id="goToPracticeBtn" class="btn btn-primary btn-lg">Let's get started!</button>
+        <button id="goToPracticeBtn" class="btn btn-primary btn-lg" aria-label="Get started with practice">Let's get started!</button>
         <button class="btn btn-outline-warning px-2 ps-1" data-bs-toggle="modal" data-bs-target="#myStreakModal" title="My Streak">🔥 <span class="day-streak-number">&nbsp;</span></button>
     </div>
     <footer class="text-end text-muted small pt-3 opacity-25">
@@ -53,7 +53,9 @@
 
         <div class="row mb-3">
             <div class="col">
-                <button id="startBtn" class="btn btn-primary d-block w-100"><i class="bi bi-rocket-takeoff-fill"></i> Start Practice</button>
+                <button id="startBtn" class="btn btn-primary d-block w-100" aria-label="Start Practice">
+                    <i class="bi bi-rocket-takeoff-fill"></i> Start Practice
+                </button>
             </div>
         </div>
     </div>
@@ -64,37 +66,37 @@
                 <div id="fullSentence" class="fs-5 mb-2 d-none"></div>
 
                 <button id="slowBtn" style="margin-top: -0.3em;font-size: 20pt; color:#8fc9ff; text-shadow: 0px 0px 10px #59acf9;"
-                        class="btn pt-1 pb-2 px-2" title="Play Slower">
+                        class="btn pt-1 pb-2 px-2" title="Play Slower" aria-label="Play slower">
                     <i class="bi bi-play-fill"></i><sub style="margin-left: -10px; font-size: 0.5em;">🐢</sub>
                 </button>
 
                 <button id="fastBtn" style="margin-top: -0.3em;font-size: 20pt; color:#8fc9ff; text-shadow: 0px 0px 10px #59acf9; margin-left: -5px;"
-                        class="btn pt-1 pb-2 px-2" title="Play Faster">
+                        class="btn pt-1 pb-2 px-2" title="Play Faster" aria-label="Play faster">
                     <i class="bi bi-play-fill"></i><sub style="margin-left: -10px; font-size: 0.5em;">🐇</sub>
                 </button>
 
                 <div id="sentence-container" class="fs-3 fw-bold mb-3 d-inline"></div>
             </div>
             <div class="row mb-3">
-                <div class="d-inline w-auto" id="instructionText">Now it's your turn. Tap the mic icon on your keyboard and speak the word.</div>
+                <div class="d-inline w-auto" id="instructionText" role="status" aria-live="polite">Now it's your turn. Tap the mic icon on your keyboard and speak the word.</div>
                 <div class="d-inline w-auto">
-                    <button id="showTtsWarningBtn" class="btn btn-sm btn-outline-warning d-inline-block">
+                    <button id="showTtsWarningBtn" class="btn btn-sm btn-outline-warning d-inline-block" aria-label="Troubleshoot TTS">
                         <i class="bi bi-volume-mute"></i> I can't hear anything...
                     </button>
                 </div>
             </div>
             <div class="input-group mb-3">
-                <input type="text" id="userInput" class="form-control" placeholder="Tap keyboard mic">
+                <input type="text" id="userInput" class="form-control" placeholder="Tap keyboard mic" aria-label="Type or dictate your answer">
             </div>
             <div>
-                <button id="checkBtn" class="btn btn-success d-block w-100 py-3">Check/Skip</button>
+                <button id="checkBtn" class="btn btn-success d-block w-100 py-3" aria-label="Check or Skip">Check/Skip</button>
             </div>
             <div class="visualizer-container">
-                <img src="images/sound-wave-animation.webp" id="soundWaveVisualizer" alt="Sound Wave Animation">
+                <img src="images/sound-wave-animation.webp" id="soundWaveVisualizer" alt="" aria-hidden="true">
             </div>
             <div id="feedback" class="mb-3" style="min-height: 60px;">
                 <canvas id="audio-visualizer" class="d-none" height="50"></canvas>
-                <div id="feedback-text" class="fs-5"></div>
+                <div id="feedback-text" class="fs-5" role="status" aria-live="polite" aria-atomic="true"></div>
             </div>
         </div>
         <div id="session-complete-container" class="d-none"></div>
@@ -321,6 +323,15 @@
                     <li><strong>Seamless Post-Practice Flow:</strong> After finishing a sentence, easily choose to "Repeat This Sentence" or "Try a New Sentence" to continue your learning journey.</li>
                     <li><strong>Celebration Animation:</strong> Enjoy a fun, rewarding animation after successfully completing a practice session.</li>
                     <li><strong>Visual Recording Feedback:</strong> See live sound waves that visualize your voice as you record.</li>
+                </ul>
+
+                <h5>♿ Accessibility</h5>
+                <ul>
+                    <li><strong>Adjustable TTS Speed:</strong> Fine-tune playback speed (Slow → Fast) for clearer shadowing and auditory comfort.</li>
+                    <li><strong>Keyboard-Only Flow:</strong> Start, repeat, and advance using the keyboard without needing a mouse.</li>
+                    <li><strong>Auto-Skip (opt-in):</strong> After a correct answer, automatically advance to the next item to reduce extra taps. Announces the change and keeps keyboard focus stable. Enable via Options → Accessibility.</li>
+                    <li><strong>Screen Reader Friendly:</strong> Live status updates and labels help assistive tech announce progress.</li>
+                    <li><strong>Reduced Motion Friendly:</strong> Visual flourishes won’t block interaction; core flows remain usable.</li>
                 </ul>
 
                 <h5>📝 Rich Content & Integrations</h5>

@@ -17,16 +17,19 @@ export class UiService {
     /** Displays the Home page area. */
     public showHomePage(): void {
         this.showPage('Home');
+        $('#goToPracticeBtn').focus();
     }
 
     /** Displays the Practice Setup page area. */
     public showPracticeSetup(): void {
         this.showPage('PrePractice');
+        $('#startBtn').focus();
     }
 
     /** Displays the Options page area. */
     public showOptionsPage(): void {
         this.showPage('Options');
+        $('#languageSelect').focus();
     }
 
     /** Displays the Practice Setup page area. */
