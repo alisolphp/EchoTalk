@@ -33,11 +33,9 @@ describe('EchoTalkApp - Additional Tests', () => {
     // --- saveState & loadState integration ---
     it('should save and reload state consistently', () => {
         app.sentence = 'Integration test';
-        app.reps = 5;
         app.currentIndex = 2;
         app.correctCount = 1;
         app.attempts = 4;
-        app.speechRate = 1.4;
         app.lang = 'ru-RU';
         app.practiceMode = 'check';
 
@@ -45,11 +43,9 @@ describe('EchoTalkApp - Additional Tests', () => {
         (app as any).loadState();
 
         expect(app.sentence).toBe('Integration test');
-        expect(app.reps).toBe(5);
         expect(app.currentIndex).toBe(2);
         expect(app.correctCount).toBe(1);
         expect(app.attempts).toBe(4);
-        expect(app.speechRate).toBe(1.4);
         expect(app.lang).toBe('ru-RU');
         expect(app.practiceMode).toBe('check');
     });

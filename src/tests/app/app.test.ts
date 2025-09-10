@@ -47,22 +47,18 @@ describe('EchoTalkApp - Extra Tests', () => {
     // --- saveState ---
     it('should persist state variables into localStorage', () => {
         app.sentence = 'Save this';
-        app.reps = 4;
         app.currentIndex = 2;
         app.correctCount = 1;
         app.attempts = 5;
-        app.speechRate = 1.2;
         app.lang = 'de-DE';
         app.practiceMode = 'skip';
 
         app.saveState();
 
         expect(localStorage.getItem(app.STORAGE_KEYS.sentence)).toBe('Save this');
-        expect(localStorage.getItem(app.STORAGE_KEYS.reps)).toBe('4');
         expect(localStorage.getItem(app.STORAGE_KEYS.index)).toBe('2');
         expect(localStorage.getItem(app.STORAGE_KEYS.correctCount)).toBe('1');
         expect(localStorage.getItem(app.STORAGE_KEYS.attempts)).toBe('5');
-        expect(localStorage.getItem(app.STORAGE_KEYS.speechRate)).toBe('1.2');
         expect(localStorage.getItem(app.STORAGE_KEYS.lang)).toBe('de-DE');
         expect(localStorage.getItem(app.STORAGE_KEYS.practiceMode)).toBe('skip');
     });

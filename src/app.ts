@@ -239,7 +239,10 @@ export class EchoTalkApp {
 
         this.sentence = '';
         this.words = [];
-        this.reps = parseInt(localStorage.getItem(this.STORAGE_KEYS.reps) || this.reps.toString());
+
+        const savedReps = localStorage.getItem(this.STORAGE_KEYS.reps);
+        this.reps = savedReps ? parseInt(savedReps) : 0;
+
         this.currentIndex = 0;
         this.currentCount = 0;
         this.correctCount = 0;
@@ -395,6 +398,9 @@ export class EchoTalkApp {
             if (sentence) {
                 this.audioService.speak(sentence, null, val, 'en-US');
             }
+        });
+        $('#repsSelect').on('change', () => {
+            this.saveState();
         });
 
         $('#practiceModeSelect').on('change', (e) => {
@@ -561,14 +567,14 @@ export class EchoTalkApp {
      */
     public saveState(): void {
         localStorage.setItem(this.STORAGE_KEYS.sentence, this.sentence);
-        localStorage.setItem(this.STORAGE_KEYS.reps, this.reps.toString());
         localStorage.setItem(this.STORAGE_KEYS.index, this.currentIndex.toString());
         localStorage.setItem(this.STORAGE_KEYS.count, this.currentCount.toString());
         localStorage.setItem(this.STORAGE_KEYS.correctCount, this.correctCount.toString());
         localStorage.setItem(this.STORAGE_KEYS.attempts, this.attempts.toString());
-        localStorage.setItem(this.STORAGE_KEYS.speechRate, this.speechRate.toString());
         localStorage.setItem(this.STORAGE_KEYS.lang, this.lang.toString());
         localStorage.setItem(this.STORAGE_KEYS.practiceMode, this.practiceMode);
+        localStorage.setItem(this.STORAGE_KEYS.reps, $('#repsSelect').val() as string || '0');
+        localStorage.setItem(this.STORAGE_KEYS.speechRate, $('#speechRateSelect').val() as string || '0');
     }
 
     /**
