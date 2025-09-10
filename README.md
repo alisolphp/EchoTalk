@@ -5,9 +5,7 @@
 ![PWA](https://img.shields.io/badge/PWA-ready-green)
 ![Coverage](https://img.shields.io/badge/coverage-84%25-green)
 
-EchoTalk is a browser-based language training tool designed for offline shadowing practice. It uses TTS, audio recording, and sentence review to help learners improve pronunciation and fluency.
-
-![EchoTalk App Screenshot](https://user-images.githubusercontent.com/alisolphp/EchoTalk/public/screenshots/demo1.png)
+EchoTalk is a **privacy-first, offline language training tool** that helps you master the **Shadowing** technique for improving pronunciation, fluency, and confidence. It works as a **Progressive Web App (PWA)**, requires no server, and keeps all your recordings securely on your device.
 
 🔗 [Live Demo](https://alisol.ir/Projects/EchoTalk)
 
@@ -15,54 +13,79 @@ EchoTalk is a browser-based language training tool designed for offline shadowin
 
 ## ✨ Features
 
-- Record your voice using MediaRecorder and store it in IndexedDB
-- Practice with random or custom sentences
-- Multiple modes: Check Mode and Skip-Only Mode
-- Slow-speed audio playback for review
-- Word-level highlighting and jump-to-word functionality
-- Click any word to look up its meaning
-- Auto-save progress and settings
-- Fully offline – no server required
+### 🧠 Smart Training & Learning Modes
+
+* **Skip-Only, Check, and Auto-Skip modes** for flexible practice styles.
+* **Auto Repetition & Auto Speed** that adapt dynamically to your progress.
+* **Intelligent sentence splitting** that avoids meaningless one-word segments.
+* **Repetition counters** so you always know how many loops are left.
+
+### 🎨 Modern UI/UX
+
+* **Multi-language support**: English, Dutch, Polish, Portuguese, Russian, Turkish, and more.
+* **Word-level interaction**: click a word to open tools for meaning, pronunciation, and AI-powered analysis.
+* **Practice streak tracker** with calendar view and motivational messages.
+* **History & recordings**: review all your past practices and replay your recordings.
+* **Seamless flows**: restart or switch sentences easily, plus celebration animations after sessions.
+* **Live recording visualizer** for instant feedback.
+
+### ♿ Accessibility
+
+* Adjustable **TTS speed** (slow → furious).
+* **Keyboard-only navigation** for mouse-free practice.
+* **Screen reader friendly** with live progress announcements.
+* **Reduced motion mode** for comfortable interaction.
+
+### 📝 Rich Content & Integrations
+
+* **Personalized sample sentences** by language, level, and category.
+* **Google Translate & AI integrations** for deep analysis, grammar help, vocabulary expansion, and creative exercises.
+* **Fast AI analysis** of your recordings for pronunciation accuracy, plus detailed **offline prompts** for Gemini/ChatGPT.
+
+### ⚙️ Technology & Performance
+
+* **Works fully offline** after first load.
+* **Optimized for Chrome & mobile browsers** (with fallbacks for others).
+* **PWA with auto-updates** and local caching for fast startup.
+* **Version & build info** displayed in-app for easy bug reporting.
+* **IndexedDB storage** for recordings and practice history.
+* **Service Worker caching** for instant load times.
 
 ---
 
 ## 🚀 Getting Started
 
-1. Enter or select a sentence
-2. Choose your practice mode
-3. Click "Start Practice"
-4. Enable microphone (optional)
-5. Listen, repeat, and review
+1. Enter or pick a sentence (or use a personalized sample).
+2. Choose your language, level, and practice mode.
+3. Click **Start Practice**.
+4. Enable microphone recording (optional).
+5. Listen, shadow, and track your progress.
 
 ---
 
 ## 🛠️ Technologies
 
-- [Vite](https://vitejs.dev/)
-- Vitest (unit testing)
-- TypeScript
-- PWA
-- MediaRecorder API
-- IndexedDB
-- Web Speech API (TTS)
+* [Vite](https://vitejs.dev/) + TypeScript
+* [Bootstrap 5](https://getbootstrap.com/) & Bootstrap Icons
+* IndexedDB for offline storage
+* Web Speech API (TTS)
+* MediaRecorder API
+* PWA + Service Worker
+* Vitest for unit testing
 
 ---
 
 ## 🧪 Tests
 
-![Tests](https://img.shields.io/badge/tests-204%20passing-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-84%25-yellowgreen)
+EchoTalk has **200+ unit tests** covering:
 
-This project includes a comprehensive suite of unit tests using [Vitest](https://vitest.dev).  
-Latest results:
+* Practice logic and session flow
+* State management and persistence
+* Audio recording and playback
+* IndexedDB integration
+* UI event handling and DOM updates
+* Utility functions (segmentation, similarity, text cleaning)
 
-```
-
-Test Files  17 passed (17)
-Tests       204 passed (204)
-Duration    10.09s
-
-```
 
 ### Coverage Summary
 ```
@@ -76,14 +99,6 @@ Duration    10.09s
 
 ````
 
-The tests cover:
-
-- **Core Practice Logic:** verifying practice modes, session flow, and answer checking  
-- **State Management:** loading/saving settings and sentence state  
-- **Audio & Recordings:** playback, recording logic, and IndexedDB integration  
-- **UI Interaction:** event handling and DOM state updates  
-- **Utility Functions:** text cleaning, phrase segmentation, similarity calculation  
-
 ---
 
 ## 📦 Installation
@@ -93,15 +108,15 @@ git clone https://github.com/alisolphp/EchoTalk.git
 cd EchoTalk
 npm install
 npm run dev
-````
-
-To run tests before build:
-
-```bash
-npm test
 ```
 
-To build for production:
+Run tests:
+
+```bash
+npx vitest run --coverage
+```
+
+Build for production:
 
 ```bash
 npm run build
@@ -111,20 +126,26 @@ npm run build
 
 ## ⚠️ Limitations & Browser Support
 
-* **No STT (speech-to-text) yet**
-  This feature is planned for future versions.
-* **Audio format support depends on browser**
-* **Optimized for Chrome**
-  Some features (e.g. audio recording, IndexedDB quota) may not work reliably in Firefox or Safari. A warning is shown in-app for unsupported browsers.
+* **Built-in Speech-to-text (STT)** is not yet implemented.
+* **Best performance on Chrome & Android browsers**.
+* Safari and Firefox may have limited IndexedDB quota or recording issues.
 
 ---
 
 ## 🧑‍🔧 Roadmap
 
-* STT integration (speech-to-text for pronunciation feedback)
-* Export/delete tools for recorded audio
-* Sentence segmentation improvements
-* Multi-language support
+* ✅ Multi-language support & sentence history
+* ✅ Practice streak tracker with calendar
+* ✅ AI integrations for grammar, translation, and pronunciation
+* ✅ Offline-first with recordings saved locally
+
+Next up:
+
+* [ ] **STT integration** for real-time pronunciation scoring
+* [ ] **Export tools** for recordings
+* [ ] **Smarter sentence segmentation** with AI assistance
+* [ ] **Gamification** (badges, levels, rewards)
+* [ ] **Community sharing features**
 
 ---
 
@@ -133,13 +154,13 @@ npm run build
 Contributions are welcome! You can:
 
 * Report bugs
-* Suggest new features
-* Improve code or documentation
+* Suggest features
+* Improve code or docs
 
-To contribute, fork the repo and submit a pull request.
+Fork the repo, make your changes, and open a pull request.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](./LICENSE).
+MIT License – see [LICENSE](./LICENSE).
