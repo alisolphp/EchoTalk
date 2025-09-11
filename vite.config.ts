@@ -1,22 +1,36 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-const getBuildDate = () => {
+import { execSync } from 'child_process';
+
+const getBuildInfo = () => {
     const now = new Date();
-    const year = now.getFullYear().toString();
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
     const hours = now.getHours().toString().padStart(2, '0');
     const minutes = now.getMinutes().toString().padStart(2, '0');
-    return `${hours}${minutes}`;
+    const buildDate = `${month}${day}${hours}${minutes}`;
+
+    let commitUrl = '';
+    try {
+        const commitHash = execSync('git rev-parse HEAD').toString().trim();
+        commitUrl = `https://github.com/alisolphp/EchoTalk/commit/${commitHash}`;
+    } catch {
+        commitUrl = 'unknown';
+    }
+
+    return { buildDate, commitUrl };
 };
+
+const { buildDate, commitUrl } = getBuildInfo();
 
 export default defineConfig({
     base: '/EchoTalk/',
     root: 'src',
     publicDir: '../public',
     define: {
-        '__APP_BUILD_DATE__': JSON.stringify(getBuildDate())
+        __APP_BUILD_DATE__: JSON.stringify(buildDate),
+        __APP_COMMIT_URL__: JSON.stringify(commitUrl),
     },
     build: {
         outDir: '../dist',
@@ -48,7 +62,7 @@ export default defineConfig({
                             cacheName: 'pages-cache',
                             expiration: {
                                 maxEntries: 3,
-                                maxAgeSeconds: 86400 // 1 Day
+                                maxAgeSeconds: 30 * 86400,
                             },
                         },
                     },

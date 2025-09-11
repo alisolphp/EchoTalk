@@ -339,7 +339,8 @@ export class UiService {
      */
     public displayAppVersion(): void {
         const buildDate = __APP_BUILD_DATE__;
-        $('#app-version').text(`build.${buildDate}`);
+        const commitUrl = __APP_COMMIT_URL__;
+        $('#app-version').html(`<a target="_blank" href="${commitUrl}" style="color: inherit; text-decoration: none">build.${buildDate}</a>`);
     }
 
     /**
