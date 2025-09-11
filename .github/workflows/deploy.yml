@@ -30,7 +30,13 @@ jobs:
 
       - name: Update Coverage in README
         run: |
+          set -euo pipefail
           sudo apt-get update && sudo apt-get install -y jq
+
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "coverage/coverage-summary.json not found"
+            exit 1
+          fi
 
           COVERAGE=$(jq -r '.total.statements.pct' coverage/coverage-summary.json)
           COVERAGE_INT=${COVERAGE%.*}
@@ -47,12 +53,21 @@ jobs:
           NEW_BADGE_CONTENT="![Coverage](${BADGE_URL})"
 
           COVERAGE_TABLE=$(jq -r '
-          ["| File | % Stmts | % Branch | % Funcs | % Lines |"],
-          ["| ---- | ------- | -------- | ------- | ------- |"],
-          (. as $root | $root | to_entries[] | select(.key != "total") |
-          "| \(.key) | \(.value.statements.pct) | \(.value.branches.pct) | \(.value.functions.pct) | \(.value.lines.pct) |"),
-          ["| All files | \($root.total.statements.pct) | \($root.total.branches.pct) | \($root.total.functions.pct) | \($root.total.lines.pct) |"]
+            . as $root
+            | [
+                "| File | % Stmts | % Branch | % Funcs | % Lines |",
+                "| ---- | ------- | -------- | ------- | ------- |",
+                (
+                  $root
+                  | to_entries[]
+                  | select(.key != "total")
+                  | "| \(.key) | \(.value.statements.pct) | \(.value.branches.pct) | \(.value.functions.pct) | \(.value.lines.pct) |"
+                ),
+                "| All files | \($root.total.statements.pct) | \($root.total.branches.pct) | \($root.total.functions.pct) | \($root.total.lines.pct) |"
+              ]
+            | .[]
           ' coverage/coverage-summary.json)
+
           NEW_TABLE_CONTENT="\`\`\`\n${COVERAGE_TABLE}\n\`\`\`"
 
           perl -0777 -i -pe "s|(<!-- COVERAGE_BADGE_START -->).*?(<!-- COVERAGE_BADGE_END -->)|\1 ${NEW_BADGE_CONTENT} \2|s" README.md
@@ -63,7 +78,7 @@ jobs:
 
           if ! git diff --quiet README.md; then
             git add README.md
-            git commit -m "docs(coverage): Update test coverage in README [skip ci]"
+            git commit -m "docs(coverage): update README badge & table via jq [skip ci]"
             git push
           else
             echo "No changes in coverage to commit."
@@ -73,7 +88,9 @@ jobs:
         run: npm run build
 
       - name: Zip dist folder
-        run: zip -r dist.zip ./dist
+        run: |
+          command -v zip >/dev/null 2>&1 || sudo apt-get update && sudo apt-get install -y zip
+          zip -r dist.zip ./dist
 
       - name: Deploy to shared hosting
         run: |
