@@ -31,10 +31,10 @@ jobs:
       - name: Update Coverage in README
         run: |
           sudo apt-get update && sudo apt-get install -y jq
-          
+
           COVERAGE=$(jq -r '.total.statements.pct' coverage/coverage-summary.json)
           COVERAGE_INT=${COVERAGE%.*}
-          
+
           if (( COVERAGE_INT < 50 )); then
               COLOR="red"
           elif (( COVERAGE_INT < 80 )); then
@@ -42,10 +42,10 @@ jobs:
           else
               COLOR="green"
           fi
-          
+
           BADGE_URL="https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR}"
           NEW_BADGE_CONTENT="![Coverage](${BADGE_URL})"
-          
+
           COVERAGE_TABLE=$(jq -r '
           ["| File | % Stmts | % Branch | % Funcs | % Lines |"],
           ["| ---- | ------- | -------- | ------- | ------- |"],
@@ -54,13 +54,13 @@ jobs:
           ["| All files | \($root.total.statements.pct) | \($root.total.branches.pct) | \($root.total.functions.pct) | \($root.total.lines.pct) |"]
           ' coverage/coverage-summary.json)
           NEW_TABLE_CONTENT="\`\`\`\n${COVERAGE_TABLE}\n\`\`\`"
-          
+
           perl -0777 -i -pe "s|(<!-- COVERAGE_BADGE_START -->).*?(<!-- COVERAGE_BADGE_END -->)|\1 ${NEW_BADGE_CONTENT} \2|s" README.md
           perl -0777 -i -pe "s|(<!-- COVERAGE_TABLE_START -->).*?(<!-- COVERAGE_TABLE_END -->)|\1\n${NEW_TABLE_CONTENT}\n\2|s" README.md
-          
+
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
+
           if ! git diff --quiet README.md; then
             git add README.md
             git commit -m "docs(coverage): Update test coverage in README [skip ci]"
