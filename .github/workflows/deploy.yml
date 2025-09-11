@@ -26,9 +26,7 @@ jobs:
         run: npm install
 
       - name: Run tests and generate coverage report
-        run: |
-          mkdir -p coverage
-          npx vitest run --coverage | tee coverage/coverage-summary.txt
+        run: npx vitest run --coverage
 
       - name: Update Coverage in README
         run: |
@@ -48,7 +46,13 @@ jobs:
           BADGE_URL="https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR}"
           NEW_BADGE_CONTENT="![Coverage](${BADGE_URL})"
           
-          COVERAGE_TABLE=$(cat coverage/coverage-summary.txt)
+          COVERAGE_TABLE=$(jq -r '
+          ["| File | % Stmts | % Branch | % Funcs | % Lines |"],
+          ["| ---- | ------- | -------- | ------- | ------- |"],
+          (. as $root | $root | to_entries[] | select(.key != "total") |
+          "| \(.key) | \(.value.statements.pct) | \(.value.branches.pct) | \(.value.functions.pct) | \(.value.lines.pct) |"),
+          ["| All files | \($root.total.statements.pct) | \($root.total.branches.pct) | \($root.total.functions.pct) | \($root.total.lines.pct) |"]
+          ' coverage/coverage-summary.json)
           NEW_TABLE_CONTENT="\`\`\`\n${COVERAGE_TABLE}\n\`\`\`"
           
           perl -0777 -i -pe "s|(<!-- COVERAGE_BADGE_START -->).*?(<!-- COVERAGE_BADGE_END -->)|\1 ${NEW_BADGE_CONTENT} \2|s" README.md
