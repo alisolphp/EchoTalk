@@ -3,7 +3,7 @@
 ![Build](https://img.shields.io/github/actions/workflow/status/alisolphp/EchoTalk/test.yml?label=build)
 ![License](https://img.shields.io/github/license/alisolphp/EchoTalk)
 ![PWA](https://img.shields.io/badge/PWA-ready-green)
-<!-- COVERAGE_BADGE_START --><!-- COVERAGE_BADGE_END -->
+<!-- COVERAGE_BADGE_START --> ![Coverage](https://img.shields.io/badge/coverage-78.32%25-yellow) <!-- COVERAGE_BADGE_END -->
 
 EchoTalk is a **privacy-first, offline language training tool** that helps you master the **Shadowing** technique for improving pronunciation, fluency, and confidence. It works as a **Progressive Web App (PWA)**, requires no server, and keeps all your recordings securely on your device.
 
@@ -92,9 +92,23 @@ EchoTalk has **200+ unit tests** covering:
 
 
 ### Coverage Summary
-<!-- COVERAGE_TABLE_START -->
-
-<!-- COVERAGE_TABLE_END -->
+<!-- COVERAGE_TABLE_START -->."
+".```
+| File | % Stmts | % Branch | % Funcs | % Lines |
+| ---- | ------- | -------- | ------- | ------- |
+| /home/runner/work/EchoTalk/EchoTalk/src/app.ts | 72.6 | 71.79 | 80.95 | 72.6 |
+| /home/runner/work/EchoTalk/EchoTalk/src/types.ts | 100 | 100 | 100 | 100 |
+| /home/runner/work/EchoTalk/EchoTalk/src/services/ai.service.ts | 97.43 | 90.38 | 100 | 97.43 |
+| /home/runner/work/EchoTalk/EchoTalk/src/services/audio.service.ts | 72.41 | 88.31 | 80 | 72.41 |
+| /home/runner/work/EchoTalk/EchoTalk/src/services/data.service.ts | 84.83 | 78.48 | 78.26 | 84.83 |
+| /home/runner/work/EchoTalk/EchoTalk/src/services/practice.service.ts | 63.3 | 73.43 | 72.72 | 63.3 |
+| /home/runner/work/EchoTalk/EchoTalk/src/services/prompts.service.ts | 100 | 100 | 100 | 100 |
+| /home/runner/work/EchoTalk/EchoTalk/src/services/ui.service.ts | 84.28 | 89.06 | 80.76 | 84.28 |
+| /home/runner/work/EchoTalk/EchoTalk/src/services/util.service.ts | 90 | 86 | 100 | 90 |
+| /home/runner/work/EchoTalk/EchoTalk/src/utils/string.extensions.ts | 100 | 100 | 100 | 100 |
+| All files | 78.32 | 82.35 | 83.22 | 78.32 |
+```."
+".<!-- COVERAGE_TABLE_END -->
 
 ---
 
