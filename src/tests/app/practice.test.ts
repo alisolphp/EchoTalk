@@ -513,4 +513,125 @@ describe('Practice Logic', () => {
         });
     });
 
+    it('normalizes newline-only breaks into proper sentence delimiters on start', async () => {
+        // startPractice should convert bare newlines to ".\n" to keep sentence splitting stable.
+        const raw = 'First line\nSecond line';
+        ($('#sentenceInput') as any).attr('data-val', raw);
+        $('#repsSelect').val('1');
+        $('#practiceModeSelect').val('skip');
+
+        await app.practiceService.startPractice();
+        await vi.runAllTimers();
+
+        expect(app.sentence.includes('First line.\nSecond line')).toBe(true);
+    });
+
+    it('sets area to Practice and toggles containers on start', async () => {
+        // startPractice should switch the UI from config to practice containers.
+        ($('#sentenceInput') as any).attr('data-val', 'Let us begin.');
+        $('#repsSelect').val('1');
+        $('#practiceModeSelect').val('skip');
+
+        await app.practiceService.startPractice();
+        await vi.runAllTimers();
+
+        expect(app.area).toBe('Practice');
+        expect($('#configArea').hasClass('d-none')).toBe(true);
+        expect($('#practiceArea').hasClass('d-none')).toBe(false);
+    });
+
+    it('advanceToNextPhrase moves index to phrase end and resets count', async () => {
+        // advanceToNextPhrase should jump to the computed phrase boundary and zero currentCount.
+        ($('#sentenceInput') as any).attr('data-val', 'one two three. four five six.');
+        $('#repsSelect').val('1');
+        $('#practiceModeSelect').val('skip');
+
+        await app.practiceService.startPractice();
+        await vi.runAllTimers();
+
+        // Start at the beginning; on a "new" sentence dynamic max = 1 => advance by one word.
+        app.currentIndex = 0;
+        app.currentCount = 1;
+
+        await app.practiceService.advanceToNextPhrase();
+        expect(app.currentIndex).toBe(1);
+        expect(app.currentCount).toBe(0);
+    });
+
+    it('useSample persists selected level/category and resets currentIndex', () => {
+        // useSample should save indices to localStorage and reset index to 0.
+        ($('#levelSelect') as any).val('1');
+        ($('#categorySelect') as any).val('0');
+
+        app.practiceService.useSample();
+
+        expect(localStorage.getItem('selectedLevelIndex')).toBe('1');
+        expect(localStorage.getItem('selectedCategoryIndex')).toBe('0');
+        expect(app.currentIndex).toBe(0);
+    });
+
+    it('handleSampleWordClick sets the currentIndex to clicked data-index', () => {
+        // clicking a word in sample sentence sets the start index for practice.
+        const span = $('<span>').data('index', 3)[0];
+        app.practiceService.handleSampleWordClick(span);
+
+        expect(app.currentIndex).toBe(3);
+    });
+
+    it('reads practiceMode from the select on start', async () => {
+        // startPractice must respect the selected practice mode from the dropdown.
+        ($('#sentenceInput') as any).attr('data-val', 'mode check test');
+        $('#repsSelect').val('1');
+        $('#practiceModeSelect').val('check');
+
+        await app.practiceService.startPractice();
+        await vi.runAllTimers();
+
+        expect(app.practiceMode).toBe('check');
+    });
+
+    it('advanceToNextPhrase: calls finishSession when we are at the end', async () => {
+        // Stub getPhraseBounds so the index is at the sentence end
+        const boundsSpy = vi.spyOn(app.utilService, 'getPhraseBounds').mockReturnValue(3);
+        app.words = ['a', 'b', 'c'];
+        app.currentIndex = 2; // one step from the end
+        const finishSpy = vi.spyOn(app.practiceService, 'finishSession').mockResolvedValue();
+
+        await app.practiceService.advanceToNextPhrase();
+
+        expect(boundsSpy).toHaveBeenCalled();
+        expect(finishSpy).toHaveBeenCalled();
+    });
+
+    it('finishSession: no streak increase → plays victory, speaks after 1100ms, and auto-restarts in auto-skip mode', async () => {
+        // Mock private method so willShowStreakModal = false (newStreak === oldStreak)
+        vi.spyOn(app.practiceService as any, 'recordPracticeCompletion')
+            .mockResolvedValue({ newStreak: 3, oldStreak: 3 });
+
+        app.practiceMode = 'auto-skip';
+        app.area = 'Practice';
+
+        const releaseSpy = vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
+        const playSpy = vi.spyOn(app.audioService, 'playSound').mockImplementation(() => {});
+        const speakSpy = vi.spyOn(app.audioService, 'speak').mockImplementation(() => {});
+        const restartSpy = vi.spyOn(app.practiceService, 'restartCurrentPractice').mockResolvedValue();
+
+        // Provide the restart button used by the countdown logic
+        $('#session-complete-container').html('<button id="restartPracticeBtn"></button>');
+
+        await app.practiceService.finishSession();
+
+        // Victory sound and releasing wake lock
+        expect(playSpy).toHaveBeenCalledWith('./sounds/victory.mp3', 2.5, 0.6);
+        expect(releaseSpy).toHaveBeenCalled();
+
+        // TTS after 1100ms
+        await vi.advanceTimersByTimeAsync(1100);
+        expect(speakSpy).toHaveBeenCalled();
+
+        // 5s countdown → auto-restart
+        await vi.advanceTimersByTimeAsync(5000);
+        expect(restartSpy).toHaveBeenCalled();
+    });
+
 });
