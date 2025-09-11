@@ -1,5 +1,6 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
 import { execSync } from 'child_process';
 
@@ -78,7 +79,7 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json-summary', 'html'],
-            reportsDirectory: './coverage',
+            reportsDirectory: resolve(__dirname, './coverage'),
         },
     },
 });
