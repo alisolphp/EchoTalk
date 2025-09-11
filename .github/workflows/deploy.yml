@@ -96,7 +96,7 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           if ! git diff --quiet README.md; then
             git add README.md
-            git commit -m "docs(coverage): update badge & table via CI [skip ci]"
+            git commit -m "Docs: update badge & table via CI [skip ci]"
             git push
           else
             echo "No changes in coverage to commit."
