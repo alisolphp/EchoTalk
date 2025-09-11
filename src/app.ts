@@ -452,9 +452,19 @@ export class EchoTalkApp {
             }
 
             if (modal.id === 'myStreakModal') {
-                console.log("myStreakModal is opening, firing events...");
                 this.dataService.populateStreakModal();
                 this.uiService.showStaticConfetti();
+
+                if (this.practiceMode === 'auto-skip') {
+                    if (this.autoRestartTimer) {
+                        clearTimeout(this.autoRestartTimer);
+                        this.autoRestartTimer = null;
+                    }
+                    $('#restartPracticeBtn')
+                        .removeClass('loading auto-skip-progress')
+                        .css('animation-play-state', 'paused')
+                        .css('animation-duration', '');
+                }
             }
         });
         document.addEventListener('hidden.bs.modal', (event) => {

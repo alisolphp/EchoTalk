@@ -361,6 +361,7 @@ export class PracticeService {
      */
     public async finishSession(): Promise<void> {
         const { newStreak, oldStreak } = await this.recordPracticeCompletion();
+        const willShowStreakModal = newStreak > oldStreak;
 
         this.app.utilService.clearAutoSkipTimer();
         this.app.audioService.terminateMicrophoneStream();
@@ -369,7 +370,7 @@ export class PracticeService {
         }
         if (this.app.area === 'Practice') {
             this.app.uiService.triggerCelebrationAnimation();
-            if (newStreak > oldStreak) {
+            if (willShowStreakModal) {
                 setTimeout(() => {
                     const modalEl = document.getElementById('myStreakModal');
                     if (modalEl) {
@@ -386,8 +387,7 @@ export class PracticeService {
 
         let accuracyText = '';
         if (this.app.practiceMode === 'check') {
-            const accuracy = this.app.attempts ?
-                Math.round((this.app.correctCount / this.app.attempts) * 100) : 100;
+            const accuracy = this.app.attempts ? Math.round((this.app.correctCount / this.app.attempts) * 100) : 100;
             accuracyText = `<p class="lead mb-4">Your accuracy: ${accuracy}%.</p>`;
             ttsMsg += ` Your accuracy: ${accuracy}%.`;
         }
@@ -395,7 +395,9 @@ export class PracticeService {
         ttsMsg += ` Ready for another round?`;
         if (this.app.area === 'Practice') {
             this.app.audioService.playSound('./sounds/victory.mp3', 2.5, 0.6);
-            setTimeout(() => this.app.audioService.speak(ttsMsg, null, 1.3, 'en-US'), 1100);
+            if(!willShowStreakModal){
+                setTimeout(() => this.app.audioService.speak(ttsMsg, null, 1.3, 'en-US'), 1100);
+            }
         }
 
         const completionHtml = `
@@ -423,21 +425,12 @@ export class PracticeService {
 
         $('#backHomeButton').addClass('d-none').removeClass('d-inline-block');
 
-        if (this.app.practiceMode === 'auto-skip' && this.app.area === 'Practice') {
+        if (this.app.practiceMode === 'auto-skip' && this.app.area === 'Practice' && !willShowStreakModal) {
             const waitTime = 5;
-            // seconds
             const $restartBtn = $('#restartPracticeBtn');
-
-            $restartBtn.addClass('auto-skip-progress');
-            // Reset any previous animation state to ensure it restarts correctly
-            $restartBtn.removeClass('loading');
-            // Force a DOM reflow to apply the class removal before adding it again
-            void $restartBtn[0].offsetHeight;
-            // Set the animation duration
-            $restartBtn.css('animation-duration', `${waitTime}s`);
-            // Add the 'loading' class to trigger the animation
-            $restartBtn.addClass('loading');
-            // Set a timer to automatically restart the practice after the animation completes
+            $restartBtn.addClass('auto-skip-progress').removeClass('loading');
+            void ($restartBtn[0] as HTMLElement).offsetHeight;
+            $restartBtn.css('animation-duration', `${waitTime}s`).addClass('loading');
             this.app.autoRestartTimer = setTimeout(() => {
                 if (!$('#session-complete-container').hasClass('d-none')) {
                     this.restartCurrentPractice();
