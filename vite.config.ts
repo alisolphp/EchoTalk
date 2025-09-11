@@ -12,7 +12,7 @@ const getBuildDate = () => {
 };
 
 export default defineConfig({
-    base: './',
+    base: '/EchoTalk/',
     root: 'src',
     publicDir: '../public',
     define: {
