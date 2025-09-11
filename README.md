@@ -149,13 +149,26 @@ npm run build
 * ✅ AI integrations for grammar, translation, and pronunciation
 * ✅ Offline-first with recordings saved locally
 
-Next up:
+### Next Up
 
 * [ ] **STT integration** for real-time pronunciation scoring
 * [ ] **Export tools** for recordings
 * [ ] **Smarter sentence segmentation** with AI assistance
 * [ ] **Gamification** (badges, levels, rewards)
 * [ ] **Community sharing features**
+
+### 🔮 Planned Enhancements
+
+* [ ] **Custom Video & Subtitle Upload**
+    - Users can upload their favorite movies or clips along with subtitle files.
+    - Practice with content they love, in the exact accent they want to train.
+    - Facial expressions and lip movements become part of the shadowing experience.
+
+* [ ] **YouTube API Integration**
+    - Let users pick and practice directly with YouTube videos.
+    - Faster and easier than manual video + subtitle uploads.
+    - ⚠️ Planned for the future due to API costs and potential complexity.
+
 
 ---
 
