@@ -31,8 +31,12 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+      - name: Zip dist folder
+        run: zip -r dist.zip ./dist
+
+      - name: Deploy to shared hosting
+        run: |
+          curl -X POST \
+            -F "file=@dist.zip" \
+            -F "token=${{ secrets.DEPLOYER_TOKEN }}" \
+            "${{ secrets.DEPLOYER_URL }}"
