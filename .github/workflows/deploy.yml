@@ -42,11 +42,11 @@ jobs:
           COVERAGE_INT=${COVERAGE%.*}
 
           if (( COVERAGE_INT < 50 )); then
-              COLOR="red"
+            COLOR="red"
           elif (( COVERAGE_INT < 80 )); then
-              COLOR="yellow"
+            COLOR="yellow"
           else
-              COLOR="green"
+            COLOR="green"
           fi
 
           BADGE_URL="https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR}"
@@ -68,17 +68,18 @@ jobs:
             | .[]
           ' coverage/coverage-summary.json)
 
-          NEW_TABLE_CONTENT="\`\`\`\n${COVERAGE_TABLE}\n\`\`\`"
+          export NEW_TABLE_CONTENT=$(printf '```\n%s\n```' "$COVERAGE_TABLE")
 
           perl -0777 -i -pe "s|(<!-- COVERAGE_BADGE_START -->).*?(<!-- COVERAGE_BADGE_END -->)|\1 ${NEW_BADGE_CONTENT} \2|s" README.md
-          perl -0777 -i -pe "s|(<!-- COVERAGE_TABLE_START -->).*?(<!-- COVERAGE_TABLE_END -->)|\1\n${NEW_TABLE_CONTENT}\n\2|s" README.md
+
+          perl -0777 -i -pe 'BEGIN { our $r = $ENV{NEW_TABLE_CONTENT} // "" } s|(<!-- COVERAGE_TABLE_START -->).*?(<!-- COVERAGE_TABLE_END -->)|$1."\n".$r."\n".$2|s' README.md
 
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
           if ! git diff --quiet README.md; then
             git add README.md
-            git commit -m "docs(coverage): update README badge & table via jq [skip ci]"
+            git commit -m "docs(coverage): inject dynamic badge/table via CI [skip ci]"
             git push
           else
             echo "No changes in coverage to commit."
