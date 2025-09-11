@@ -3,9 +3,7 @@
 ![Build](https://img.shields.io/github/actions/workflow/status/alisolphp/EchoTalk/test.yml?label=build)
 ![License](https://img.shields.io/github/license/alisolphp/EchoTalk)
 ![PWA](https://img.shields.io/badge/PWA-ready-green)
-<!-- COVERAGE_BADGE_START -->
-![Coverage](https://img.shields.io/badge/coverage-78.32%25-yellow)
-<!-- COVERAGE_BADGE_END -->
+CoveragePercentPlaceholder <!-- COVERAGE_BADGE_LINE -->
 
 EchoTalk is a **privacy-first, offline language training tool** that helps you master the **Shadowing** technique for improving pronunciation, fluency, and confidence. It works as a **Progressive Web App (PWA)**, requires no server, and keeps all your recordings securely on your device.
 

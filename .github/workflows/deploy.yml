@@ -40,38 +40,49 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
 
+          // --- Build badge
           const cov = JSON.parse(fs.readFileSync('coverage/coverage-summary.json','utf8'));
-
           const pct = Number(cov.total?.statements?.pct ?? 0);
           const pctStr = pct.toFixed(2);
           const pctInt = Math.floor(pct);
           const color = pctInt < 50 ? 'red' : (pctInt < 80 ? 'yellow' : 'green');
-
           const badge = `![Coverage](https://img.shields.io/badge/coverage-${encodeURIComponent(pctStr)}%25-${color})`;
 
+          // --- Build table
           const rows = [];
           rows.push('| File | % Stmts | % Branch | % Funcs | % Lines |');
           rows.push('| ---- | ------- | -------- | ------- | ------- |');
-
           const entries = Object.entries(cov).filter(([k]) => k !== 'total');
           for (const [file, v] of entries) {
             const nice = file.replace(/^.*\/src\//, 'src/');
             rows.push(`| ${nice} | ${v.statements.pct} | ${v.branches.pct} | ${v.functions.pct} | ${v.lines.pct} |`);
           }
           rows.push(`| All files | ${cov.total.statements.pct} | ${cov.total.branches.pct} | ${cov.total.functions.pct} | ${cov.total.lines.pct} |`);
-
           const table = rows.join('\n');
 
           let readme = fs.readFileSync('README.md','utf8');
 
-          const badgeRe = /(<!-- COVERAGE_BADGE_START -->)[\s\S]*?(<!-- COVERAGE_BADGE_END -->)/;
-          if (badgeRe.test(readme)) {
-            readme = readme.replace(badgeRe, `$1\n${badge}\n$2`);
-          } else {
-            readme = readme.replace(/^# .*\n/, m => `${m}<!-- COVERAGE_BADGE_START -->\n${badge}\n<!-- COVERAGE_BADGE_END -->\n`);
+          // A) migrate legacy block to LINE
+          const legacyRe = /(<!--\s*COVERAGE_BADGE_START\s*-->)[\s\S]*?(<!--\s*COVERAGE_BADGE_END\s*-->)/;
+          if (legacyRe.test(readme)) {
+            readme = readme.replace(legacyRe, `${badge} <!-- COVERAGE_BADGE_LINE -->`);
           }
 
-          const tableRe = /(<!-- COVERAGE_TABLE_START -->)[\s\S]*?(<!-- COVERAGE_TABLE_END -->)/;
+          // B) write badge at the beginning of the line containing LINE marker
+          const lineRe = /^[^\n]*<!--\s*COVERAGE_BADGE_LINE\s*-->[^\n]*$/m;
+          if (lineRe.test(readme)) {
+            readme = readme.replace(lineRe, `${badge} <!-- COVERAGE_BADGE_LINE -->`);
+          } else {
+            // No marker? insert after first H1 or at file start
+            if (/^# .*\n?/.test(readme)) {
+              readme = readme.replace(/^# .*\n?/, m => `${m}${badge} <!-- COVERAGE_BADGE_LINE -->\n`);
+            } else {
+              readme = `${badge} <!-- COVERAGE_BADGE_LINE -->\n\n${readme}`;
+            }
+          }
+
+          // C) table block
+          const tableRe = /(<!--\s*COVERAGE_TABLE_START\s*-->)[\s\S]*?(<!--\s*COVERAGE_TABLE_END\s*-->)/;
           if (tableRe.test(readme)) {
             readme = readme.replace(tableRe, `$1\n${table}\n$2`);
           } else {
@@ -83,7 +94,6 @@ jobs:
 
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
           if ! git diff --quiet README.md; then
             git add README.md
             git commit -m "docs(coverage): update badge & table via CI [skip ci]"
