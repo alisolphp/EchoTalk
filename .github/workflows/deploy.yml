@@ -105,6 +105,14 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
+
       - name: Zip dist folder
         run: |
           command -v zip >/dev/null 2>&1 || sudo apt-get update && sudo apt-get install -y zip
