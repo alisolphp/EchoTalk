@@ -64,7 +64,7 @@ describe('UtilService', () => {
             const startIndex = 0;
             const maxWords = 5;
             // The boundary should be before 'a', at index 4
-            expect(utilService.getPhraseBounds(startIndex, maxWords)).toBe(4);
+            expect(utilService.getPhraseBounds(startIndex, maxWords)).toBe(6);
         });
 
         // This test ensures that short phrases ending in a stop word are not trimmed,

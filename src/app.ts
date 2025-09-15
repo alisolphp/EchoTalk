@@ -122,10 +122,26 @@ export class EchoTalkApp {
      * Prevents phrases from ending with unimportant words like 'a', 'the', 'is'.
      */
     public readonly STOP_WORDS: string[] = [
-        'a', 'an', 'the', 'in', 'on', 'at', 'for', 'to', 'of', 'with', 'by',
-        'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being',
-        'and', 'or', 'but', 'so', 'if', 'as', 'that', 'which', 'who', 'whom',
-        'my', 'your', 'his', 'her', 'its', 'our', 'their'
+        'i','me','my','myself','we','our','ours','ourselves','you','your','yours',
+        'yourself','yourselves','he','him','his','himself','she','her','hers',
+        'herself','it','its','itself','they','them','their','theirs','themselves',
+        'what','which','who','whom','this','that','these','those',
+
+        'am','is','are','was','were','be','been','being','have','has','had','having',
+        'do','does','did','doing',
+
+        'a','an','the','and','but','if','or','because','as','until','while','of',
+        'at','by','for','with','about','against','between','into','through','during',
+        'before','after','above','below','to','from','up','down','in','out','on',
+        'off','over','under','again','further','then','once',
+
+        'here','there','when','where','why','how','all','any','both','each','few',
+        'more','most','other','some','such','no','nor','not','only','own','same',
+        'so','than','too','very','s','t','can','will','just','don','should','now',
+
+        // extended list from spaCy & others
+        'aren','couldn','didn','doesn','hadn','hasn','haven','isn','ma','mightn',
+        'mustn','needn','shan','shouldn','wasn','weren','won','wouldn'
     ];
 
     /** A map of language codes to their human-readable names. */

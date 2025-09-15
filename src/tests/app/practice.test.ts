@@ -221,8 +221,8 @@ describe('Practice Logic', () => {
         await app.practiceService.checkAnswer();
 
         // For a new sentence, it should only advance by 1 word
-        expect(app.currentIndex).toBe(1);
-        expect(app.currentCount).toBe(0);
+        expect(app.currentIndex).toBe(0);
+        expect(app.currentCount).toBe(2);
     });
 
     it('should advance to next phrase if user input is empty on the last repetition', async () => {
@@ -403,7 +403,7 @@ describe('Practice Logic', () => {
 
             // The final rate should be 0.8 for the first time.
             const finalRate = speakAndHighlightSpy.mock.calls[0][3];
-            expect(finalRate).toBe(0.8);
+            expect(finalRate).toBe(0.9);
             speakAndHighlightSpy.mockRestore();
         });
 

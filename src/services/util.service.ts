@@ -73,13 +73,18 @@ export class UtilService {
             }
         }
 
-        const phraseLength = endIndex - startIndex;
-        if (endIndex < this.app.words.length && phraseLength > 3) {
-            const lastWordInPhrase = this.app.words[endIndex - 1].toLowerCase().replace(/\\[.,!?;:\"\\]+$/, '');
+        // Extend phrase if it ends with stop words
+        while (endIndex < this.app.words.length) {
+            const lastWordInPhrase = this.app.words[endIndex - 1]
+                .toLowerCase()
+                .replace(/[.,!?;:"\\]+$/, '');
             if (this.app.STOP_WORDS.includes(lastWordInPhrase)) {
-                endIndex--;
+                endIndex++;
+            } else {
+                break;
             }
         }
+
         return endIndex;
     }
 

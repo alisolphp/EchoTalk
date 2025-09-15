@@ -201,7 +201,7 @@ export class PracticeService {
             let automaticBaseRate: number;
             const practiceCountToday = this.currentSentencePracticeCount;
             if (practiceCountToday === 0) { // 1st time
-                automaticBaseRate = 0.8;
+                automaticBaseRate = 0.9;
                 // Medium
             } else if (practiceCountToday === 1 || practiceCountToday === 2) { // 2nd and 3rd
                 automaticBaseRate = 1.0;

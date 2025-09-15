@@ -12,7 +12,7 @@ describe('Phrase Logic Utilities', () => {
         const startIndex = 0;
         const maxWords = 3;
         const endIndex = app.utilService.getPhraseBounds(startIndex, maxWords);
-        expect(endIndex).toBe(3);
+        expect(endIndex).toBe(4);
     });
 
     it('getPhraseBounds should stop at punctuation before reaching max words', () => {
