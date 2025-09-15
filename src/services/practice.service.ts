@@ -58,7 +58,8 @@ export class PracticeService {
                 this.currentSentencePracticeCount = practicesTodayCount;
 
                 if (selectedReps === 0) {
-                    this.app.reps = Math.max(1, 5 - this.currentSentencePracticeCount);
+                    this.app.reps = 2; // Temporary disabled smart logic, because new users were NOT familiar with that.
+                    // this.app.reps = Math.max(1, 5 - this.currentSentencePracticeCount);
                 } else {
                     this.app.reps = selectedReps;
                 }
