@@ -548,12 +548,9 @@ export class EchoTalkApp {
         const openModal = document.querySelector('.modal.show') as HTMLElement;
         const isPracticeVisible = !$('#practiceArea').hasClass('d-none');
 
-        if (hash !== '#modal' && openModal) {
-            const modalInstance = Modal.getInstance(openModal);
-            if (modalInstance) {
-                modalInstance.hide();
-            }
-        } else if (hash !== '#practice' && isPracticeVisible && hash !== '#modal') {
+        $('.modal.fade.show .btn-close').click();
+
+        if (hash !== '#practice' && isPracticeVisible && hash !== '#modal') {
             this.resetWithoutReload();
         }
     }
