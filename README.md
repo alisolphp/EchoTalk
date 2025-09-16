@@ -156,9 +156,10 @@ npm run build
 
 ### Next Up
 
-* [ ] **STT integration** for real-time pronunciation scoring
-* [ ] **Export tools** for recordings
+* [ ] **Custom Video & Subtitle Upload**
+* [ ] **YouTube API Integration**
 * [ ] **Explore & browse sentences by level and category**
+* [ ] **Export tools** for recordings
 * [ ] **Gamification** (badges, levels, rewards)
 * [ ] **Community sharing features**
 
