@@ -22,8 +22,20 @@ EchoTalk is a **privacy-first, offline language training tool** that helps you m
 
 * **Skip-Only, Check, and Auto-Skip modes** for flexible practice styles.
 * **Auto Repetition & Auto Speed** that adapt dynamically to your progress.
-* **Intelligent sentence splitting** that avoids meaningless one-word segments.
 * **Repetition counters** so you always know how many loops are left.
+* **AI Personal Teacher**:
+  - Get fast, targeted analysis of your **pronunciation & fluency** (word-by-word guidance).
+  - Generate **context/nuance insights** and **creative practice** (variations, opposites, Q&A, fill-in-the-blank) to remember meanings better and faster.
+
+### 📝 Rich Content
+* Large ready-made sentence packs organized by **level** and **category**.
+* Personalized sample sentences by language, level, and topic.
+* Word-level tools: click any word for meaning/pronunciation and AI-powered analysis.
+
+### 🤖 AI Integrations & Extensions
+* Grammar help, translations, and vocabulary expansion via AI.
+* Creative exercises (opposites, variations, quizzes) with ChatGPT/Gemini prompts.
+* Fast AI pronunciation analysis of your recordings (offline prompts supported).
 
 ### 🎨 Modern UI/UX
 
@@ -39,13 +51,6 @@ EchoTalk is a **privacy-first, offline language training tool** that helps you m
 * Adjustable **TTS speed** (slow → furious).
 * **Keyboard-only navigation** for mouse-free practice.
 * **Screen reader friendly** with live progress announcements.
-* **Reduced motion mode** for comfortable interaction.
-
-### 📝 Rich Content & Integrations
-
-* **Personalized sample sentences** by language, level, and category.
-* **Google Translate & AI integrations** for deep analysis, grammar help, vocabulary expansion, and creative exercises.
-* **Fast AI analysis** of your recordings for pronunciation accuracy, plus detailed **offline prompts** for Gemini/ChatGPT.
 
 ### ⚙️ Technology & Performance
 
@@ -153,7 +158,7 @@ npm run build
 
 * [ ] **STT integration** for real-time pronunciation scoring
 * [ ] **Export tools** for recordings
-* [ ] **Smarter sentence segmentation** with AI assistance
+* [ ] **Explore & browse sentences by level and category**
 * [ ] **Gamification** (badges, levels, rewards)
 * [ ] **Community sharing features**
 
