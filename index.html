@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>EchoTalk | Offline Shadowing Practice</title>
+    <meta name="theme-color" content="#43b6fd">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-512.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <meta name="application-name" content="EchoTalk">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="EchoTalk">
+    <meta name="color-scheme" content="dark light">
+
+    <meta property="og:title" content="EchoTalk | Offline Shadowing Practice">
+    <meta property="og:description" content="EchoTalk is a privacy-first offline shadowing app (PWA) for pronunciation and fluency practice.">
+    <meta name="description" content="EchoTalk is a privacy-first offline shadowing app (PWA) for pronunciation and fluency practice.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="EchoTalk">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:image" content="images/og-1200x600.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="600">
+    <meta property="og:image:alt" content="EchoTalk — Offline Shadowing Practice">
+    <meta property="og:image" content="images/og-720x720.jpg">
+    <meta property="og:image:width" content="720">
+    <meta property="og:image:height" content="720">
+    <meta property="og:image:alt" content="EchoTalk — Offline Shadowing Practice (square)">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="EchoTalk | Offline Shadowing Practice">
+    <meta name="twitter:description" content="Privacy-first offline shadowing app (PWA) for pronunciation and fluency.">
+    <meta name="twitter:image" content="images/og-1200x600.jpg">
+    <meta name="twitter:image:alt" content="EchoTalk — Offline Shadowing Practice">
+
+    <meta name="author" content="Ali Sol">
+    <meta name="creator" content="Ali Sol">
+    <meta property="og:see_also" content="https://alisol.ir/">
+    <meta property="og:see_also" content="https://github.com/alisolphp/">
+    <link rel="me" href="https://alisol.ir/">
+    <link rel="me" href="https://github.com/alisolphp/">
+    <link rel="me" href="https://www.linkedin.com/in/alisolphp/">
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "EchoTalk",
+            "url": ["https://alisolphp.github.io/EchoTalk/","https://alisol.ir/EchoTalk/"],
+            "description": "EchoTalk is a privacy-first offline shadowing app (PWA) for pronunciation and fluency practice.",
+            "applicationCategory": "EducationalApplication",
+            "operatingSystem": "Web",
+            "isAccessibleForFree": true,
+            "image": "/EchoTalk/images/og-1200x600.jpg",
+            "author": {
+                "@type": "Person",
+                "name": "Ali Sol",
+                "url": "https://alisol.ir/",
+                "sameAs": [
+                    "https://alisol.ir/",
+                    "https://github.com/alisolphp/",
+                    "https://www.linkedin.com/in/alisolphp/"
+                ]
+            },
+            "publisher": {
+                "@type": "Person",
+                "name": "Ali Sol",
+                "url": "https://alisol.ir/"
+            }
+        }
+    </script>
+
+  <script type="module" crossorigin src="/EchoTalk/assets/index-DiwOnty_.js"></script>
+  <link rel="stylesheet" crossorigin href="/EchoTalk/assets/index-CDKysWze.css">
+<link rel="manifest" href="/EchoTalk/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/EchoTalk/registerSW.js"></script></head>
+<body class="d-flex flex-column h-100">
+
+<div id="areaHome" class="container my-4 text-center area">
+    <img src="icons/icon-512.png" style="width: 150px; margin-bottom: 1rem;">
+    <h1 class="mb-2">EchoTalk</h1>
+    <p class="lead mb-4">Your personal space for offline shadowing practice in <span class="practicing-languages-count">1</span> languages & 3 levels.</p>
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <button id="goToPracticeBtn" class="btn btn-primary btn-lg" aria-label="Get started with practice">Let's get started!</button>
+        <button class="btn btn-outline-warning px-2 ps-1" data-bs-toggle="modal" data-bs-target="#myStreakModal" title="My Streak">🔥 <span class="day-streak-number">&nbsp;</span></button>
+    </div>
+    <footer class="text-end text-muted small pt-3 opacity-25">
+        <div id="app-version"></div>
+    </footer>
+</div>
+
+<div id="areaPrePractice" class="container my-4 d-none area">
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <button class="btn btn-outline-warning px-2 ps-1 position-fixed top-0 end-0 m-2" data-bs-toggle="modal" data-bs-target="#myStreakModal" title="My Streak">🔥 <span class="day-streak-number">&nbsp;&nbsp;</span></button>
+        <h1 class="mb-0"><img src="icons/icon-512.png" style="width: 1em; margin-top: -8px;"> EchoTalk</h1>
+        <select id="headerLanguageSelect" class="form-select form-select-sm header-lang-select d-none" aria-label="Select Language"></select>
+    </div>
+    <h2 class="mb-3 text-center">Offline Shadowing Practice</h2>
+
+    <div class="row mb-2 d-none">
+        <div class="col text-center">
+            <div id="backHomeButton" class="d-none backHomeButton">
+                <button class="btn btn-outline-secondary">Back Home</button>
+            </div>
+            <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#quickStartModal"><i class="bi bi-info-circle-fill"></i> Quick Start</button>
+        </div>
+    </div>
+
+    <div id="configArea">
+        <div class="mb-3">
+            <label for="sentenceInput" class="form-label">Enter your sentence or
+                <button id="useSampleBtn" class="btn btn-secondary small py-0 px-2 me-1">Use a random Sample</button>:
+            </label>
+            <textarea id="sentenceInput" class="form-control" placeholder="Type or pick a sample sentence"></textarea>
+        </div>
+        <div class="mb-3">
+            <div id="sampleSentence" class="fs-5"></div>
+            <small class="text-muted">Click any word to set the starting point.</small>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col">
+                <button id="startBtn" class="btn btn-primary d-block w-100" aria-label="Start Practice">
+                    <i class="bi bi-rocket-takeoff-fill"></i> Start Practice
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="practiceArea" class="d-none">
+        <div id="practice-ui-container">
+            <div class="mb-3">
+                <div id="fullSentence" class="fs-5 mb-2 d-none"></div>
+
+                <button id="slowBtn" style="margin-top: -0.3em;font-size: 20pt; color:#8fc9ff; text-shadow: 0px 0px 10px #59acf9;"
+                        class="btn pt-1 pb-2 px-2" title="Play Slower" aria-label="Play slower">
+                    <i class="bi bi-play-fill"></i><sub style="margin-left: -10px; font-size: 0.5em;">🐢</sub>
+                </button>
+
+                <button id="fastBtn" style="margin-top: -0.3em;font-size: 20pt; color:#8fc9ff; text-shadow: 0px 0px 10px #59acf9; margin-left: -5px;"
+                        class="btn pt-1 pb-2 px-2" title="Play Faster" aria-label="Play faster">
+                    <i class="bi bi-play-fill"></i><sub style="margin-left: -10px; font-size: 0.5em;">🐇</sub>
+                </button>
+
+                <div id="sentence-container" class="fs-3 fw-bold mb-3 d-inline"></div>
+            </div>
+            <div class="row mb-3">
+                <div class="d-inline w-auto" id="instructionText" role="status" aria-live="polite">Now it's your turn. Tap the mic icon on your keyboard and speak the word.</div>
+                <div class="d-inline w-auto">
+                    <button id="showTtsWarningBtn" class="btn btn-sm btn-outline-warning d-inline-block" aria-label="Troubleshoot TTS">
+                        <i class="bi bi-volume-mute"></i> I can't hear anything...
+                    </button>
+                </div>
+            </div>
+            <div class="input-group mb-3">
+                <input type="text" id="userInput" class="form-control" placeholder="Tap keyboard mic" autocorrect="off" spellcheck="false" autocomplete="off" aria-autocomplete="none" aria-label="Type or dictate your answer">
+            </div>
+            <div>
+                <button id="checkBtn" class="btn btn-success d-block w-100 py-3" aria-label="Check or Skip">Check/Skip</button>
+            </div>
+            <div class="visualizer-container">
+                <img src="images/sound-wave-animation.webp" id="soundWaveVisualizer" alt="" aria-hidden="true">
+            </div>
+            <div id="feedback" class="mb-3" style="min-height: 60px;">
+                <canvas id="audio-visualizer" class="d-none" height="50"></canvas>
+                <div id="feedback-text" class="fs-5" role="status" aria-live="polite" aria-atomic="true"></div>
+            </div>
+        </div>
+        <div id="session-complete-container" class="d-none"></div>
+    </div>
+</div>
+
+<div id="areaOptions" class="container my-4 d-none area">
+    <h1 class="mb-4 text-center">Options <small class="text-muted">(Auto save)</small></h1>
+
+    <div>
+        <div class="card bg-dark-subtle mb-3">
+            <div class="card-body">
+                <h6 class="card-title mb-3">Select Content to Practice</h6>
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="languageSelect" class="form-label fw-bold"><i class="bi bi-translate" style="color: #677fff;"></i> Select Language:</label>
+                        <select id="languageSelect" class="form-select"></select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <label for="levelSelect" class="form-label fw-bold"><i class="bi bi-bar-chart-line-fill" style="color: #39bc58;"></i> Level:</label>
+                        <select id="levelSelect" class="form-select"></select>
+                    </div>
+                    <div class="col">
+                        <label for="categorySelect" class="form-label fw-bold"><i class="bi bi-folder-fill" style="color: #ffcb00;"></i> Category:</label>
+                        <select id="categorySelect" class="form-select"></select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-dark-subtle mb-3">
+            <div class="card-body">
+                <h6 class="card-title mb-3">Practice Configuration</h6>
+
+                <div class="mb-3">
+                    <label for="practiceModeSelect" class="form-label fw-bold">Practice Mode:</label>
+                    <select id="practiceModeSelect" class="form-select">
+                        <option value="skip">🎧 Skip-Only (Listen &amp; Repeat)</option>
+                        <option value="auto-skip">🕒 Auto-Skip (Practice Within Time)</option>
+                        <option value="check">🎤 Check Mode (Use Keyboard's Mic)</option>
+                    </select>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label for="speechRateSelect" class="form-label fw-bold">Speech Speed:</label>
+                        <select id="speechRateSelect" class="form-select">
+                            <option value="0">🪄 Auto (recommended)</option>
+                            <option value="0.6">🐢 Slow</option>
+                            <option value="0.8">🧍 Medium</option>
+                            <option value="1">🚶 Normal</option>
+                            <option value="1.2">🏃 Fast</option>
+                            <option value="1.4">🚗 Furious</option>
+                        </select>
+                    </div>
+
+                    <div class="col">
+                        <label for="repsSelect" class="form-label fw-bold">Repetitions:</label>
+                        <select id="repsSelect" class="form-select"></select>
+                    </div>
+                </div>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="recordToggle">
+                    <label class="form-check-label" for="recordToggle"><i class="bi bi-mic-fill" style="color: #ffb300;"></i> <strong>Record my voice</strong> to compare later (completely locally)</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-danger p-0">
+            <details>
+                <summary class="card-title text-danger small p-2 m-0">Danger Zone</summary>
+                <div class="card-body">
+                    <p class="card-text small text-muted">This will permanently delete all your data and recordings.</p>
+                    <button id="resetBtn" class="btn btn-danger w-100">Reset App</button>
+                </div>
+            </details>
+        </div>
+
+        <div class="modal-footer mt-3">
+            <button type="button" class="btn btn-success opacity-50 backHomeButton">
+                <i class="bi bi-check-square-fill"></i>
+                <small>Saved Automatically</small>
+            </button>
+            <button type="button" class="btn btn-primary backHomeButton ms-2">
+                <i class="bi bi-play"></i>
+                Go to Practice</button>
+        </div>
+    </div>
+
+</div>
+
+<div id="areaForYou" class="container my-4 d-none area">
+    <h1 class="mb-4 text-center">For You</h1>
+    <div class="list-group">
+        <a href="#" id="showRecordingsBtn" class="list-group-item list-group-item-action py-3">
+            <i class="bi bi-file-earmark-music" style="color: #ff00d7;"></i>
+            My Recordings
+        </a>
+        <a href="#" id="showPracticesBtn" class="list-group-item list-group-item-action py-3">
+            <i class="bi bi-journal-check" style="color: #78ff65;"></i>
+            My Practices
+        </a>
+        <a href="#" id="showProgressBtn" class="list-group-item list-group-item-action d-none">
+            <i class="bi bi-bar-chart-line-fill"></i>
+            My Progress
+        </a>
+        <a href="#" id="showStreakBtn" class="list-group-item list-group-item-action py-3" data-bs-toggle="modal" data-bs-target="#myStreakModal">
+            <i class="bi bi-fire" style="color: #ff8f3d;"></i>
+            My Streak
+        </a>
+    </div>
+</div>
+
+<nav class="nav-bottom">
+    <div class="nav-items">
+        <a href="#" id="navHome" class="nav-item active">
+            <i class="bi bi-house-fill"></i>
+            <span>Home</span>
+        </a>
+        <a href="#" id="navHelp" class="nav-item" data-bs-toggle="modal" data-bs-target="#quickStartModal">
+            <i class="bi bi-question-circle-fill"></i>
+            <span>Help</span>
+        </a>
+        <a href="#" id="navPrePractice" class="nav-item">
+            <i class="bi bi-mic-fill"></i>
+            <span>Practice</span>
+        </a>
+        <a href="#" id="navOptions" class="nav-item">
+            <i class="bi bi-sliders"></i>
+            <span>Options</span>
+        </a>
+        <a href="#" id="navForYou" class="nav-item">
+            <i class="bi bi-person-fill"></i>
+            <span>For You</span>
+        </a>
+    </div>
+</nav>
+
+<div class="modal fade" id="quickStartModal" tabindex="-1" aria-labelledby="quickStartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickStartModalLabel">Welcome to EchoTalk!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <h5>How to Start in 2 Steps</h5>
+                <ol>
+                    <li><strong>Add a sentence:</strong> Type your own text, or click <strong>"Use a Sample"</strong> to start with a sentence matched to your level.</li>
+                    <li><strong>Start Practicing:</strong> Hit the "Start Practice" button to begin.</li>
+                </ol>
+
+                <div class="alert alert-info d-flex align-items-center mt-3" role="alert">
+                    <i class="bi bi-info-circle-fill flex-shrink-0 me-2" aria-hidden="true"></i>
+                    <div>
+                        Focused and steady is the key to shadowing. You may customize repetition and speed in <strong>Options</strong>.
+                    </div>
+                </div>
+
+                <div class="text-center my-4">
+                    <a class="backHomeButton btn btn-primary" data-bs-dismiss="modal">
+                        <i class="bi bi-check-square"></i> Got it, let's dive in!
+                    </a>
+                </div>
+
+                <hr>
+
+                <div class="text-center mb-3">
+                    <small class="text-muted">Want to learn more? Expand the sections below.</small>
+                </div>
+
+                <div class="accordion" id="moreInfoAccordion">
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                What's "Shadowing"?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#moreInfoAccordion">
+                            <div class="accordion-body">
+                                <p>It's a powerful method to improve your fluency and pronunciation. You listen to a phrase and repeat it as quickly and accurately as possible. This short video shows you how:</p>
+                                <div class="text-center mb-4">
+                                    <button class="btn btn-outline-danger" id="loadVideoBtn">
+                                        <i class="bi bi-youtube"></i> Watch an Intro to Shadowing
+                                    </button>
+                                </div>
+                                <div id="videoContainer" class="ratio ratio-16x9 d-none"></div>
+                                <script>
+                                    // Script for loading video remains the same
+                                    document.getElementById("loadVideoBtn").addEventListener("click", function() {
+                                        const container = document.getElementById("videoContainer");
+                                        if (!container.querySelector("iframe")) {
+                                            container.innerHTML = `<iframe src="https://www.youtube.com/embed/KDpfN0TA4c4?autoplay=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                                        }
+                                        container.classList.remove("d-none");
+                                        container.scrollIntoView({ behavior: "smooth" });
+                                    });
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Why use EchoTalk?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#moreInfoAccordion">
+                            <div class="accordion-body">
+                                <p>EchoTalk is your personal tool for mastering Shadowing. We built it with privacy as the top priority:</p>
+                                <ul>
+                                    <li><strong>Works Completely Offline:</strong> No internet connection is needed after the first load.</li>
+                                    <li><strong>Your Data is Protected:</strong> All your practices and recordings stay securely on your device and are never sent to any server.</li>
+                                    <li><strong>Installable on Your Phone:</strong> Add EchoTalk to your home screen just like a regular app for easy access anytime, anywhere.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Discover Our Powerful Features
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#moreInfoAccordion">
+                            <div class="accordion-body">
+                                <h5>🧠 Smart Training & Learning Modes</h5>
+                                <ul>
+                                    <li><strong>Auto-Skip Mode:</strong> Enjoy a hands-free practice experience! After each phrase plays, the app pauses for you to repeat, then automatically moves on.</li>
+                                    <li><strong>Smart Auto-Settings:</strong> The app intelligently sets repetition count and playback speed based on your practice history.</li>
+                                    <li><strong>Intelligent Sentence Splitting:</strong> Breaks down sentences meaningfully for easier practice.</li>
+                                </ul>
+
+                                <h5>🎨 Modern UI/UX</h5>
+                                <ul>
+                                    <li><strong>Enhanced Word Interaction:</strong> Click any word for translation, pronunciation, and AI-powered analysis.</li>
+                                    <li><strong>Practice Streak Tracker:</strong> Stay motivated by tracking your consecutive practice days.</li>
+                                    <li><strong>"My Practices" History:</strong> Review past sentences and jump right back into a session.</li>
+                                    <li><strong>Review Your Recordings:</strong> Listen back to your pronunciation to track improvement.</li>
+                                </ul>
+
+                                <h5>♿ Accessibility</h5>
+                                <ul>
+                                    <li><strong>Adjustable TTS Speed:</strong> Fine-tune playback speed for comfort.</li>
+                                    <li><strong>Keyboard-Only Flow:</strong> Navigate the entire practice session without a mouse.</li>
+                                    <li><strong>Screen Reader Friendly:</strong> Designed with accessibility in mind.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Terms & Project Info
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#moreInfoAccordion">
+                            <div class="accordion-body">
+                                <div class="alert alert-info d-flex align-items-center" role="alert">
+                                    <i class="bi bi-lightbulb-fill flex-shrink-0 me-2"></i>
+                                    <div>
+                                        <strong>Pro-Tip:</strong> For the best performance, turn off your internet. This ensures the app uses your device's faster, local speech engines.
+                                    </div>
+                                </div>
+                                <hr>
+                                <p class="small text-muted">
+                                    This project is open-source under the MIT License. By using this application, you are responsible for your own actions, especially when using AI integration features. You can view the source code on <a href="https://github.com/alisolphp/EchoTalk" target="_blank" rel="noopener noreferrer">GitHub</a>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="wordActionsModal" tabindex="-1" aria-labelledby="wordActionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="wordActionsModalLabel"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid mb-3">
+                    <button id="playWordBtn" class="btn btn-primary"><i class="bi bi-play-fill"></i> Play Word Again</button>
+                </div>
+
+                <div class="accordion" id="wordActionsAccordion">
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingGoogle">
+                            <button class="accordion-button collapsed online-only-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGoogle" aria-expanded="false" aria-controls="collapseGoogle">
+                                <i class="bi bi-google me-2"></i> Google Integrations
+                                <i class="bi bi-wifi-off text-danger ms-auto me-2" title="Requires internet connection"></i>
+                            </button>
+                        </h2>
+                        <div id="collapseGoogle" class="accordion-collapse collapse" aria-labelledby="headingGoogle" data-bs-parent="#wordActionsAccordion">
+                            <div class="accordion-body p-2">
+                                <div class="d-grid gap-2">
+                                    <a id="searchPronunciationLink" href="#" target="_blank" class="btn btn-outline-info btn-sm">
+                                        <i class="bi bi-soundwave me-2"></i>How to Pronounce
+                                    </a>
+                                    <a id="searchExamplesLink" href="#" target="_blank" class="btn btn-outline-warning btn-sm">
+                                        <i class="bi bi-blockquote-left me-2"></i>Usage Examples
+                                    </a>
+                                    <a id="searchMeaningLink" href="#" target="_blank" class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-book me-2"></i>Word Meaning
+                                    </a>
+                                    <a id="searchSentenceMeaningLink" href="#" class="btn btn-outline-light btn-sm">
+                                        <i class="bi bi-translate me-2"></i>Sentence Meaning
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingAI">
+                            <button class="accordion-button collapsed online-only-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAI" aria-expanded="false" aria-controls="collapseAI">
+                                <i class="bi bi-robot me-2"></i> AI Integrations
+                                <i class="bi bi-wifi-off text-danger ms-auto me-2" title="Requires internet connection"></i>
+                            </button>
+                        </h2>
+                        <div id="collapseAI" class="accordion-collapse collapse" aria-labelledby="headingAI" data-bs-parent="#wordActionsAccordion">
+                            <div class="accordion-body p-2">
+                                <div class="d-grid gap-2">
+                                    <a id="translateWithGptBtn" href="#" class="btn btn-outline-primary btn-sm"><i class="bi bi-translate me-1"></i> AI Deep Translation</a>
+                                    <a id="grammarAnalysisBtn" href="#" class="btn btn-outline-success btn-sm"><i class="bi bi-diagram-3 me-1"></i> AI Grammar Analysis</a>
+                                    <a id="vocabExpansionBtn" href="#" class="btn btn-outline-warning btn-sm"><i class="bi bi-stack me-1"></i> AI Vocabulary Expansion</a>
+                                    <a id="contextNuanceBtn" href="#" class="btn btn-outline-info btn-sm"><i class="bi bi-chat-quote me-1"></i> AI Context & Nuance</a>
+                                    <a id="creativePracticeBtn" href="#" class="btn btn-outline-danger btn-sm"><i class="bi bi-lightbulb me-1"></i> AI Creative Practice</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="recordingsModal" tabindex="-1" aria-labelledby="recordingsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="recordingsModalLabel">My Recordings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="accordion" id="recordingsList">
+                    <p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="practicesModal" tabindex="-1" aria-labelledby="practicesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="practicesModalLabel"><i class="bi bi-journal-check me-2"></i>My Practices</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="practicesList">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ttsWarningModal" tabindex="-1" aria-labelledby="ttsWarningModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ttsWarningModalLabel"><i class="bi bi-exclamation-triangle-fill text-warning"></i> TTS Engine Problem: Missing or Incorrect Voice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>It appears the Text-to-Speech (TTS) engine for <strong class="current-language-general-name">English</strong> language is not properly configured on your device. This can happen if the voice is missing or the pronunciation is incorrect.</p>
+                <p>You may not hear any audio, or the audio may sound robotic or have the wrong accent. For the best experience, it's recommended to install the correct voice engine for this language from your device's settings.</p>
+                <hr>
+                <div class="mt-3">
+                    <p class="fw-bold">Recommended Solution:</p>
+                    <p>For the best offline experience, please install the TTS engine for <strong class="current-language-general-name">English</strong> language from your device's settings:</p>
+
+                    <details class="card bg-dark-subtle border-secondary mb-2">
+                        <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
+                            › On Mobile
+                        </summary>
+                        <div class="card-body pt-0">
+                            <p>Check your device's <code>Accessibility</code> or <code>Text-to-speech</code> settings.</p>
+                            <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
+                        </div>
+                    </details>
+
+                    <details class="card bg-dark-subtle border-secondary mb-2">
+                        <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
+                            › On Windows
+                        </summary>
+                        <div class="card-body pt-0">
+                            <p>Go to <code>Settings > Time & Language > Speech</code> and click "Add voices".</p>
+                            <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
+                        </div>
+                    </details>
+
+                    <details class="card bg-dark-subtle border-secondary">
+                        <summary class="card-title fw-bold p-2" style="cursor: pointer; list-style: none;">
+                            › On macOS
+                        </summary>
+                        <div class="card-body pt-0">
+                            <p>Go to <code>System Settings > Accessibility > Spoken Content</code> and select "Manage Voices...".</p>
+                            <p class="small text-muted mt-2"><strong>Note:</strong> You may need to restart your browser after installation.</p>
+                        </div>
+                    </details>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="aiInstructionsModal" tabindex="-1" aria-labelledby="aiInstructionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="aiInstructionsModalLabel"><i class="bi bi-robot text-info"></i> AI Analysis Guide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="aiInstructionsModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Got it</button>
+                <a href="https://gemini.google.com/" target="_blank" class="btn btn-primary">Go to Gemini <i class="bi bi-box-arrow-up-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel"><i class="bi bi-check-circle-fill text-success"></i> Prompt Copied!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Now, just paste the prompt in the new tab and enjoy the AI analysis.</p>
+                <p class="small text-muted mb-0">To continue, click the "Go to ChatGPT" button.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmGoToGptBtn">Let's Go to ChatGPT</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="myStreakModal" tabindex="-1" aria-labelledby="myStreakModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center" id="streak-modal-content">
+
+            <div class="confetti-container"></div>
+
+            <div class="modal-body p-4">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                <div class="streak-counter"><i class="bi bi-fire"></i> <span id="streakDaysHeader">0</span></div>
+                <div class="streak-badge" id="streak-trophy-badge">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+                <h1 id="myStreakModalLabel" class="h4">Congratulations!</h1>
+                <p id="streak-motivational-text" class="mb-3">You're on a roll! Keep up the amazing work.</p>
+
+                <div class="d-flex justify-content-around my-4">
+                    <div class="stat-item">
+                        <div id="streakDays" class="stat-value">0</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
+                    <div class="stat-item practiceRelated-stat" style="cursor:pointer;" data-bs-dismiss="modal">
+                        <div id="streakPractices" class="stat-value">0</div>
+                        <div class="stat-label">Total Practices</div>
+                    </div>
+                    <div class="stat-item practiceRelated-stat" style="cursor:pointer;" data-bs-dismiss="modal">
+                        <div id="streakSentences" class="stat-value">0</div>
+                        <div class="stat-label">Sentences</div>
+                    </div>
+                </div>
+
+                <div id="streakCalendar" class="d-flex justify-content-center gap-2 my-4">
+                </div>
+
+                <button id="continueLearningBtn" class="btn btn-primary w-100 mt-4" data-bs-dismiss="modal"><i class="bi bi-play-fill me-2"></i>Continue Practicing</button>
+
+                <p class="small text-muted fst-italic mt-4">
+                    Master your pronunciation with EchoTalk,
+                    the free offline shadowing app. Share your progress and inspire others!
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button id="installBtn" class="btn btn-outline-primary d-none">Install App</button>
+
+</body>
+</html>
