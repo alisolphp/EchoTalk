@@ -8,9 +8,12 @@
 
 EchoTalk is a **privacy-first, offline language training tool** that helps you master the **Shadowing** technique for improving pronunciation, fluency, and confidence. It works as a **Progressive Web App (PWA)**, requires no server, and keeps all your recordings securely on your device.
 
-🔗 Live Demo: [**(alisolphp.github.io/EchoTalk)**](https://alisolphp.github.io/EchoTalk/)
+🔗 Live Demo:
+  - [**(alisolphp.github.io/EchoTalk)**](https://alisolphp.github.io/EchoTalk/)
 
-🔗 Mirror Server: [**(alisol.ir/EchoTalk)**](https://alisol.ir/EchoTalk/)
+🔗 Mirror Servers: 
+  - [**(alisol.ir/EchoTalk)**](https://alisol.ir/EchoTalk/) 
+  - [**(echotalk.ir)**](https://echotalk.ir/EchoTalk/)
 
 <img src="public/screenshots/echotalk-screenshots.gif" width="370" alt="EchoTalk Demo">
 
