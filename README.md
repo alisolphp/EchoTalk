@@ -11,9 +11,11 @@ EchoTalk is a **privacy-first, offline language training tool** that helps you m
 🔗 Live Demo:
   - [**(alisolphp.github.io/EchoTalk)**](https://alisolphp.github.io/EchoTalk/)
 
-🔗 Mirror Servers: 
-  - [**(alisol.ir/EchoTalk)**](https://alisol.ir/EchoTalk/) 
+🔗 Mirror Server: 
   - [**(echotalk.ir)**](https://echotalk.ir/EchoTalk/)
+
+📱 Android Application (TWA):
+- [**Direct Download**](https://echotalk.ir/s3/EchoTalk/EchoTalk.apk)
 
 <img src="public/screenshots/echotalk-screenshots.gif" width="370" alt="EchoTalk Demo">
 
