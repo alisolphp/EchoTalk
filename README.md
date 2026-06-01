@@ -2,7 +2,7 @@
 
 ![Build](https://img.shields.io/github/actions/workflow/status/alisolphp/EchoTalk/.github/workflows/deploy.yml?branch=main&label=build&logo=github)
 ![Deploy](https://img.shields.io/github/deployments/alisolphp/EchoTalk/github-pages?label=pages&logo=githubpages)
-![License](https://img.shields.io/github/license/alisolphp/EchoTalk)
+![License](https://img.shields.io/github/license/alisolphp/EchoTalk?cacheSeconds=1)
 ![PWA](https://img.shields.io/badge/PWA-ready-green)
 ![Coverage](https://img.shields.io/badge/coverage-80.63%25-green) <!-- COVERAGE_BADGE_LINE -->
 
