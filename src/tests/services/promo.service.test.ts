@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderPromo, PROMO_CONTENT, PROMO_DISMISS_KEY } from '../../services/promo.service';
 
 const DONTAPPLY_URL = 'https://dontapply.club/?utm_source=echotalk&utm_medium=app&utm_campaign=practice_promo';
@@ -44,6 +44,32 @@ describe('promo blocks', () => {
         expect(sessionStorage.getItem(PROMO_DISMISS_KEY)).toBe('1');
         renderPromo(document.getElementById('promoPre'), 'pre');
         expect(document.querySelectorAll('.promo-block')).toHaveLength(0);
+    });
+
+    it('moves focus to the main action after dismissing', () => {
+        document.body.innerHTML = '<div id="promoPre"></div><button id="startBtn"></button><div id="session-complete-container"></div><button id="restartPracticeBtn"></button>';
+        renderPromo(document.getElementById('promoPre'), 'pre');
+        (document.querySelector('.promo-block button') as HTMLButtonElement).click();
+        expect(document.activeElement?.id).toBe('startBtn');
+
+        sessionStorage.clear();
+        renderPromo(document.getElementById('session-complete-container'), 'end');
+        (document.querySelector('.promo-block button') as HTMLButtonElement).click();
+        expect(document.activeElement?.id).toBe('restartPracticeBtn');
+    });
+
+    it('still renders and dismisses when sessionStorage throws', () => {
+        const getSpy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked'); });
+        const setSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked'); });
+        try {
+            renderPromo(document.getElementById('promoPre'), 'pre');
+            expect(document.querySelectorAll('.promo-block')).toHaveLength(1);
+            expect(() => (document.querySelector('.promo-block button') as HTMLButtonElement).click()).not.toThrow();
+            expect(document.querySelectorAll('.promo-block')).toHaveLength(0);
+        } finally {
+            getSpy.mockRestore();
+            setSpy.mockRestore();
+        }
     });
 
     it('ignores a missing container', () => {

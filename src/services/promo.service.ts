@@ -55,7 +55,7 @@ function buildLine(text: string, linkText: string, href: string): HTMLParagraphE
 /** Builds one promo block element (both promo lines plus a dismiss button). */
 export function buildPromoBlock(placement: PromoPlacement): HTMLElement {
     const box = document.createElement('aside');
-    box.className = 'promo-block small rounded px-3 py-2 mt-3 d-flex align-items-start gap-2';
+    box.className = 'promo-block rounded px-3 py-2 mt-3 d-flex align-items-start gap-2';
     box.setAttribute('data-promo', placement);
     box.setAttribute('aria-label', PROMO_CONTENT.regionLabel);
     box.setAttribute('dir', 'auto');
@@ -72,6 +72,9 @@ export function buildPromoBlock(placement: PromoPlacement): HTMLElement {
     close.addEventListener('click', () => {
         rememberDismissal();
         document.querySelectorAll('.promo-block').forEach(el => el.remove());
+        // The focused button is gone: move focus to the main action next to the block.
+        const next = document.getElementById(placement === 'pre' ? 'startBtn' : 'restartPracticeBtn');
+        next?.focus();
     });
 
     box.appendChild(body);
