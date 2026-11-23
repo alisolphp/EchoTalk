@@ -4,7 +4,7 @@
 ![Deploy](https://img.shields.io/github/deployments/alisolphp/EchoTalk/github-pages?label=pages&logo=githubpages)
 ![License](https://img.shields.io/github/license/alisolphp/EchoTalk?cacheSeconds=1)
 ![PWA](https://img.shields.io/badge/PWA-ready-green)
-![Coverage](https://img.shields.io/badge/coverage-81.29%25-green) <!-- COVERAGE_BADGE_LINE -->
+![Coverage](https://img.shields.io/badge/coverage-84.36%25-green) <!-- COVERAGE_BADGE_LINE -->
 
 EchoTalk is a **privacy-first, offline language training tool** that helps you master the **Shadowing** technique for improving pronunciation, fluency, and confidence. It works as a **Progressive Web App (PWA)**, requires no server, and keeps all your recordings securely on your device.
 
@@ -106,18 +106,18 @@ EchoTalk has **200+ unit tests** covering:
 <!-- COVERAGE_TABLE_START -->
 | File | % Stmts | % Branch | % Funcs | % Lines |
 | ---- | ------- | -------- | ------- | ------- |
-| src/app.ts | 72.48 | 71.42 | 80.95 | 72.48 |
+| src/app.ts | 80.96 | 79.81 | 95.83 | 80.96 |
 | src/types.ts | 100 | 100 | 100 | 100 |
 | src/services/ai.service.ts | 97.43 | 90.38 | 100 | 97.43 |
-| src/services/audio.service.ts | 72.41 | 88.31 | 80 | 72.41 |
+| src/services/audio.service.ts | 73.33 | 89.41 | 81.48 | 73.33 |
 | src/services/data.service.ts | 84.83 | 78.48 | 78.26 | 84.83 |
-| src/services/practice.service.ts | 76.88 | 79.22 | 72.72 | 76.88 |
+| src/services/practice.service.ts | 80.71 | 82.5 | 77.27 | 80.71 |
 | src/services/promo.service.ts | 100 | 100 | 100 | 100 |
 | src/services/prompts.service.ts | 100 | 100 | 100 | 100 |
-| src/services/ui.service.ts | 84.5 | 89.06 | 80.76 | 84.5 |
-| src/services/util.service.ts | 92.68 | 88 | 100 | 92.68 |
+| src/services/ui.service.ts | 86.98 | 91.42 | 81.48 | 86.98 |
+| src/services/util.service.ts | 95.12 | 90.19 | 100 | 95.12 |
 | src/utils/string.extensions.ts | 100 | 100 | 100 | 100 |
-| All files | 81.29 | 83.76 | 83.76 | 81.29 |
+| All files | 84.36 | 85.94 | 86.87 | 84.36 |
 <!-- COVERAGE_TABLE_END -->
 
 ---
