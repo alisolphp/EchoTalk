@@ -15,6 +15,7 @@ export const PROMO_CONTENT = {
         href: 'https://t.me/AceInterviews',
     },
     dismissLabel: 'Dismiss this message',
+    regionLabel: 'Sponsored links',
 } as const;
 
 /** sessionStorage key: a dismissed block stays hidden until the browser session ends. */
@@ -34,7 +35,7 @@ function rememberDismissal(): void {
     try {
         sessionStorage.setItem(PROMO_DISMISS_KEY, '1');
     } catch {
-        // Storage may be unavailable (private mode); dismissal then lasts only for this block.
+        // Storage may be unavailable (private mode); blocks then reappear on the next render.
     }
 }
 
@@ -56,7 +57,7 @@ export function buildPromoBlock(placement: PromoPlacement): HTMLElement {
     const box = document.createElement('aside');
     box.className = 'promo-block small rounded px-3 py-2 mt-3 d-flex align-items-start gap-2';
     box.setAttribute('data-promo', placement);
-    box.setAttribute('aria-label', 'Sponsored links');
+    box.setAttribute('aria-label', PROMO_CONTENT.regionLabel);
     box.setAttribute('dir', 'auto');
 
     const body = document.createElement('div');
