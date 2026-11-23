@@ -268,8 +268,7 @@ export class EchoTalkApp {
         this.autoSkipStartTime = 0;
         this.autoSkipWaitTime = 0;
         this.autoSkipRemainingTime = 0;
-        this.autoSkipIsPaused = false;
-        this.autoSkipUserPaused = false;
+        this.clearPauseState();
 
         this.sentence = '';
         this.words = [];
@@ -713,6 +712,20 @@ export class EchoTalkApp {
             await this.wakeLockSentinel.release();
             this.wakeLockSentinel = null;
         }
+    }
+
+    /**
+     * Drops any pause (manual or automatic) and undoes its side effects:
+     * the frozen progress animation and a paused speech synthesis (Chrome keeps it paused across cancel()).
+     */
+    public clearPauseState(): void {
+        this.autoSkipIsPaused = false;
+        this.autoSkipUserPaused = false;
+        $('#checkBtn').css('animation-play-state', 'running');
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.paused) {
+            speechSynthesis.resume();
+        }
+        this.uiService.updatePauseButton();
     }
 
     /** Pause/Resume button: a manual pause that modals and tab visibility changes must not undo. */

@@ -40,7 +40,7 @@ describe('Auto-skip pause and resume button', () => {
         expect(app.autoSkipIsPaused).toBe(true);
         expect(app.autoSkipRemainingTime).toBe(3000);
         expect($('#pauseResumeBtn').text()).toContain('Resume');
-        expect($('#pauseResumeBtn').attr('aria-pressed')).toBe('true');
+        expect($('#pauseStatus').text()).toBe('Paused');
         expect($('#checkBtn').css('animation-play-state')).toBe('paused');
 
         vi.advanceTimersByTime(60000);
@@ -63,7 +63,7 @@ describe('Auto-skip pause and resume button', () => {
         expect(app.autoSkipUserPaused).toBe(false);
         expect(app.autoSkipIsPaused).toBe(false);
         expect($('#pauseResumeBtn').text()).toContain('Pause');
-        expect($('#pauseResumeBtn').attr('aria-pressed')).toBe('false');
+        expect($('#pauseStatus').text()).toBe('');
         vi.advanceTimersByTime(2999);
         expect(cb).not.toHaveBeenCalled();
         vi.advanceTimersByTime(2);
@@ -76,6 +76,58 @@ describe('Auto-skip pause and resume button', () => {
         app.resumeAutoSkip(); // what the modal-hidden / visibility handlers call
         expect(app.autoSkipIsPaused).toBe(true);
         expect(app.autoSkipUserPaused).toBe(true);
+    });
+
+    it('pausing while speaking pauses speech synthesis; resuming resumes it', () => {
+        (globalThis as any).speechSynthesis.speaking = true;
+        app.uiService.setupPracticeUI();
+        app.toggleUserPause();
+        expect(speechSynthesis.pause).toHaveBeenCalled();
+        (globalThis as any).speechSynthesis.paused = true;
+        app.toggleUserPause();
+        expect(speechSynthesis.resume).toHaveBeenCalled();
+    });
+
+    it('the word modal closing and the tab becoming visible do not undo a manual pause (real events)', () => {
+        (app as any).bindEvents();
+        app.uiService.setupPracticeUI();
+        app.toggleUserPause();
+        const modal = document.getElementById('wordActionsModal')!;
+        modal.dispatchEvent(new Event('hidden.bs.modal', { bubbles: true }));
+        Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
+        document.dispatchEvent(new Event('visibilitychange'));
+        expect(app.autoSkipIsPaused).toBe(true);
+        expect(app.autoSkipUserPaused).toBe(true);
+    });
+
+    it('restart, reset and finish undo the frozen animation and paused speech', async () => {
+        app.uiService.setupPracticeUI();
+        app.toggleUserPause();
+        expect($('#checkBtn').css('animation-play-state')).toBe('paused');
+        (globalThis as any).speechSynthesis.paused = true;
+
+        app.uiService.setupPracticeUI(); // restart path
+        expect($('#checkBtn').css('animation-play-state')).toBe('running');
+        expect(speechSynthesis.resume).toHaveBeenCalled();
+
+        (speechSynthesis.resume as any).mockClear();
+        app.toggleUserPause();
+        (globalThis as any).speechSynthesis.paused = true;
+        await app.resetWithoutReload();
+        expect($('#checkBtn').css('animation-play-state')).toBe('running');
+        expect(speechSynthesis.resume).toHaveBeenCalled();
+
+        app.practiceMode = 'auto-skip';
+        app.area = 'Practice';
+        app.toggleUserPause();
+        vi.spyOn(app.practiceService as any, 'recordPracticeCompletion').mockResolvedValue({ newStreak: 1, oldStreak: 1 });
+        vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
+        vi.spyOn(app.audioService, 'playSound').mockImplementation(() => {});
+        vi.spyOn(app.audioService, 'speak').mockImplementation(() => {});
+        await app.practiceService.finishSession();
+        expect(app.autoSkipUserPaused).toBe(false);
+        expect($('#pauseResumeBtn').text()).toContain('Pause');
+        expect($('#checkBtn').css('animation-play-state')).toBe('running');
     });
 
     it('does nothing outside auto-skip practice', () => {

@@ -364,6 +364,7 @@ export class PracticeService {
         const { newStreak, oldStreak } = await this.recordPracticeCompletion();
         const willShowStreakModal = newStreak > oldStreak;
 
+        this.app.clearPauseState();
         this.app.utilService.clearAutoSkipTimer();
         this.app.audioService.terminateMicrophoneStream();
         if (this.app.practiceMode === 'auto-skip') {

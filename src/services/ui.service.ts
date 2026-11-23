@@ -208,10 +208,8 @@ export class UiService {
         const checkBtn = $('#checkBtn');
 
         // A fresh practice screen always starts un-paused; the button exists only in auto-skip mode.
-        this.app.autoSkipUserPaused = false;
-        this.app.autoSkipIsPaused = false;
+        this.app.clearPauseState();
         $('#pauseResumeBtn').toggleClass('d-none', this.app.practiceMode !== 'auto-skip');
-        this.updatePauseButton();
 
         if (this.app.practiceMode === 'check') {
             $('#instructionText').text('Now it’s your turn. Tap the mic icon on your keyboard and speak the word.').show();
@@ -236,7 +234,6 @@ export class UiService {
     public updatePauseButton(): void {
         const paused = this.app.autoSkipUserPaused;
         $('#pauseResumeBtn')
-            .attr('aria-pressed', String(paused))
             .html(paused ? '<i class="bi bi-play-fill"></i> Resume' : '<i class="bi bi-pause-fill"></i> Pause');
         $('#pauseStatus').text(paused ? 'Paused' : '');
     }
