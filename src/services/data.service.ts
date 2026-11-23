@@ -81,6 +81,17 @@ export class DataService {
             request.onsuccess = () => resolve(request.result as Recording[]);
             request.onerror = err => reject(err);
         });
+        // Keys are needed to delete single recordings (autoIncrement keys are not part of the value).
+        const keys: IDBValidKey[] = typeof store.getAllKeys === 'function'
+            ? await new Promise((resolve, reject) => {
+                const request = store.getAllKeys();
+                request.onsuccess = () => resolve(request.result as IDBValidKey[]);
+                request.onerror = err => reject(err);
+            })
+            : [];
+        if (keys.length === allRecords.length) {
+            allRecords.forEach((rec, i) => { rec.id = keys[i]; });
+        }
         const grouped: Record<string, Recording[]> = {};
         allRecords.forEach(rec => {
             if (!grouped[rec.sentence]) {
@@ -92,6 +103,8 @@ export class DataService {
 
         const $list = $('#recordingsList');
         $list.empty();
+
+        $('#deleteAllRecordingsBtn').toggleClass('d-none', allRecords.length === 0);
 
         if (Object.keys(grouped).length === 0) {
             $list.html('<p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>');
@@ -127,7 +140,7 @@ export class DataService {
                                ${recordings.map((rec, index) => `
                                     <li class="list-group-item">
                                         <div class="d-flex justify-content-between align-items-center flex-wrap">
-                                            <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
+                                            <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}${rec.id !== undefined ? ` <button type="button" class="btn btn-sm btn-outline-danger py-0 ms-2 delete-recording" data-index="${index}" aria-label="Delete this recording"><i class="bi bi-trash"></i> Delete</button>` : ''}</span>
                                             <div class="row g-2 justify-content-center">
                                                 <div class="col-6 col-md-auto">
                                                     <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}" data-lang="${rec.lang}">
@@ -175,6 +188,24 @@ export class DataService {
 
         const recordingsModal = Modal.getOrCreateInstance($('#recordingsModal')[0]);
         recordingsModal.show();
+    }
+
+    /** Deletes one recording by its IndexedDB key. Practice history and streaks are untouched. */
+    public deleteRecording(id: IDBValidKey): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const request = this.app.db.transaction(['recordings'], 'readwrite').objectStore('recordings').delete(id);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    /** Deletes all recordings only (practice history and streaks are kept). */
+    public deleteAllRecordings(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const request = this.app.db.transaction(['recordings'], 'readwrite').objectStore('recordings').clear();
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
     }
 
     /**

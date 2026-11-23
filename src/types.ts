@@ -4,6 +4,8 @@ export interface Recording {
     audio: Blob;
     timestamp: Date;
     lang: string;
+    /** IndexedDB key; set only when recordings are read back for the list (needed for delete). */
+    id?: IDBValidKey;
 }
 
 /** Defines the structure for a practice session record stored in IndexedDB. */
