@@ -4,7 +4,7 @@
 ![Deploy](https://img.shields.io/github/deployments/alisolphp/EchoTalk/github-pages?label=pages&logo=githubpages)
 ![License](https://img.shields.io/github/license/alisolphp/EchoTalk?cacheSeconds=1)
 ![PWA](https://img.shields.io/badge/PWA-ready-green)
-![Coverage](https://img.shields.io/badge/coverage-80.63%25-green) <!-- COVERAGE_BADGE_LINE -->
+![Coverage](https://img.shields.io/badge/coverage-86.22%25-green) <!-- COVERAGE_BADGE_LINE -->
 
 EchoTalk is a **privacy-first, offline language training tool** that helps you master the **Shadowing** technique for improving pronunciation, fluency, and confidence. It works as a **Progressive Web App (PWA)**, requires no server, and keeps all your recordings securely on your device.
 
@@ -47,7 +47,8 @@ EchoTalk is a **privacy-first, offline language training tool** that helps you m
 * **Multi-language support**: English, Dutch, Polish, Portuguese, Russian, Turkish, and more.
 * **Word-level interaction**: click a word to open tools for meaning, pronunciation, and AI-powered analysis.
 * **Practice streak tracker** with calendar view and motivational messages.
-* **History & recordings**: review all your past practices and replay your recordings.
+* **History & recordings**: review all your past practices, replay your recordings, and delete recordings you no longer need.
+* **My Sentences**: save your own sentences on your device and practice them any time.
 * **Seamless flows**: restart or switch sentences easily, plus celebration animations after sessions.
 * **Live recording visualizer** for instant feedback.
 
@@ -106,17 +107,20 @@ EchoTalk has **200+ unit tests** covering:
 <!-- COVERAGE_TABLE_START -->
 | File | % Stmts | % Branch | % Funcs | % Lines |
 | ---- | ------- | -------- | ------- | ------- |
-| src/app.ts | 72.48 | 71.42 | 80.95 | 72.48 |
+| src/app.ts | 83.8 | 83.33 | 96 | 83.8 |
 | src/types.ts | 100 | 100 | 100 | 100 |
 | src/services/ai.service.ts | 97.43 | 90.38 | 100 | 97.43 |
-| src/services/audio.service.ts | 72.41 | 88.31 | 80 | 72.41 |
-| src/services/data.service.ts | 84.83 | 78.48 | 78.26 | 84.83 |
-| src/services/practice.service.ts | 76.75 | 77.14 | 72.72 | 76.75 |
+| src/services/audio.service.ts | 73.33 | 89.41 | 81.48 | 73.33 |
+| src/services/data.service.ts | 86.5 | 82.72 | 78.57 | 86.5 |
+| src/services/my-sentences.service.ts | 96.7 | 89.13 | 100 | 96.7 |
+| src/services/practice.service.ts | 80.71 | 82.5 | 77.27 | 80.71 |
+| src/services/promo.service.ts | 100 | 100 | 100 | 100 |
 | src/services/prompts.service.ts | 100 | 100 | 100 | 100 |
-| src/services/ui.service.ts | 84.28 | 89.06 | 80.76 | 84.28 |
-| src/services/util.service.ts | 92.68 | 88 | 100 | 92.68 |
+| src/services/ui.service.ts | 86.98 | 91.42 | 81.48 | 86.98 |
+| src/services/util.service.ts | 95.12 | 90.19 | 100 | 95.12 |
+| src/utils/my-sentences.ts | 100 | 97.87 | 100 | 100 |
 | src/utils/string.extensions.ts | 100 | 100 | 100 | 100 |
-| All files | 80.63 | 82.95 | 83.22 | 80.63 |
+| All files | 86.22 | 87.74 | 88.23 | 86.22 |
 <!-- COVERAGE_TABLE_END -->
 
 ---

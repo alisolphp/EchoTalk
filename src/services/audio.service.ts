@@ -135,6 +135,20 @@ export class AudioService {
         }
     }
 
+    /** Pauses an active recording without saving it (used by the manual pause button). */
+    public pauseRecording(): void {
+        if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+            this.mediaRecorder.pause();
+        }
+    }
+
+    /** Resumes a recording paused with pauseRecording(). */
+    public resumeRecording(): void {
+        if (this.mediaRecorder && this.mediaRecorder.state === 'paused') {
+            this.mediaRecorder.resume();
+        }
+    }
+
     /**
      * Stops the audio recording and the sound wave visualizer.
      * @returns A promise that resolves once the MediaRecorder has fully stopped.
@@ -152,7 +166,8 @@ export class AudioService {
         this.visualizerActive = false;
         $('#feedback-text').html('').removeClass('recording-text-indicator');
         return new Promise(resolve => {
-            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+            // A recorder paused by the manual pause button must also be stopped (and saved) normally.
+            if (this.mediaRecorder && (this.mediaRecorder.state === 'recording' || this.mediaRecorder.state === 'paused')) {
                 this.mediaRecorder.addEventListener('stop', () => resolve(), { once: true });
                 this.mediaRecorder.stop();
             } else {

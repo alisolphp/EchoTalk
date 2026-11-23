@@ -411,3 +411,17 @@ body.is-offline .online-only-header .bi-wifi-off {
     70% { box-shadow: 0 0 0 10px rgba(255, 122, 0, 0); }
     100% { box-shadow: 0 0 0 0 rgba(255, 122, 0, 0); }
 }
+/* Promo blocks: use the page's own colour variable (the app is dark-only). */
+.promo-block {
+    color: var(--text-color);
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    font-size: 0.85rem;
+}
+
+.promo-block p {
+    opacity: 0.85;
+}
+
+.promo-block .btn-close {
+    transform: scale(0.7);
+}

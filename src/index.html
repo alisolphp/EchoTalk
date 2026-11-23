@@ -114,6 +114,10 @@
                 <button id="useSampleBtn" class="btn btn-secondary small py-0 px-2 me-1">Use a random Sample</button>:
             </label>
             <textarea id="sentenceInput" class="form-control" placeholder="Type or pick a sample sentence"></textarea>
+            <div class="d-flex align-items-center gap-2 mt-1">
+                <button id="saveSentenceBtn" type="button" class="btn btn-sm btn-outline-info py-0"><i class="bi bi-bookmark-plus"></i> Save to My Sentences</button>
+                <span id="saveSentenceMessage" class="small" role="status" aria-live="polite"></span>
+            </div>
         </div>
         <div class="mb-3">
             <div id="sampleSentence" class="fs-5"></div>
@@ -127,6 +131,7 @@
                 </button>
             </div>
         </div>
+        <div id="promoPre"></div>
     </div>
 
     <div id="practiceArea" class="d-none">
@@ -163,6 +168,10 @@
             </div>
             <div>
                 <button id="checkBtn" class="btn btn-success d-block w-100 py-3" aria-label="Check or Skip">Check/Skip</button>
+            </div>
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <button id="pauseResumeBtn" type="button" class="btn btn-outline-info btn-sm d-none"><i class="bi bi-pause-fill"></i> Pause</button>
+                <span id="pauseStatus" class="small text-muted" role="status" aria-live="polite"></span>
             </div>
             <div class="visualizer-container">
                 <img src="images/sound-wave-animation.webp" id="soundWaveVisualizer" alt="" aria-hidden="true">
@@ -278,6 +287,10 @@
         <a href="#" id="showCollectionsBtn" class="list-group-item list-group-item-action py-3">
             <i class="bi bi-chat-quote-fill" style="color: #5bc0de;"></i>
             My Q&amp;A Collections
+        </a>
+        <a href="#" id="showMySentencesBtn" class="list-group-item list-group-item-action py-3">
+            <i class="bi bi-bookmarks-fill" style="color: #20c997;"></i>
+            My Sentences
         </a>
         <a href="#" id="showProgressBtn" class="list-group-item list-group-item-action d-none">
             <i class="bi bi-bar-chart-line-fill"></i>
@@ -538,6 +551,10 @@
                     <p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>
                 </div>
             </div>
+            <div class="modal-footer justify-content-between">
+                <small id="recordingsFooterNote" class="text-muted">Deleting recordings keeps your practice history and streak.</small>
+                <button type="button" id="deleteAllRecordingsBtn" class="btn btn-sm btn-outline-danger d-none"><i class="bi bi-trash"></i> Delete all recordings</button>
+            </div>
         </div>
     </div>
 </div>
@@ -658,6 +675,29 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body"><div id="collectionsList" class="list-group"></div></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="mySentencesModal" tabindex="-1" aria-labelledby="mySentencesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mySentencesModalLabel">My Sentences <small id="mySentencesCount" class="text-muted fs-6"></small></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="mySentenceForm" class="mb-3">
+                    <label for="mySentenceText" class="form-label">Add your own sentence (saved on this device)</label>
+                    <textarea id="mySentenceText" class="form-control mb-2" rows="2" maxlength="1000" autocorrect="off" spellcheck="false" placeholder="Type a sentence you want to practice"></textarea>
+                    <div class="d-flex gap-2">
+                        <button id="mySentenceSubmit" type="submit" class="btn btn-primary btn-sm">Add sentence</button>
+                        <button id="mySentenceCancel" type="button" class="btn btn-outline-secondary btn-sm d-none">Cancel</button>
+                    </div>
+                    <div id="mySentencesMessage" class="small mt-2" role="status" aria-live="polite"></div>
+                </form>
+                <ul id="mySentencesList" class="list-group"></ul>
+            </div>
         </div>
     </div>
 </div>

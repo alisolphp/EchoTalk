@@ -19,6 +19,7 @@ import { PracticeService } from './services/practice.service';
 import { AiService } from './services/ai.service';
 import { UtilService } from './services/util.service';
 import { CollectionService } from './services/collection.service';
+import { MySentencesService } from './services/my-sentences.service';
 
 /**
  * The main class for the EchoTalk application.
@@ -96,12 +97,16 @@ export class EchoTalkApp {
     public autoRestartTimer: number | null = null;
 
     public wakeLockSentinel: WakeLockSentinel | null = null;
+    /** Serializes wake-lock calls from the pause button so a quick Pause/Resume cannot leak a lock. */
+    private wakeLockChain: Promise<void> = Promise.resolve();
 
     public autoSkipTimerCallback: (() => void) | null = null;
     public autoSkipStartTime: number = 0;
     public autoSkipWaitTime: number = 0;
     public autoSkipRemainingTime: number = 0;
     public autoSkipIsPaused: boolean = false;
+    /** True while the user has paused auto-skip with the Pause button (modals and tab visibility must not resume it). */
+    public autoSkipUserPaused: boolean = false;
 
     /** An estimated words-per-second rate for TTS on mobile to simulate word highlighting. */
     public estimatedWordsPerSecond: number = 2.5;
@@ -186,6 +191,8 @@ export class EchoTalkApp {
     public aiService: AiService;
     /** Imported Q and A collections (DontApply import). */
     public collectionService: CollectionService;
+    /** The user's own saved sentences. */
+    public mySentencesService: MySentencesService;
 
     /** Provides utility functions used across the application. */
     public utilService: UtilService;
@@ -206,6 +213,7 @@ export class EchoTalkApp {
         this.practiceService = new PracticeService(this);
         this.aiService = new AiService(this);
         this.collectionService = new CollectionService(this);
+        this.mySentencesService = new MySentencesService(this);
 
         window.modalRecordings = {};
         window.app = this;
@@ -276,7 +284,7 @@ export class EchoTalkApp {
         this.autoSkipStartTime = 0;
         this.autoSkipWaitTime = 0;
         this.autoSkipRemainingTime = 0;
-        this.autoSkipIsPaused = false;
+        this.clearPauseState();
 
         this.sentence = '';
         this.words = [];
@@ -325,34 +333,43 @@ export class EchoTalkApp {
 
         const modalElement = document.getElementById('practicesModal');
         if (modalElement) {
-            this.uiService.showPracticeSetup();
-            if (this.lang !== lang) {
-                this.lang = lang;
-                this.uiService.updateLanguageUI();
-                try {
-                    this.dataService.fetchSamples();
-                    this.uiService.setupSampleOptions();
-                } catch (error) {
-                    console.error("Failed to load new language data:", error);
-                    $('#configArea').html('<div class="alert alert-danger">Failed to load language data. Please refresh the page.</div>');
-                    return;
-                }
-            }
-
-            this.uiService.setInputValue(sentence);
-            this.sentence = sentence;
-            this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
-            this.currentIndex = 0;
-
-            await this.practiceService.startPractice();
-
-            // Wait for the modal to be completely hidden before executing the rest of the code
-            $(modalElement).one('hidden.bs.modal', async () => {});
+            const started = await this.startPracticeFrom(sentence, lang);
+            if (!started) return; // keep the dialog open when the language data failed to load
 
             // Use getInstance here since we know it exists.
             const modalInstance = Modal.getInstance(modalElement);
             modalInstance?.hide();
         }
+    }
+
+    /**
+     * Shows the setup page, switches language if needed, loads the sentence and starts practice.
+     * Shared by "Practice this sentence" (My Practices) and My Sentences.
+     * @returns false when the language data could not be prepared (nothing was started).
+     */
+    public async startPracticeFrom(sentence: string, lang: string): Promise<boolean> {
+        this.uiService.showPracticeSetup();
+        if (lang && this.lang !== lang) {
+            this.lang = lang;
+            this.uiService.updateLanguageUI();
+            try {
+                this.samples = await this.dataService.fetchSamples();
+                this.uiService.setupSampleOptions();
+            } catch (error) {
+                // Keep the setup page usable (it is not replaced) and report that nothing started.
+                console.error("Failed to load new language data:", error);
+                window.alert('Could not load the sentence data for that language. Please try again.');
+                return false;
+            }
+        }
+
+        this.uiService.setInputValue(sentence);
+        this.sentence = sentence;
+        this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
+        this.currentIndex = 0;
+
+        await this.practiceService.startPractice();
+        return true;
     }
 
     /**
@@ -374,6 +391,7 @@ export class EchoTalkApp {
         $('#startBtn').on('click', () => this.practiceService.startPractice());
         $('#resetBtn').on('click', () => this.resetApp());
         $('#checkBtn').on('click', () => this.practiceService.handleCheckOrNext());
+        $('#pauseResumeBtn').on('click', () => this.toggleUserPause());
         $('#userInput').on('keypress', (e: JQuery.KeyPressEvent) => {
             if (e.key === 'Enter' && this.practiceMode === 'check') {
                 this.practiceService.checkAnswer();
@@ -391,6 +409,31 @@ export class EchoTalkApp {
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.audioService.playBotAudio(e.currentTarget));
         $('#recordingsList').on('click', '.prepare-for-ai', (e) => this.aiService.prepareForAIAnalysis(e.currentTarget));
         $('#recordingsList').on('click', '.check-accuracy-btn', (e) => this.aiService.getPronunciationAccuracy(e.currentTarget));
+        $('#recordingsList').on('click', '.delete-recording', async (e) => {
+            const sentence = $(e.currentTarget).closest('.accordion-collapse').attr('data-sentence') as string;
+            const rec = window.modalRecordings[sentence]?.[Number($(e.currentTarget).attr('data-index'))];
+            if (!rec || rec.id === undefined) return;
+            if (!window.confirm('Delete this recording? This cannot be undone.')) return;
+            this.audioService.stopAllPlayback();
+            try {
+                await this.dataService.deleteRecording(rec.id);
+            } catch (err) {
+                console.error('Could not delete the recording:', err);
+                window.alert('Could not delete the recording. Please try again.');
+            }
+            await this.dataService.displayRecordings(sentence);
+        });
+        $('#deleteAllRecordingsBtn').on('click', async () => {
+            if (!window.confirm('Delete ALL recordings? Your practice history and streak are kept. This cannot be undone.')) return;
+            this.audioService.stopAllPlayback();
+            try {
+                await this.dataService.deleteAllRecordings();
+            } catch (err) {
+                console.error('Could not delete the recordings:', err);
+                window.alert('Could not delete the recordings. Please try again.');
+            }
+            await this.dataService.displayRecordings('');
+        });
         $('#recordingsModal').on('hidden.bs.modal', () => this.audioService.stopAllPlayback());
 
         $('#languageSelect, #headerLanguageSelect').on('change', (e) => {
@@ -425,6 +468,17 @@ export class EchoTalkApp {
             e.preventDefault();
             this.collectionService.showList();
         });
+        $('#showMySentencesBtn').on('click', (e) => {
+            e.preventDefault();
+            this.mySentencesService.show();
+        });
+        $('#saveSentenceBtn').on('click', () => this.mySentencesService.saveFromInput());
+        $('#sentenceInput').on('input', () => $('#saveSentenceMessage').text(''));
+        $('#mySentenceForm').on('submit', (e) => {
+            e.preventDefault();
+            this.mySentencesService.submitForm();
+        });
+        $('#mySentenceCancel').on('click', () => this.mySentencesService.cancelEdit());
         $('.backHomeButton').on('click', () => this.uiService.showPracticeSetup());
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
@@ -544,7 +598,9 @@ export class EchoTalkApp {
             }
         } else {
             if (isPracticingWithAutoSkip) {
-                this.requestWakeLock();
+                if (!this.autoSkipUserPaused) {
+                    this.queueWakeLock(() => this.requestWakeLock());
+                }
                 if(!$('#wordActionsModal').hasClass('show')){
                     this.resumeAutoSkip();
                 }
@@ -726,6 +782,46 @@ export class EchoTalkApp {
     }
 
     /**
+     * Drops any pause (manual or automatic) and undoes its side effects:
+     * the frozen progress animation and a paused speech synthesis (Chrome keeps it paused across cancel()).
+     */
+    public clearPauseState(): void {
+        this.autoSkipIsPaused = false;
+        this.autoSkipUserPaused = false;
+        $('#checkBtn').css('animation-play-state', 'running');
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.paused) {
+            speechSynthesis.resume();
+        }
+        // A recorder left paused would not stop (and save) normally later.
+        this.audioService?.resumeRecording();
+        this.uiService.updatePauseButton();
+    }
+
+    private queueWakeLock(op: () => Promise<void>): void {
+        this.wakeLockChain = this.wakeLockChain.then(op).catch(() => { /* a denied or failed lock request is not fatal */ });
+    }
+
+    /** Pause/Resume button: a manual pause that modals and tab visibility changes must not undo. */
+    public toggleUserPause(): void {
+        if (this.practiceMode !== 'auto-skip' || this.area !== 'Practice') {
+            return;
+        }
+        if (this.autoSkipUserPaused) {
+            this.autoSkipUserPaused = false;
+            this.resumeAutoSkip();
+            this.audioService.resumeRecording();
+            this.queueWakeLock(() => this.requestWakeLock());
+        } else {
+            this.autoSkipUserPaused = true;
+            this.pauseAutoSkip();
+            // The break must not end up inside a saved recording, and the screen may sleep.
+            this.audioService.pauseRecording();
+            this.queueWakeLock(() => this.releaseWakeLock());
+        }
+        this.uiService.updatePauseButton();
+    }
+
+    /**
      * Pauses the auto-skip timer, progress animation, and active speech synthesis.
      * This is typically triggered when a modal opens during practice.
      */
@@ -737,7 +833,7 @@ export class EchoTalkApp {
         this.autoSkipIsPaused = true;
 
         // Pause speech synthesis if it's currently speaking
-        if (speechSynthesis.speaking) {
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.speaking) {
             speechSynthesis.pause();
         }
 
@@ -759,14 +855,14 @@ export class EchoTalkApp {
      * This is triggered when a modal is closed after being paused.
      */
     public resumeAutoSkip(): void {
-        if (!this.autoSkipIsPaused) {
+        if (!this.autoSkipIsPaused || this.autoSkipUserPaused) {
             return;
         }
 
         this.autoSkipIsPaused = false;
 
         // Resume speech synthesis if it was paused
-        if (speechSynthesis.paused) {
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.paused) {
             speechSynthesis.resume();
         }
 
