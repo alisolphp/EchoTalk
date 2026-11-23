@@ -194,6 +194,17 @@ describe('CollectionService flow', () => {
         expect($('#importStatusText').text()).not.toContain('Could not save');
     });
 
+    it('the empty list links "DontApply" to dontapply.club in a new tab with noopener', async () => {
+        await app.collectionService.showList();
+        const $a = $('#collectionsList a');
+        expect($a.length).toBe(1);
+        expect($a.text()).toBe('DontApply');
+        expect($a.attr('href')).toBe('https://dontapply.club/?utm_source=echotalk&utm_medium=app&utm_campaign=qa_collections');
+        expect($a.attr('target')).toBe('_blank');
+        expect($a.attr('rel')).toBe('noopener');
+        expect($('#collectionsList').text()).toContain('No collections yet. In DontApply, open an interview Q and A note and choose "Study in EchoTalk".');
+    });
+
     it('lists collections as text and deletes on confirm', async () => {
         await addOrFind(store, { key: 'k', title: '<b>Evil</b>', lang: 'en-US', items: [{ question: 'Q', answer: 'A' }] });
         await app.collectionService.showList();

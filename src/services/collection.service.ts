@@ -6,6 +6,9 @@ import {
 } from '../utils/dontapply-import';
 
 /** A collection as stored in IndexedDB (store `collections`, keyPath `key`). */
+/** Where the empty state sends people; the UTM parameters say which screen the visit came from. */
+export const DONTAPPLY_LINK = 'https://dontapply.club/?utm_source=echotalk&utm_medium=app&utm_campaign=qa_collections';
+
 export interface StoredCollection extends QaCollection {
     source: 'dontapply';
     createdAt: Date;
@@ -261,8 +264,11 @@ export class CollectionService {
             $body.append($('<p class="text-danger"></p>').text('Could not load your collections.'));
         }
         if (all.length === 0) {
-            $body.append($('<p class="text-muted"></p>').text(
-                'No collections yet. In DontApply, open an interview Q and A note and choose "Study in EchoTalk".'));
+            const $link = $('<a target="_blank" rel="noopener"></a>').attr('href', DONTAPPLY_LINK).text('DontApply');
+            $body.append($('<p class="text-muted"></p>')
+                .append('No collections yet. In ')
+                .append($link)
+                .append(', open an interview Q and A note and choose "Study in EchoTalk".'));
         }
         all.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).forEach(c => {
             const resume = c.progress > 0 && c.progress < c.items.length;
