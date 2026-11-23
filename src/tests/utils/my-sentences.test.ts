@@ -19,6 +19,14 @@ describe('cleanSentence', () => {
     });
 });
 
+describe('markup characters', () => {
+    it('strips angle brackets so a saved sentence cannot open an HTML tag', () => {
+        const out = cleanSentence('<img src=x onerror=alert(1)> hello <b>x</b>');
+        expect(out).not.toMatch(/[<>]/);
+        expect(out).toBe('img src=x onerror=alert(1) hello bx/b');
+    });
+});
+
 describe('quotes', () => {
     it('straight double quotes become typographic so they cannot break out of HTML attributes', () => {
         const out = cleanSentence('He said "hi" to me');

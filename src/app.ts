@@ -319,7 +319,8 @@ export class EchoTalkApp {
 
         const modalElement = document.getElementById('practicesModal');
         if (modalElement) {
-            await this.startPracticeFrom(sentence, lang);
+            const started = await this.startPracticeFrom(sentence, lang);
+            if (!started) return; // keep the dialog open when the language data failed to load
 
             // Use getInstance here since we know it exists.
             const modalInstance = Modal.getInstance(modalElement);
@@ -330,8 +331,9 @@ export class EchoTalkApp {
     /**
      * Shows the setup page, switches language if needed, loads the sentence and starts practice.
      * Shared by "Practice this sentence" (My Practices) and My Sentences.
+     * @returns false when the language data could not be prepared (nothing was started).
      */
-    public async startPracticeFrom(sentence: string, lang: string): Promise<void> {
+    public async startPracticeFrom(sentence: string, lang: string): Promise<boolean> {
         this.uiService.showPracticeSetup();
         if (lang && this.lang !== lang) {
             this.lang = lang;
@@ -342,7 +344,7 @@ export class EchoTalkApp {
             } catch (error) {
                 console.error("Failed to load new language data:", error);
                 $('#configArea').html('<div class="alert alert-danger">Failed to load language data. Please refresh the page.</div>');
-                return;
+                return false;
             }
         }
 
@@ -352,6 +354,7 @@ export class EchoTalkApp {
         this.currentIndex = 0;
 
         await this.practiceService.startPractice();
+        return true;
     }
 
     /**
@@ -425,6 +428,7 @@ export class EchoTalkApp {
             this.mySentencesService.show();
         });
         $('#saveSentenceBtn').on('click', () => this.mySentencesService.saveFromInput());
+        $('#sentenceInput').on('input', () => $('#saveSentenceMessage').text(''));
         $('#mySentenceForm').on('submit', (e) => {
             e.preventDefault();
             this.mySentencesService.submitForm();

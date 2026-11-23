@@ -36,14 +36,16 @@ export const SAVE_ERROR_MESSAGES: Record<SaveError, string> = {
 
 /**
  * Trims, normalizes line breaks and spaces, and removes control characters.
- * Straight double quotes become typographic quotes, because sentences are later used inside
- * double-quoted HTML attributes (recordings and practices lists).
+ * Angle brackets are removed and straight double quotes become typographic quotes, because sentences
+ * are later used in HTML text and in double-quoted attributes (recordings and practices lists).
+ * This is defense in depth, not escaping: escaping at those sinks is done in the DontApply import change.
  */
 export function cleanSentence(input: string): string {
     return input
         .normalize('NFC')
         .replace(/\r\n?/g, '\n')
         .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, '')
+        .replace(/[<>]/g, '')
         .replace(/"/g, (_m, offset: number, whole: string) =>
             offset === 0 || /[\s(\[{]/.test(whole[offset - 1]) ? '\u201C' : '\u201D')
         .replace(/[ \t]+/g, ' ')
