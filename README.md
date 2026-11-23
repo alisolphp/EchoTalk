@@ -4,7 +4,7 @@
 ![Deploy](https://img.shields.io/github/deployments/alisolphp/EchoTalk/github-pages?label=pages&logo=githubpages)
 ![License](https://img.shields.io/github/license/alisolphp/EchoTalk?cacheSeconds=1)
 ![PWA](https://img.shields.io/badge/PWA-ready-green)
-![Coverage](https://img.shields.io/badge/coverage-80.63%25-green) <!-- COVERAGE_BADGE_LINE -->
+![Coverage](https://img.shields.io/badge/coverage-81.29%25-green) <!-- COVERAGE_BADGE_LINE -->
 
 EchoTalk is a **privacy-first, offline language training tool** that helps you master the **Shadowing** technique for improving pronunciation, fluency, and confidence. It works as a **Progressive Web App (PWA)**, requires no server, and keeps all your recordings securely on your device.
 
@@ -111,12 +111,13 @@ EchoTalk has **200+ unit tests** covering:
 | src/services/ai.service.ts | 97.43 | 90.38 | 100 | 97.43 |
 | src/services/audio.service.ts | 72.41 | 88.31 | 80 | 72.41 |
 | src/services/data.service.ts | 84.83 | 78.48 | 78.26 | 84.83 |
-| src/services/practice.service.ts | 76.75 | 77.14 | 72.72 | 76.75 |
+| src/services/practice.service.ts | 76.88 | 79.22 | 72.72 | 76.88 |
+| src/services/promo.service.ts | 100 | 100 | 100 | 100 |
 | src/services/prompts.service.ts | 100 | 100 | 100 | 100 |
-| src/services/ui.service.ts | 84.28 | 89.06 | 80.76 | 84.28 |
+| src/services/ui.service.ts | 84.5 | 89.06 | 80.76 | 84.5 |
 | src/services/util.service.ts | 92.68 | 88 | 100 | 92.68 |
 | src/utils/string.extensions.ts | 100 | 100 | 100 | 100 |
-| All files | 80.63 | 82.95 | 83.22 | 80.63 |
+| All files | 81.29 | 83.76 | 83.76 | 81.29 |
 <!-- COVERAGE_TABLE_END -->
 
 ---
