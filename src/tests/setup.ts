@@ -7,6 +7,12 @@ import { beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import $ from 'jquery';
+import { webcrypto } from 'node:crypto';
+
+// Node 18 (used by CI) has no global Web Crypto; browsers do. The import code uses crypto.subtle.
+if (!(globalThis as any).crypto?.subtle) {
+    Object.defineProperty(globalThis, 'crypto', { value: webcrypto, configurable: true });
+}
 
 vi.mock('canvas-confetti', () => ({
     __esModule: true,
