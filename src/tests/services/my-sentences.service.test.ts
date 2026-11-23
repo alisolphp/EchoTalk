@@ -153,14 +153,17 @@ describe('MySentencesService', () => {
         expect($('#saveSentenceMessage').text()).toBe('');
     });
 
-    it('startPracticeFrom reports failure when language data cannot be prepared, and My Practices keeps its dialog open', async () => {
+    it('startPracticeFrom returns false when the language data fails to load (including a rejected fetch), and My Practices keeps its dialog open', async () => {
         vi.spyOn(app.uiService, 'showPracticeSetup').mockImplementation(() => {});
         vi.spyOn(app.uiService, 'updateLanguageUI').mockImplementation(() => {});
-        vi.spyOn(app.uiService, 'setupSampleOptions').mockImplementation(() => { throw new Error('boom'); });
-        vi.spyOn(app.dataService, 'fetchSamples').mockResolvedValue({ levels: [] } as any);
+        vi.spyOn(app.dataService, 'fetchSamples').mockRejectedValue(new Error('offline'));
+        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
         const start = vi.spyOn(app.practiceService, 'startPractice').mockResolvedValue();
+        const before = $('#configArea').html();
         expect(await app.startPracticeFrom('Hello there', 'de-DE')).toBe(false);
         expect(start).not.toHaveBeenCalled();
+        expect(alertSpy).toHaveBeenCalled();
+        expect($('#configArea').html()).toBe(before); // the setup page is not wiped
 
         const hide = vi.fn();
         const { Modal } = await import('bootstrap');

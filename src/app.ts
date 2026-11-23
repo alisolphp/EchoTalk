@@ -339,11 +339,12 @@ export class EchoTalkApp {
             this.lang = lang;
             this.uiService.updateLanguageUI();
             try {
-                this.dataService.fetchSamples();
+                this.samples = await this.dataService.fetchSamples();
                 this.uiService.setupSampleOptions();
             } catch (error) {
+                // Keep the setup page usable (it is not replaced) and report that nothing started.
                 console.error("Failed to load new language data:", error);
-                $('#configArea').html('<div class="alert alert-danger">Failed to load language data. Please refresh the page.</div>');
+                window.alert('Could not load the sentence data for that language. Please try again.');
                 return false;
             }
         }
