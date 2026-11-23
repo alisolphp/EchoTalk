@@ -15,14 +15,14 @@ Status: 2026-11-23. Source: README "Next Up" and "Planned Enhancements", plus a 
 ## Ranking
 
 Value = benefit for a typical learner. Effort: S (days), M (about a week), L (weeks or more).
-Rows are in recommended order. "Status" says what exists today; open pull requests are not merged yet.
+Rows are in recommended order. "Status" says what exists today.
 
 | # | Item | Value | Effort | Status | Notes from the code |
 |---|------|-------|--------|--------|---------------------|
-| 1 | Pause and resume in auto-skip mode (user request, issue 13) | High | S | Implemented in PR 15 (open) | `pauseAutoSkip` / `resumeAutoSkip` already exist for the word modal; this exposes them as a button. |
-| 2 | Your own sentences, saved in the app (user request, issue 12) | High | S | Implemented in PR 17 (open) | Same user review as row 1. Stored in localStorage, practiced through the existing "practice this sentence" path. |
-| 3 | Delete recordings (issue 14, answers the user question in issue 2) | Medium-high | S | Implemented in PR 16 (open) | Only Reset App deleted recordings, and it also wiped history and streaks. Per-recording and delete-all, keeping history. |
-| 4 | DontApply import (interview Q and A) | High (user-requested, feeds the main audience) | M | Implemented in PR 11 (open) | New content source; contract is in issue 5 and in the PR. |
+| 1 | Pause and resume in auto-skip mode (user request, issue 13) | High | S | Done (PR 15, merged) | `pauseAutoSkip` / `resumeAutoSkip` already exist for the word modal; this exposes them as a button. |
+| 2 | Your own sentences, saved in the app (user request, issue 12) | High | S | Done (PR 17, merged) | Same user review as row 1. Stored in localStorage, practiced through the existing "practice this sentence" path. |
+| 3 | Delete recordings (issue 14, answers the user question in issue 2) | Medium-high | S | Done (PR 16, merged) | Only Reset App deleted recordings, and it also wiped history and streaks. Per-recording and delete-all, keeping history. |
+| 4 | DontApply import (interview Q and A) | High (user-requested, feeds the main audience) | M | Done (PR 11, merged) | New content source; contract is in issue 5 and in the PR. |
 | 5 | Explore and browse sentences by level and category (issue 7) | High | S | Not started | Data and level/category selects already exist in Options; today the user only gets a random sample. A browse list with "practice this" reuses `startPractice`. No new storage. |
 | 6 | Export tools for recordings (issue 8) | High | S | Not started | Recordings are `Blob`s in IndexedDB; a per-sentence or all-recordings download (single file, later zip) needs no backend and strengthens the privacy story. |
 | 7 | Custom video and subtitle upload (issue 9) | High | L | Not started | Biggest differentiator. Needs SRT/VTT parsing (easy, testable), a local `<video>` player synced to cue times, storage decisions for large files (do not persist the video; keep only cues), and a new practice flow. Local-only, so it fits the privacy promise. |
@@ -34,7 +34,7 @@ Rows are in recommended order. "Status" says what exists today; open pull reques
 
 1. Rows 1 to 3 first: real users asked for them (an app-store review and issue 2) and each is small. Their pull
    requests are open and waiting for review.
-2. Then row 4, the DontApply import (PR 11).
+2. Then row 4, the DontApply import (PR 11, merged; it only works once DontApply provides the endpoint from its issue 48).
 3. Then build **row 5 (explore by level and category)** and **row 6 (export recordings)**: both are small, use
    existing data, need no new infrastructure, and give visible value fast. Row 5 also helps new users who do not
    know what to type. These are the proposed top 2 after the DontApply link.
