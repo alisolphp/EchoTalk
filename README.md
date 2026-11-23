@@ -47,7 +47,8 @@ EchoTalk is a **privacy-first, offline language training tool** that helps you m
 * **Multi-language support**: English, Dutch, Polish, Portuguese, Russian, Turkish, and more.
 * **Word-level interaction**: click a word to open tools for meaning, pronunciation, and AI-powered analysis.
 * **Practice streak tracker** with calendar view and motivational messages.
-* **History & recordings**: review all your past practices and replay your recordings.
+* **History & recordings**: review all your past practices, replay your recordings, and delete recordings you no longer need.
+* **My Sentences**: save your own sentences on your device and practice them any time.
 * **Seamless flows**: restart or switch sentences easily, plus celebration animations after sessions.
 * **Live recording visualizer** for instant feedback.
 

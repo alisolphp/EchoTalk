@@ -18,6 +18,7 @@ import { DataService } from './services/data.service';
 import { PracticeService } from './services/practice.service';
 import { AiService } from './services/ai.service';
 import { UtilService } from './services/util.service';
+import { MySentencesService } from './services/my-sentences.service';
 
 /**
  * The main class for the EchoTalk application.
@@ -187,6 +188,8 @@ export class EchoTalkApp {
 
     /** Handles interactions with external AI services (e.g., generating prompts). */
     public aiService: AiService;
+    /** The user's own saved sentences. */
+    public mySentencesService: MySentencesService;
 
     /** Provides utility functions used across the application. */
     public utilService: UtilService;
@@ -206,6 +209,7 @@ export class EchoTalkApp {
         this.dataService = new DataService(this);
         this.practiceService = new PracticeService(this);
         this.aiService = new AiService(this);
+        this.mySentencesService = new MySentencesService(this);
 
         window.modalRecordings = {};
         window.app = this;
@@ -319,34 +323,43 @@ export class EchoTalkApp {
 
         const modalElement = document.getElementById('practicesModal');
         if (modalElement) {
-            this.uiService.showPracticeSetup();
-            if (this.lang !== lang) {
-                this.lang = lang;
-                this.uiService.updateLanguageUI();
-                try {
-                    this.dataService.fetchSamples();
-                    this.uiService.setupSampleOptions();
-                } catch (error) {
-                    console.error("Failed to load new language data:", error);
-                    $('#configArea').html('<div class="alert alert-danger">Failed to load language data. Please refresh the page.</div>');
-                    return;
-                }
-            }
-
-            this.uiService.setInputValue(sentence);
-            this.sentence = sentence;
-            this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
-            this.currentIndex = 0;
-
-            await this.practiceService.startPractice();
-
-            // Wait for the modal to be completely hidden before executing the rest of the code
-            $(modalElement).one('hidden.bs.modal', async () => {});
+            const started = await this.startPracticeFrom(sentence, lang);
+            if (!started) return; // keep the dialog open when the language data failed to load
 
             // Use getInstance here since we know it exists.
             const modalInstance = Modal.getInstance(modalElement);
             modalInstance?.hide();
         }
+    }
+
+    /**
+     * Shows the setup page, switches language if needed, loads the sentence and starts practice.
+     * Shared by "Practice this sentence" (My Practices) and My Sentences.
+     * @returns false when the language data could not be prepared (nothing was started).
+     */
+    public async startPracticeFrom(sentence: string, lang: string): Promise<boolean> {
+        this.uiService.showPracticeSetup();
+        if (lang && this.lang !== lang) {
+            this.lang = lang;
+            this.uiService.updateLanguageUI();
+            try {
+                this.samples = await this.dataService.fetchSamples();
+                this.uiService.setupSampleOptions();
+            } catch (error) {
+                // Keep the setup page usable (it is not replaced) and report that nothing started.
+                console.error("Failed to load new language data:", error);
+                window.alert('Could not load the sentence data for that language. Please try again.');
+                return false;
+            }
+        }
+
+        this.uiService.setInputValue(sentence);
+        this.sentence = sentence;
+        this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
+        this.currentIndex = 0;
+
+        await this.practiceService.startPractice();
+        return true;
     }
 
     /**
@@ -441,6 +454,17 @@ export class EchoTalkApp {
         $('#navPrePractice').on('click', () => this.uiService.showPracticeSetup());
         $('#navOptions').on('click', () => this.uiService.showOptionsPage());
         $('#navForYou').on('click', () => this.uiService.showForYouPage());
+        $('#showMySentencesBtn').on('click', (e) => {
+            e.preventDefault();
+            this.mySentencesService.show();
+        });
+        $('#saveSentenceBtn').on('click', () => this.mySentencesService.saveFromInput());
+        $('#sentenceInput').on('input', () => $('#saveSentenceMessage').text(''));
+        $('#mySentenceForm').on('submit', (e) => {
+            e.preventDefault();
+            this.mySentencesService.submitForm();
+        });
+        $('#mySentenceCancel').on('click', () => this.mySentencesService.cancelEdit());
         $('.backHomeButton').on('click', () => this.uiService.showPracticeSetup());
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
