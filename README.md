@@ -4,7 +4,7 @@
 ![Deploy](https://img.shields.io/github/deployments/alisolphp/EchoTalk/github-pages?label=pages&logo=githubpages)
 ![License](https://img.shields.io/github/license/alisolphp/EchoTalk?cacheSeconds=1)
 ![PWA](https://img.shields.io/badge/PWA-ready-green)
-![Coverage](https://img.shields.io/badge/coverage-86.22%25-green) <!-- COVERAGE_BADGE_LINE -->
+![Coverage](https://img.shields.io/badge/coverage-87.19%25-green) <!-- COVERAGE_BADGE_LINE -->
 
 EchoTalk is a **privacy-first, offline language training tool** that helps you master the **Shadowing** technique for improving pronunciation, fluency, and confidence. It works as a **Progressive Web App (PWA)**, requires no server, and keeps all your recordings securely on your device.
 
@@ -107,20 +107,23 @@ EchoTalk has **200+ unit tests** covering:
 <!-- COVERAGE_TABLE_START -->
 | File | % Stmts | % Branch | % Funcs | % Lines |
 | ---- | ------- | -------- | ------- | ------- |
-| src/app.ts | 83.8 | 83.33 | 96 | 83.8 |
+| src/app.ts | 83.73 | 83.45 | 96 | 83.73 |
 | src/types.ts | 100 | 100 | 100 | 100 |
-| src/services/ai.service.ts | 97.43 | 90.38 | 100 | 97.43 |
+| src/services/ai.service.ts | 97.44 | 90.38 | 100 | 97.44 |
 | src/services/audio.service.ts | 73.33 | 89.41 | 81.48 | 73.33 |
-| src/services/data.service.ts | 86.5 | 82.72 | 78.57 | 86.5 |
+| src/services/collection.service.ts | 91.17 | 74.11 | 78.57 | 91.17 |
+| src/services/data.service.ts | 87.62 | 81.41 | 82.14 | 87.62 |
 | src/services/my-sentences.service.ts | 96.7 | 89.13 | 100 | 96.7 |
-| src/services/practice.service.ts | 80.71 | 82.5 | 77.27 | 80.71 |
+| src/services/practice.service.ts | 80.97 | 83.13 | 77.27 | 80.97 |
 | src/services/promo.service.ts | 100 | 100 | 100 | 100 |
 | src/services/prompts.service.ts | 100 | 100 | 100 | 100 |
-| src/services/ui.service.ts | 86.98 | 91.42 | 81.48 | 86.98 |
+| src/services/ui.service.ts | 87.03 | 91.42 | 81.48 | 87.03 |
 | src/services/util.service.ts | 95.12 | 90.19 | 100 | 95.12 |
+| src/utils/dontapply-import.ts | 92.98 | 95.95 | 100 | 92.98 |
+| src/utils/html.ts | 100 | 100 | 100 | 100 |
 | src/utils/my-sentences.ts | 100 | 97.87 | 100 | 100 |
 | src/utils/string.extensions.ts | 100 | 100 | 100 | 100 |
-| All files | 86.22 | 87.74 | 88.23 | 86.22 |
+| All files | 87.19 | 87.24 | 88.15 | 87.19 |
 <!-- COVERAGE_TABLE_END -->
 
 ---
