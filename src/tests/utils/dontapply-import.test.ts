@@ -73,6 +73,11 @@ describe('parseImportPayload', () => {
     ])('rejects %s', (_n, payload) => {
         expect(() => parseImportPayload(payload)).toThrowError(ImportError);
     });
+    it('counts length in code points, so emoji near the limit are accepted', () => {
+        const emoji = '\u{1F600}'.repeat(IMPORT_LIMITS.maxQuestionChars); // 500 code points, 1000 UTF-16 units
+        expect(() => parseImportPayload({ ...valid(), items: [{ question: emoji, answer: 'A' }] })).not.toThrow();
+        expect(() => parseImportPayload({ ...valid(), items: [{ question: emoji + 'x', answer: 'A' }] })).toThrowError(ImportError);
+    });
     it('falls back to en-US for a malformed language tag', () => {
         expect(parseImportPayload({ ...valid(), lang: 'xx<script>' }).lang).toBe('en-US');
         expect(parseImportPayload({ ...valid(), lang: 'de-DE' }).lang).toBe('de-DE');

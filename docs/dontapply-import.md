@@ -25,11 +25,11 @@ from the first question to the last.
 |------|-------------|
 | URL | `POST https://dontapply.club/api/echotalk/import`. HTTPS only. The host is fixed in EchoTalk (`IMPORT_ENDPOINT`); the token never chooses the host. |
 | Request | Body is the token only, `Content-Type: text/plain;charset=UTF-8`. This is a CORS "simple request": **no preflight**, so one request equals one token use. EchoTalk sends no cookies (`credentials: omit`), no referrer, `cache: no-store`, and does not follow redirects. |
-| Token | URL-safe characters `[A-Za-z0-9_-]`, 32 to 128 long, random, single use, short expiry (suggested 15 minutes), bound to one note. Not derived from user data. |
+| Token | URL-safe characters `[A-Za-z0-9_-]`, 32 to 128 long, random, single use, short expiry (suggested 15 minutes), bound to one note and one user. Not derived from user data. |
 | Success | `200`, `Content-Type: application/json`, body in the format below. Send `Cache-Control: no-store`. |
 | Unknown, used or expired token | `404` or `410` with no body details. The same answer for all three, so a token cannot be probed. |
 | Rate limited | `429`. |
-| CORS | `Access-Control-Allow-Origin` set to the exact EchoTalk origin(s): `https://alisolphp.github.io` and `https://alisol.ir` (no `*`; no credentials). |
+| CORS | `Access-Control-Allow-Origin` set to the exact EchoTalk origin(s): `https://alisolphp.github.io` and `https://alisol.ir` (no `*`; no credentials), **on every response including 404, 410 and 429**. Without it the browser hides the status code and an expired link would show as "could not reach DontApply". |
 | Size | Body at most **256 KiB**; EchoTalk rejects larger answers (by `Content-Length` and while streaming). |
 | Time | EchoTalk gives up after 15 seconds in total (connection and reading the body). |
 | Privacy | No user id, email, name, job or company in the JSON or in any URL. Do not log the token body in access logs. |
@@ -55,11 +55,11 @@ request per link.
 |-------|-------|
 | `schemaVersion` | Must be `1`. |
 | `type` | Must be `"qa-collection"`. |
-| `title` | String, 1 to 120 characters after sanitizing. |
+| `title` | String, 1 to 120 characters (Unicode code points, as PHP `mb_strlen` counts) after sanitizing. |
 | `lang` | Optional BCP-47-like tag (`en-US`, `de-DE`). Default `en-US`. If it is one of EchoTalk's supported languages, practice (text-to-speech) uses it. |
 | `items` | Array of 1 to 200 objects, in practice order. |
-| `items[].question` | String, 1 to 500 characters. Shown on top, never read aloud. |
-| `items[].answer` | String, 1 to 2000 characters. This is the text the user practices; EchoTalk reads it aloud. |
+| `items[].question` | String, 1 to 500 characters (code points). Shown on top, never read aloud. |
+| `items[].answer` | String, 1 to 2000 characters (code points). This is the text the user practices; EchoTalk reads it aloud. |
 
 Anything invalid (wrong type, empty field, too long, too many items) rejects the whole payload. Unknown fields are
 ignored and never stored.

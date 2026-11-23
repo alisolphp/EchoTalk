@@ -88,6 +88,11 @@ export function sanitizeText(input: unknown): string {
     return s.trim();
 }
 
+/** Length in Unicode code points (what PHP mb_strlen counts), not UTF-16 units, so emoji count once. */
+function codePoints(s: string): number {
+    return Array.from(s).length;
+}
+
 /** Language is only a hint; accept a BCP-47-like tag, default to en-US. */
 function normalizeLang(lang: unknown): string {
     return typeof lang === 'string' && /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(lang) ? lang : 'en-US';
@@ -114,7 +119,7 @@ export function parseImportPayload(data: unknown): ParsedCollection {
     if (items.length < 1 || items.length > IMPORT_LIMITS.maxItems) return fail();
 
     const title = sanitizeText(d.title);
-    if (title === '' || title.length > IMPORT_LIMITS.maxTitleChars) return fail();
+    if (title === '' || codePoints(title) > IMPORT_LIMITS.maxTitleChars) return fail();
 
     const out: QaItem[] = [];
     for (const raw of items) {
@@ -124,7 +129,7 @@ export function parseImportPayload(data: unknown): ParsedCollection {
         const question = sanitizeText(r.question);
         const answer = sanitizeText(r.answer);
         if (question === '' || answer === '') return fail();
-        if (question.length > IMPORT_LIMITS.maxQuestionChars || answer.length > IMPORT_LIMITS.maxAnswerChars) return fail();
+        if (codePoints(question) > IMPORT_LIMITS.maxQuestionChars || codePoints(answer) > IMPORT_LIMITS.maxAnswerChars) return fail();
         out.push({ question, answer });
     }
     return { title, lang: normalizeLang(d.lang), items: out };
