@@ -15,33 +15,35 @@ Status: 2026-11-23. Source: README "Next Up" and "Planned Enhancements", plus a 
 ## Ranking
 
 Value = benefit for a typical learner. Effort: S (days), M (about a week), L (weeks or more).
+Rows are in recommended order. "Status" says what exists today; open pull requests are not merged yet.
 
-| # | Item | Value | Effort | Notes from the code |
-|---|------|-------|--------|---------------------|
-| A | Pause and resume in auto-skip mode (user request, issue 13) | High | S | `pauseAutoSkip` / `resumeAutoSkip` already exist for the word modal; this exposes them as a button. Done in PR 15. |
-| B | Your own sentences, saved in the app (user request, issue 12) | High | S | Same user review as A. Stored in localStorage, practiced through the existing "practice this sentence" path. Done in PR 17. |
-| C | Delete recordings (issue 2, user question) | Medium-high | S | Only Reset App deleted recordings, and it also wiped history and streaks. Per-recording and delete-all, keeping history. Done in PR 16. |
-| 0 | DontApply import (interview Q and A) | High (user-requested, feeds the main audience) | M | New content source; contract is defined in issue 5. Done first. |
-| 1 | Explore and browse sentences by level and category | High | S | Data and level/category selects already exist in Options; today the user only gets a random sample. A browse list with "practice this" reuses `startPractice`. No new storage. |
-| 2 | Export tools for recordings | High | S | Recordings are `Blob`s in IndexedDB; a per-sentence or all-recordings download (single file, later zip) needs no backend and strengthens the privacy story. |
-| 3 | Custom video and subtitle upload | High | L | Biggest differentiator. Needs SRT/VTT parsing (easy, testable), a local `<video>` player synced to cue times, storage decisions for large files (do not persist the video; keep only cues), and a new practice flow. Local-only, so it fits the privacy promise. |
-| 4 | Gamification (badges, levels, rewards) | Medium | M | Streak and practice history exist, so badges can be derived from `practices`. Value is retention, not learning; risk of noise. |
-| 5 | Community sharing | Medium, uncertain | L | Needs a backend, moderation and accounts, which conflicts with offline/privacy-first. A cheap alternative is sharing a collection as a file or link using the import format from issue 5. |
-| 6 | YouTube API integration | Medium | L, plus recurring cost | README already flags API cost. Also terms-of-service limits on caption access and playback control. Do after item 3 proves the video flow. |
+| # | Item | Value | Effort | Status | Notes from the code |
+|---|------|-------|--------|--------|---------------------|
+| 1 | Pause and resume in auto-skip mode (user request, issue 13) | High | S | Implemented in PR 15 (open) | `pauseAutoSkip` / `resumeAutoSkip` already exist for the word modal; this exposes them as a button. |
+| 2 | Your own sentences, saved in the app (user request, issue 12) | High | S | Implemented in PR 17 (open) | Same user review as row 1. Stored in localStorage, practiced through the existing "practice this sentence" path. |
+| 3 | Delete recordings (issue 14, answers the user question in issue 2) | Medium-high | S | Implemented in PR 16 (open) | Only Reset App deleted recordings, and it also wiped history and streaks. Per-recording and delete-all, keeping history. |
+| 4 | DontApply import (interview Q and A) | High (user-requested, feeds the main audience) | M | Implemented in PR 11 (open) | New content source; contract is in issue 5 and in the PR. |
+| 5 | Explore and browse sentences by level and category (issue 7) | High | S | Not started | Data and level/category selects already exist in Options; today the user only gets a random sample. A browse list with "practice this" reuses `startPractice`. No new storage. |
+| 6 | Export tools for recordings (issue 8) | High | S | Not started | Recordings are `Blob`s in IndexedDB; a per-sentence or all-recordings download (single file, later zip) needs no backend and strengthens the privacy story. |
+| 7 | Custom video and subtitle upload (issue 9) | High | L | Not started | Biggest differentiator. Needs SRT/VTT parsing (easy, testable), a local `<video>` player synced to cue times, storage decisions for large files (do not persist the video; keep only cues), and a new practice flow. Local-only, so it fits the privacy promise. |
+| 8 | Gamification (badges, levels, rewards) | Medium | M | Deferred | Streak and practice history exist, so badges can be derived from `practices`. Value is retention, not learning; risk of noise. |
+| 9 | Community sharing | Medium, uncertain | L | Deferred | Needs a backend, moderation and accounts, which conflicts with offline/privacy-first. A cheap alternative is sharing a collection as a file or link using the import format from issue 5. |
+| 10 | YouTube API integration | Medium | L, plus recurring cost | Deferred | README already flags API cost. Also terms-of-service limits on caption access and playback control. Do after row 7 proves the video flow. |
 
 ## Recommendation
 
-0. User-requested items first, because real users asked for them and each is small: A (pause), B (own sentences) and
-   C (delete recordings). They are implemented in PRs 15, 17 and 16 (see the table).
-1. Finish the DontApply import (item 0; PR 11).
-2. Then build **item 1 (explore by level and category)** and **item 2 (export recordings)**: both are small, use
-   existing data, need no new infrastructure, and give visible value fast. Item 1 also helps new users who do not
-   know what to type.
-3. Plan **item 3 (video and subtitle upload)** as the next large feature; a spike on SRT parsing and cue-synced
+1. Rows 1 to 3 first: real users asked for them (an app-store review and issue 2) and each is small. Their pull
+   requests are open and waiting for review.
+2. Then row 4, the DontApply import (PR 11).
+3. Then build **row 5 (explore by level and category)** and **row 6 (export recordings)**: both are small, use
+   existing data, need no new infrastructure, and give visible value fast. Row 5 also helps new users who do not
+   know what to type. These are the proposed top 2 after the DontApply link.
+4. Plan **row 7 (video and subtitle upload)** as the next large feature; a spike on SRT parsing and cue-synced
    playback comes first.
-4. Defer gamification, community sharing and YouTube. Revisit sharing once the import format exists, as
-   file-based sharing; revisit YouTube only if item 3 shows demand.
+5. Defer gamification, community sharing and YouTube. Revisit sharing once the import format exists, as
+   file-based sharing; revisit YouTube only if row 7 shows demand.
 
-Issues opened for the recommended items: 12 (own sentences), 13 (pause), 14 (delete recordings; answers issue 2), then 7 (explore by level and category), 8 (export recordings), 9 (video and subtitle upload spike).
+Tracking issues: 13 (row 1), 12 (row 2), 14 (row 3), 5 (row 4), 7 (row 5), 8 (row 6), 9 (row 7).
 
-Source of A and B: a user review in an app store asking to "add our own sentences, saved in the app for later access" and a "temporary pause" in automatic repeat mode.
+Source of rows 1 and 2: a user review in an app store asking to "add our own sentences, saved in the app for later
+access" and a "temporary pause" in automatic repeat mode.
