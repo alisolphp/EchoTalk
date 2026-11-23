@@ -205,11 +205,19 @@ export async function fetchCollection(
             signal: controller.signal,
         });
     } catch {
+        clearTimeout(timer);
         throw new ImportError(controller.signal.aborted ? 'timeout' : 'network');
+    }
+
+    // The timer keeps running while the body is read, so a slow body also times out.
+    try {
+        return await parseResponse(res, controller);
     } finally {
         clearTimeout(timer);
     }
+}
 
+async function parseResponse(res: Response, controller: AbortController): Promise<QaCollection> {
     if (res.status === 404 || res.status === 410) throw new ImportError('expired');
     if (res.status === 429) throw new ImportError('rate_limited');
     if (!res.ok) throw new ImportError('http_error');
@@ -217,7 +225,13 @@ export async function fetchCollection(
         throw new ImportError('wrong_content_type');
     }
 
-    const text = await readTextLimited(res, IMPORT_LIMITS.maxBytes);
+    let text: string;
+    try {
+        text = await readTextLimited(res, IMPORT_LIMITS.maxBytes);
+    } catch (e) {
+        if (e instanceof ImportError) throw e;
+        throw new ImportError(controller.signal.aborted ? 'timeout' : 'network');
+    }
     let data: unknown;
     try {
         data = JSON.parse(text);

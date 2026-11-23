@@ -261,6 +261,8 @@ export class EchoTalkApp {
      * clears timers, resets state variables, and restores the UI to the setup screen.
      */
     public async resetWithoutReload(): Promise<void> {
+        // Synchronous on purpose: callers do not await this, and a collection started right after must not be cleared later.
+        this.collectionService.clear();
         this.audioService.stopAllPlayback();
         this.utilService.clearAutoSkipTimer();
         await this.audioService.stopRecording();
@@ -273,7 +275,6 @@ export class EchoTalkApp {
         this.autoSkipRemainingTime = 0;
         this.autoSkipIsPaused = false;
 
-        this.collectionService.clear();
         this.sentence = '';
         this.words = [];
 

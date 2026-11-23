@@ -151,6 +151,22 @@ describe('fetchCollection', () => {
         expect(await p).toBe('timeout');
         vi.useRealTimers();
     });
+    it('times out when the body stalls after the headers arrived', async () => {
+        vi.useFakeTimers();
+        const f = vi.fn((_u: string, init: RequestInit) => {
+            // Like a real fetch, reading the body fails once the request signal aborts.
+            const body = new ReadableStream({
+                start(ctrl) {
+                    init.signal!.addEventListener('abort', () => ctrl.error(new DOMException('aborted', 'AbortError')));
+                },
+            });
+            return Promise.resolve(new Response(body, { status: 200, headers: { 'content-type': 'application/json' } }));
+        });
+        const p = code(fetchCollection(TOKEN, f as any));
+        await vi.advanceTimersByTimeAsync(IMPORT_LIMITS.timeoutMs + 1);
+        expect(await p).toBe('timeout');
+        vi.useRealTimers();
+    });
     it('rejects a wrong content type', async () => {
         const f = vi.fn().mockResolvedValue(new Response('{}', { status: 200, headers: { 'content-type': 'text/html' } }));
         expect(await code(fetchCollection(TOKEN, f as any))).toBe('wrong_content_type');

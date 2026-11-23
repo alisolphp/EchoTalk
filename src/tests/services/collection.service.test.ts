@@ -146,6 +146,20 @@ describe('CollectionService flow', () => {
         expect($('#sentenceInput').attr('data-val')).toBe('Answer two.');
     });
 
+    it('Start from the list keeps collection mode on, even though the setup page resets asynchronously', async () => {
+        vi.restoreAllMocks();
+        startSpy = vi.spyOn(app.practiceService, 'startPractice').mockResolvedValue();
+        const modal = $('#collectionsModal')[0];
+        await addOrFind(store, { key: 'k9', title: 'Listed', lang: 'en-US', items: [{ question: 'Listed Q1?', answer: 'Listed A1.' }, { question: 'Q2?', answer: 'A2.' }] });
+        await app.collectionService.showList();
+        $('#collectionsList .btn-primary').first().trigger('click');
+        await new Promise(r => setTimeout(r, 50));
+        expect(modal).toBeTruthy();
+        expect(app.collectionService.isActive()).toBe(true);
+        expect($('#collectionBanner').hasClass('d-none')).toBe(false);
+        expect($('#collectionQuestion').text()).toBe('Listed Q1?');
+    });
+
     it('lists collections as text and deletes on confirm', async () => {
         await addOrFind(store, { key: 'k', title: '<b>Evil</b>', lang: 'en-US', items: [{ question: 'Q', answer: 'A' }] });
         await app.collectionService.showList();

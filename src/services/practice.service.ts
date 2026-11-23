@@ -437,7 +437,7 @@ export class PracticeService {
             this.app.autoRestartTimer = setTimeout(() => {
                 if (!$('#session-complete-container').hasClass('d-none')) {
                     if (this.app.collectionService.isActive()) {
-                        this.app.collectionService.next();
+                        this.app.collectionService.next().catch(err => console.error('Could not advance to the next question:', err));
                     } else {
                         this.restartCurrentPractice();
                     }

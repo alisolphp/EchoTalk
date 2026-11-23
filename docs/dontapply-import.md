@@ -31,7 +31,7 @@ from the first question to the last.
 | Rate limited | `429`. |
 | CORS | `Access-Control-Allow-Origin` set to the exact EchoTalk origin(s): `https://alisolphp.github.io` and `https://alisol.ir` (no `*`; no credentials). |
 | Size | Body at most **256 KiB**; EchoTalk rejects larger answers (by `Content-Length` and while streaming). |
-| Time | EchoTalk gives up after 15 seconds. |
+| Time | EchoTalk gives up after 15 seconds in total (connection and reading the body). |
 | Privacy | No user id, email, name, job or company in the JSON or in any URL. Do not log the token body in access logs. |
 
 Rate limits on the DontApply endpoint (per address and per token) are DontApply's job; EchoTalk makes exactly one
@@ -67,7 +67,7 @@ ignored and never stored.
 ### Content key
 
 EchoTalk computes the key itself: SHA-256 (hex) of the canonical JSON of the sanitized title and items (language
-excluded). DontApply does not send a key. The same content always gives the same key, so importing it again does
+excluded). On pages without Web Crypto (non-HTTPS) a weaker local hash is used instead; it only serves duplicate detection on the device. DontApply does not send a key. The same content always gives the same key, so importing it again does
 not create a duplicate; practice still starts from question 1.
 
 ## Sanitizing (all imported text)
