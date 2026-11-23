@@ -2,6 +2,7 @@ import $ from 'jquery';
 import { Modal } from 'bootstrap';
 import { EchoTalkApp } from '../app';
 import { Recording, Practice, SampleData } from '../types';
+import { escapeHtml } from '../utils/html';
 
 /**
  * Service for managing all data-related operations, including fetching
@@ -30,7 +31,7 @@ export class DataService {
      */
     public initDB(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open('EchoTalkDB', 3);
+            const request = indexedDB.open('EchoTalkDB', 4);
             request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
                 if (!db.objectStoreNames.contains('recordings')) {
@@ -40,6 +41,9 @@ export class DataService {
                 if (!db.objectStoreNames.contains('practices')) {
                     const store =
                         db.createObjectStore('practices', { keyPath: 'sentence' });
+                }
+                if (!db.objectStoreNames.contains('collections')) {
+                    db.createObjectStore('collections', { keyPath: 'key' });
                 }
             };
             request.onsuccess = (event) => {
@@ -113,7 +117,7 @@ export class DataService {
                     <h2 class="accordion-header" id="heading-${uniqueId}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${uniqueId}" aria-expanded="false">
                             <div class="w-100 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
-                               <span class="fw-bold mb-1 mb-sm-0">${truncated}</span>
+                               <span class="fw-bold mb-1 mb-sm-0">${escapeHtml(truncated)}</span>
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-secondary me-2">${count} recording${count > 1 ? 's' : ''}</span>
                                     <small class="text-muted">${lastRecTime.toLocaleString()}</small>
@@ -121,7 +125,7 @@ export class DataService {
                             </div>
                      </button>
                     </h2>
-                    <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#recordingsList" data-sentence="${sentence.replace(/"/g, '&quot;')}">
+                    <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#recordingsList" data-sentence="${escapeHtml(sentence)}">
                         <div class="accordion-body">
                             <ul class="list-group">
                                ${recordings.map((rec, index) => `
@@ -130,31 +134,31 @@ export class DataService {
                                             <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
                                             <div class="row g-2 justify-content-center">
                                                 <div class="col-6 col-md-auto">
-                                                    <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}" data-lang="${rec.lang}">
+                                                    <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${escapeHtml(sentence)}" data-lang="${rec.lang}">
                                                         <i class="bi bi-robot"></i> Play Bot
                                                     </button>
                                                 </div>
                                                 <div class="col-6 col-md-auto">
-                                                    <button class="btn btn-sm btn-primary play-user-audio w-100" data-sentence="${sentence}" data-index="${index}">
+                                                    <button class="btn btn-sm btn-primary play-user-audio w-100" data-sentence="${escapeHtml(sentence)}" data-index="${index}">
                                                         <i class="bi bi-person-fill"></i> Play Mine
                                                     </button>
                                                 </div>
                                                 ${rec.lang === 'en-US' && this.app.spellCheckerIsAvailable ?
                                                 `
                                                     <div class="col-6 col-md-auto">
-                                                        <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
+                                                        <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${escapeHtml(sentence)}" data-index="${index}" title="Check pronunciation accuracy">
                                                             <i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>
                                                         </button>
                                                     </div>
                                                     <div class="col-6 col-md-auto">
-                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${escapeHtml(sentence)}" data-index="${index}">
                                                             <i class="bi bi-magic"></i> Full <span class="text-nowrap">AI Analyze</span>
                                                         </button>
                                                     </div>
                                                 ` : 
                                                 `
                                                     <div class="col-12 col-md-auto">
-                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${escapeHtml(sentence)}" data-index="${index}">
                                                             <i class="bi bi-magic"></i> Comprehensive <span class="text-nowrap">AI Analyze</span>
                                                         </button>
                                                     </div>
@@ -228,13 +232,13 @@ export class DataService {
                             const lastPracticedDate = p.practiceHistory && p.practiceHistory.length > 0 ? p.practiceHistory[p.practiceHistory.length - 1] : 'Never';
                             const formattedDate = lastPracticedDate !== 'Never' ? lastPracticedDate.toLocaleString() : lastPracticedDate;
                             const truncatedSentence = this.app.utilService.truncateSentence(p.sentence);
-                            const sentenceAttr = p.sentence.replace(/"/g, '&quot;');
+                            const sentenceAttr = escapeHtml(p.sentence);
                             accordionHtml += `
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="flex-grow-1 me-3">
-                                                <p class="card-title fw-bold mb-1">"${truncatedSentence}"</p>
+                                                <p class="card-title fw-bold mb-1">"${escapeHtml(truncatedSentence)}"</p>
                                                 <p class="card-text mb-1">
                                                     <span class="badge bg-info">Practiced: <strong>${p.count}</strong> time(s)</span>
                                                 </p>
@@ -268,13 +272,13 @@ export class DataService {
                         const lastPracticedDate = p.practiceHistory && p.practiceHistory.length > 0 ? p.practiceHistory[p.practiceHistory.length - 1] : 'Never';
                         const formattedDate = lastPracticedDate !== 'Never' ? lastPracticedDate.toLocaleString() : lastPracticedDate;
                         const truncatedSentence = this.app.utilService.truncateSentence(p.sentence);
-                        const sentenceAttr = p.sentence.replace(/"/g, '&quot;');
+                        const sentenceAttr = escapeHtml(p.sentence);
                         const practiceHTML = `
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="flex-grow-1 me-3">
-                                            <p class="card-title fw-bold mb-1">"${truncatedSentence}"</p>
+                                            <p class="card-title fw-bold mb-1">"${escapeHtml(truncatedSentence)}"</p>
                                             <p class="card-text mb-1">
                                                 <span class="badge bg-info">Practiced: <strong>${p.count}</strong> time(s)</span>
                                             </p>

@@ -2,6 +2,7 @@ import $ from 'jquery';
 import { Modal } from 'bootstrap';
 import confetti from 'canvas-confetti';
 import { EchoTalkApp } from '../app';
+import { escapeHtml } from '../utils/html';
 
 /**
  * Manages all User Interface (UI) related operations, such as showing pages,
@@ -173,7 +174,7 @@ export class UiService {
         $('#sampleSentence').empty();
         this.app.words.forEach((w, i) => {
             const cls = i === this.app.currentIndex ? 'current-word' : '';
-            $('#sampleSentence').append(`<span data-index="${i}" class="${cls}">${w}</span> `);
+            $('#sampleSentence').append(`<span data-index="${i}" class="${cls}">${escapeHtml(w)}</span> `);
         });
     }
 
@@ -195,7 +196,7 @@ export class UiService {
             let cls = '';
             if (i < startIndex) cls = 'text-muted';
             else if (i === this.app.currentIndex) cls = 'current-word';
-            $('#fullSentence').append(`<span class="${cls}">${w}</span> `);
+            $('#fullSentence').append(`<span class="${cls}">${escapeHtml(w)}</span> `);
         });
     }
 

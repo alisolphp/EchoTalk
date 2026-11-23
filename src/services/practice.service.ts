@@ -418,6 +418,7 @@ export class PracticeService {
         $('#practice-ui-container').addClass('d-none');
         $('#session-complete-container').html(completionHtml).removeClass('d-none');
         $('#restartPracticeBtn').focus();
+        this.app.collectionService.decorateCompletion();
 
         localStorage.removeItem(this.app.STORAGE_KEYS.index);
         localStorage.removeItem(this.app.STORAGE_KEYS.count);
@@ -434,7 +435,11 @@ export class PracticeService {
             $restartBtn.css('animation-duration', `${waitTime}s`).addClass('loading');
             this.app.autoRestartTimer = setTimeout(() => {
                 if (!$('#session-complete-container').hasClass('d-none')) {
-                    this.restartCurrentPractice();
+                    if (this.app.collectionService.isActive()) {
+                        this.app.collectionService.next();
+                    } else {
+                        this.restartCurrentPractice();
+                    }
                 }
             }, waitTime * 1000);
         }
