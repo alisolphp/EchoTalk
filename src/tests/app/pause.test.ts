@@ -70,14 +70,6 @@ describe('Auto-skip pause and resume button', () => {
         expect(cb).toHaveBeenCalledTimes(1);
     });
 
-    it('a modal closing or the tab becoming visible does not resume a manual pause', () => {
-        app.uiService.setupPracticeUI();
-        app.toggleUserPause();
-        app.resumeAutoSkip(); // what the modal-hidden / visibility handlers call
-        expect(app.autoSkipIsPaused).toBe(true);
-        expect(app.autoSkipUserPaused).toBe(true);
-    });
-
     it('pausing while speaking pauses speech synthesis; resuming resumes it', () => {
         (globalThis as any).speechSynthesis.speaking = true;
         app.uiService.setupPracticeUI();
@@ -94,8 +86,14 @@ describe('Auto-skip pause and resume button', () => {
         app.toggleUserPause();
         const modal = document.getElementById('wordActionsModal')!;
         modal.dispatchEvent(new Event('hidden.bs.modal', { bubbles: true }));
+        const original = Object.getOwnPropertyDescriptor(Document.prototype, 'visibilityState');
         Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
-        document.dispatchEvent(new Event('visibilitychange'));
+        try {
+            document.dispatchEvent(new Event('visibilitychange'));
+        } finally {
+            delete (document as any).visibilityState;
+            if (original) Object.defineProperty(Document.prototype, 'visibilityState', original);
+        }
         expect(app.autoSkipIsPaused).toBe(true);
         expect(app.autoSkipUserPaused).toBe(true);
     });
@@ -156,5 +154,37 @@ describe('Auto-skip pause and resume button', () => {
         app.uiService.setupPracticeUI();
         $('#pauseResumeBtn').trigger('click');
         expect(app.autoSkipUserPaused).toBe(true);
+    });
+
+    it('manual pause releases the wake lock and pauses the recorder; resume re-requests and resumes', () => {
+        const release = vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
+        const request = vi.spyOn(app, 'requestWakeLock').mockResolvedValue();
+        const rec = { state: 'recording', pause: vi.fn(() => { rec.state = 'paused'; }), resume: vi.fn(() => { rec.state = 'recording'; }) };
+        (app.audioService as any).mediaRecorder = rec;
+        app.uiService.setupPracticeUI();
+
+        app.toggleUserPause();
+        expect(release).toHaveBeenCalledTimes(1);
+        expect(rec.pause).toHaveBeenCalledTimes(1);
+        expect(rec.state).toBe('paused');
+
+        app.toggleUserPause();
+        expect(request).toHaveBeenCalledTimes(1);
+        expect(rec.resume).toHaveBeenCalledTimes(1);
+        expect(rec.state).toBe('recording');
+    });
+
+    it('a recorder left paused is resumed when the pause state is cleared (so it can stop and save normally)', () => {
+        const rec = { state: 'recording', pause: vi.fn(() => { rec.state = 'paused'; }), resume: vi.fn(() => { rec.state = 'recording'; }) };
+        (app.audioService as any).mediaRecorder = rec;
+        vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
+        app.uiService.setupPracticeUI();
+        app.toggleUserPause();
+        app.clearPauseState();
+        expect(rec.state).toBe('recording');
+    });
+
+    it('the pause button has no stale aria-pressed attribute', () => {
+        expect(document.getElementById('pauseResumeBtn')!.hasAttribute('aria-pressed')).toBe(false);
     });
 });

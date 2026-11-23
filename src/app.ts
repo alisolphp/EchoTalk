@@ -725,6 +725,8 @@ export class EchoTalkApp {
         if (typeof speechSynthesis !== 'undefined' && speechSynthesis.paused) {
             speechSynthesis.resume();
         }
+        // A recorder left paused would not stop (and save) normally later.
+        this.audioService?.resumeRecording();
         this.uiService.updatePauseButton();
     }
 
@@ -736,9 +738,14 @@ export class EchoTalkApp {
         if (this.autoSkipUserPaused) {
             this.autoSkipUserPaused = false;
             this.resumeAutoSkip();
+            this.audioService.resumeRecording();
+            this.requestWakeLock();
         } else {
             this.autoSkipUserPaused = true;
             this.pauseAutoSkip();
+            // The break must not end up inside a saved recording, and the screen may sleep.
+            this.audioService.pauseRecording();
+            this.releaseWakeLock();
         }
         this.uiService.updatePauseButton();
     }
@@ -755,7 +762,7 @@ export class EchoTalkApp {
         this.autoSkipIsPaused = true;
 
         // Pause speech synthesis if it's currently speaking
-        if (speechSynthesis.speaking) {
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.speaking) {
             speechSynthesis.pause();
         }
 
@@ -784,7 +791,7 @@ export class EchoTalkApp {
         this.autoSkipIsPaused = false;
 
         // Resume speech synthesis if it was paused
-        if (speechSynthesis.paused) {
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.paused) {
             speechSynthesis.resume();
         }
 
