@@ -156,7 +156,7 @@ describe('Auto-skip pause and resume button', () => {
         expect(app.autoSkipUserPaused).toBe(true);
     });
 
-    it('manual pause releases the wake lock and pauses the recorder; resume re-requests and resumes', () => {
+    it('manual pause releases the wake lock and pauses the recorder; resume re-requests and resumes', async () => {
         const release = vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
         const request = vi.spyOn(app, 'requestWakeLock').mockResolvedValue();
         const rec = { state: 'recording', pause: vi.fn(() => { rec.state = 'paused'; }), resume: vi.fn(() => { rec.state = 'recording'; }) };
@@ -164,11 +164,13 @@ describe('Auto-skip pause and resume button', () => {
         app.uiService.setupPracticeUI();
 
         app.toggleUserPause();
+        await vi.advanceTimersByTimeAsync(0);
         expect(release).toHaveBeenCalledTimes(1);
         expect(rec.pause).toHaveBeenCalledTimes(1);
         expect(rec.state).toBe('paused');
 
         app.toggleUserPause();
+        await vi.advanceTimersByTimeAsync(0);
         expect(request).toHaveBeenCalledTimes(1);
         expect(rec.resume).toHaveBeenCalledTimes(1);
         expect(rec.state).toBe('recording');
@@ -217,12 +219,13 @@ describe('Auto-skip pause and resume button', () => {
         expect(rec.state).toBe('inactive');
     });
 
-    it('returning to the tab during a manual pause does not re-request the wake lock', () => {
+    it('returning to the tab during a manual pause does not re-request the wake lock', async () => {
         (app as any).bindEvents();
         const release = vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
         const request = vi.spyOn(app, 'requestWakeLock').mockResolvedValue();
         app.uiService.setupPracticeUI();
         app.toggleUserPause();
+        await vi.advanceTimersByTimeAsync(0);
         request.mockClear();
         const original = Object.getOwnPropertyDescriptor(Document.prototype, 'visibilityState');
         Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
@@ -232,7 +235,47 @@ describe('Auto-skip pause and resume button', () => {
             delete (document as any).visibilityState;
             if (original) Object.defineProperty(Document.prototype, 'visibilityState', original);
         }
+        await vi.advanceTimersByTimeAsync(0);
         expect(request).not.toHaveBeenCalled();
         expect(release).toHaveBeenCalled();
+    });
+
+    it('wake-lock calls from a quick Pause then Resume run strictly in order (no leaked lock)', async () => {
+        const log: string[] = [];
+        vi.spyOn(app, 'releaseWakeLock').mockImplementation(async () => {
+            log.push('release:start');
+            await new Promise(r => setTimeout(r, 50)); // a slow release
+            log.push('release:end');
+        });
+        vi.spyOn(app, 'requestWakeLock').mockImplementation(async () => {
+            log.push('request:start');
+            await new Promise(r => setTimeout(r, 10));
+            log.push('request:end');
+        });
+        app.uiService.setupPracticeUI();
+        app.toggleUserPause(); // pause -> release
+        app.toggleUserPause(); // resume -> request, must wait for the release to finish
+        await vi.advanceTimersByTimeAsync(200);
+        expect(log).toEqual(['release:start', 'release:end', 'request:start', 'request:end']);
+    });
+
+    it('a recording that starts during a manual pause is paused right away', async () => {
+        const rec: any = { state: 'inactive', pause: vi.fn(() => { rec.state = 'paused'; }), resume: vi.fn() };
+        const start = vi.spyOn(app.audioService, 'startRecording').mockImplementation(async () => { rec.state = 'recording'; });
+        (app.audioService as any).mediaRecorder = rec;
+        vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
+        app.isRecordingEnabled = true;
+        app.uiService.setupPracticeUI();
+        app.toggleUserPause();
+        // The same callback practiceStep hands to speakAndHighlight.
+        const speak = vi.spyOn(app.audioService, 'speakAndHighlight').mockImplementation((_p: any, cb: any) => { cb && cb(); });
+        app.words = ['hello', 'there'];
+        app.currentIndex = 0;
+        await app.practiceService.practiceStep();
+        await vi.advanceTimersByTimeAsync(100);
+        expect(speak).toHaveBeenCalled();
+        expect(start).toHaveBeenCalled();
+        expect(rec.pause).toHaveBeenCalled();
+        expect(rec.state).toBe('paused');
     });
 });

@@ -189,8 +189,12 @@ export class PracticeService {
 
         const startRecordingCallback = () => {
             if (this.app.isRecordingEnabled) {
-                setTimeout(() => {
-                    this.app.audioService.startRecording();
+                setTimeout(async () => {
+                    await this.app.audioService.startRecording();
+                    // Paused during the short gap (or the browser ignored the speech pause): keep the break out of the take.
+                    if (this.app.autoSkipUserPaused) {
+                        this.app.audioService.pauseRecording();
+                    }
                 }, 50);
             }
         };

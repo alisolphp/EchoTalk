@@ -95,6 +95,8 @@ export class EchoTalkApp {
     public autoRestartTimer: number | null = null;
 
     public wakeLockSentinel: WakeLockSentinel | null = null;
+    /** Serializes wake-lock calls from the pause button so a quick Pause/Resume cannot leak a lock. */
+    private wakeLockChain: Promise<void> = Promise.resolve();
 
     public autoSkipTimerCallback: (() => void) | null = null;
     public autoSkipStartTime: number = 0;
@@ -534,7 +536,7 @@ export class EchoTalkApp {
         } else {
             if (isPracticingWithAutoSkip) {
                 if (!this.autoSkipUserPaused) {
-                    this.requestWakeLock();
+                    this.queueWakeLock(() => this.requestWakeLock());
                 }
                 if(!$('#wordActionsModal').hasClass('show')){
                     this.resumeAutoSkip();
@@ -732,6 +734,10 @@ export class EchoTalkApp {
         this.uiService.updatePauseButton();
     }
 
+    private queueWakeLock(op: () => Promise<void>): void {
+        this.wakeLockChain = this.wakeLockChain.then(op).catch(() => { /* a denied or failed lock request is not fatal */ });
+    }
+
     /** Pause/Resume button: a manual pause that modals and tab visibility changes must not undo. */
     public toggleUserPause(): void {
         if (this.practiceMode !== 'auto-skip' || this.area !== 'Practice') {
@@ -741,13 +747,13 @@ export class EchoTalkApp {
             this.autoSkipUserPaused = false;
             this.resumeAutoSkip();
             this.audioService.resumeRecording();
-            this.requestWakeLock();
+            this.queueWakeLock(() => this.requestWakeLock());
         } else {
             this.autoSkipUserPaused = true;
             this.pauseAutoSkip();
             // The break must not end up inside a saved recording, and the screen may sleep.
             this.audioService.pauseRecording();
-            this.releaseWakeLock();
+            this.queueWakeLock(() => this.releaseWakeLock());
         }
         this.uiService.updatePauseButton();
     }
