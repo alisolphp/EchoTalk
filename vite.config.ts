@@ -58,7 +58,9 @@ export default defineConfig({
             },
 
             workbox: {
-                globPatterns: ['**/*.{js,css,mp3,png,json,ico,html,webmanifest}'],
+                // woff2 (Bootstrap Icons) and webp must be precached too: without them the icons and the sound-wave image
+                // depend on the network at every cold start and show as empty boxes when it is slow or filtered.
+                globPatterns: ['**/*.{js,css,mp3,png,json,ico,html,webmanifest,woff2}'],
                 runtimeCaching: [
                     {
                         urlPattern: ({ request }) => request.mode === 'navigate',
