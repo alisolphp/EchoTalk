@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import $ from 'jquery';
 import { EchoTalkApp } from '../../app';
 
+// Bootstrap's modal transition timers are not needed here and can fire after the DOM is reset.
+vi.mock('bootstrap', async (importOriginal) => {
+    const original = await importOriginal<typeof import('bootstrap')>();
+    const instance = { show: vi.fn(), hide: vi.fn() };
+    return { ...original, Modal: { ...(original as any).Modal, getOrCreateInstance: vi.fn(() => instance), getInstance: vi.fn(() => instance) } };
+});
+
 /** In-memory recordings store with autoIncrement-like keys, shaped like the IndexedDB calls the app uses. */
 function fakeDb(initial: Array<{ sentence: string; lang?: string; ts?: number }>) {
     const rows = new Map<number, any>();
@@ -159,5 +166,28 @@ describe('Deleting recordings', () => {
         await app.dataService.displayRecordings();
         const labels = $('#recordingsList .delete-recording').map((_i, el) => $(el).attr('aria-label')).get();
         expect(new Set(labels).size).toBe(2);
+    });
+
+    it('Delete sits in the action row, not in the label', async () => {
+        const { db } = fakeDb([{ sentence: 'Hello world today friend' }]);
+        app.db = db as any;
+        await app.dataService.displayRecordings();
+        const $btn = $('#recordingsList .delete-recording');
+        expect($btn.closest('.row').length).toBe(1);
+        expect($btn.closest('span').length).toBe(0);
+    });
+
+    it('after "Delete all" the footer note is hidden and focus moves to the dialog close button', async () => {
+        const { db } = fakeDb([{ sentence: 'One two three four' }]);
+        app.db = db as any;
+        await app.dataService.displayRecordings();
+        expect($('#recordingsFooterNote').hasClass('d-none')).toBe(false);
+        vi.spyOn(window, 'confirm').mockReturnValue(true);
+        const focus = vi.fn();
+        $('#recordingsModal .btn-close').on('focus', focus);
+        $('#deleteAllRecordingsBtn').trigger('click');
+        await new Promise(r => setTimeout(r, 100));
+        expect($('#recordingsFooterNote').hasClass('d-none')).toBe(true);
+        expect(focus).toHaveBeenCalled();
     });
 });

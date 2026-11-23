@@ -103,7 +103,7 @@ export class DataService {
         const $list = $('#recordingsList');
         $list.empty();
 
-        $('#deleteAllRecordingsBtn').toggleClass('d-none', allRecords.length === 0);
+        $('#deleteAllRecordingsBtn, #recordingsFooterNote').toggleClass('d-none', allRecords.length === 0);
 
         if (Object.keys(grouped).length === 0) {
             $list.html('<p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>');
@@ -139,7 +139,7 @@ export class DataService {
                                ${recordings.map((rec, index) => `
                                     <li class="list-group-item">
                                         <div class="d-flex justify-content-between align-items-center flex-wrap">
-                                            <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}${rec.id !== undefined ? ` <button type="button" class="btn btn-sm btn-outline-danger py-0 ms-2 delete-recording" data-index="${index}" aria-label="Delete the recording from ${rec.timestamp?.toLocaleString() || 'an old date'}"><i class="bi bi-trash"></i> Delete</button>` : ''}</span>
+                                            <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
                                             <div class="row g-2 justify-content-center">
                                                 <div class="col-6 col-md-auto">
                                                     <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}" data-lang="${rec.lang}">
@@ -151,6 +151,12 @@ export class DataService {
                                                         <i class="bi bi-person-fill"></i> Play Mine
                                                     </button>
                                                 </div>
+                                                ${rec.id !== undefined ? `
+                                                <div class="col-6 col-md-auto">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-recording w-100" data-index="${index}" aria-label="Delete the recording from ${rec.timestamp?.toLocaleString() || 'an old date'}">
+                                                        <i class="bi bi-trash"></i> Delete
+                                                    </button>
+                                                </div>` : ''}
                                                 ${rec.lang === 'en-US' && this.app.spellCheckerIsAvailable ?
                                                 `
                                                     <div class="col-6 col-md-auto">
@@ -194,6 +200,12 @@ export class DataService {
                 $header.removeClass('collapsed').attr('aria-expanded', 'true').trigger('focus');
             } else {
                 $list.find('.accordion-button').first().trigger('focus');
+            }
+        }
+        // Nothing left to focus in the list (for example after "Delete all"): keep keyboard focus inside the dialog.
+        if (keepOpenSentence !== undefined || allRecords.length === 0) {
+            if ($list.find('.accordion-button').length === 0) {
+                $('#recordingsModal .btn-close').trigger('focus');
             }
         }
 

@@ -404,7 +404,7 @@ export class EchoTalkApp {
                 console.error('Could not delete the recordings:', err);
                 window.alert('Could not delete the recordings. Please try again.');
             }
-            await this.dataService.displayRecordings();
+            await this.dataService.displayRecordings('');
         });
         $('#recordingsModal').on('hidden.bs.modal', () => this.audioService.stopAllPlayback());
 
