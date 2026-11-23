@@ -113,14 +113,16 @@ jobs:
           publish_branch: gh-pages
           force_orphan: true
 
-      - name: Zip dist folder
+      # The shared-hosting auto-deploy was removed on purpose (the remaining mirror is uploaded by hand).
+      # The built site is kept as a downloadable zip with files at its root, ready to upload.
+      - name: Zip the built site for manual deploys
         run: |
           command -v zip >/dev/null 2>&1 || sudo apt-get update && sudo apt-get install -y zip
-          zip -r dist.zip ./dist
+          cd dist && zip -r ../echotalk-dist.zip .
 
-      - name: Deploy to shared hosting
-        run: |
-          curl -X POST \
-            -F "file=@dist.zip" \
-            -F "token=${{ secrets.DEPLOYER_TOKEN }}" \
-            "${{ secrets.DEPLOYER_URL }}"
+      - name: Keep the zip as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: echotalk-dist
+          path: echotalk-dist.zip
+          retention-days: 30
