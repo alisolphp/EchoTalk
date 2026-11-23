@@ -319,34 +319,39 @@ export class EchoTalkApp {
 
         const modalElement = document.getElementById('practicesModal');
         if (modalElement) {
-            this.uiService.showPracticeSetup();
-            if (this.lang !== lang) {
-                this.lang = lang;
-                this.uiService.updateLanguageUI();
-                try {
-                    this.dataService.fetchSamples();
-                    this.uiService.setupSampleOptions();
-                } catch (error) {
-                    console.error("Failed to load new language data:", error);
-                    $('#configArea').html('<div class="alert alert-danger">Failed to load language data. Please refresh the page.</div>');
-                    return;
-                }
-            }
-
-            this.uiService.setInputValue(sentence);
-            this.sentence = sentence;
-            this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
-            this.currentIndex = 0;
-
-            await this.practiceService.startPractice();
-
-            // Wait for the modal to be completely hidden before executing the rest of the code
-            $(modalElement).one('hidden.bs.modal', async () => {});
+            await this.startPracticeFrom(sentence, lang);
 
             // Use getInstance here since we know it exists.
             const modalInstance = Modal.getInstance(modalElement);
             modalInstance?.hide();
         }
+    }
+
+    /**
+     * Shows the setup page, switches language if needed, loads the sentence and starts practice.
+     * Shared by "Practice this sentence" (My Practices) and My Sentences.
+     */
+    public async startPracticeFrom(sentence: string, lang: string): Promise<void> {
+        this.uiService.showPracticeSetup();
+        if (lang && this.lang !== lang) {
+            this.lang = lang;
+            this.uiService.updateLanguageUI();
+            try {
+                this.dataService.fetchSamples();
+                this.uiService.setupSampleOptions();
+            } catch (error) {
+                console.error("Failed to load new language data:", error);
+                $('#configArea').html('<div class="alert alert-danger">Failed to load language data. Please refresh the page.</div>');
+                return;
+            }
+        }
+
+        this.uiService.setInputValue(sentence);
+        this.sentence = sentence;
+        this.words = this.sentence.split(/\s+/).filter(w => w.length > 0);
+        this.currentIndex = 0;
+
+        await this.practiceService.startPractice();
     }
 
     /**

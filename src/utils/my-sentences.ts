@@ -34,12 +34,18 @@ export const SAVE_ERROR_MESSAGES: Record<SaveError, string> = {
     not_found: 'That sentence no longer exists.',
 };
 
-/** Trims, normalizes line breaks and spaces, and removes control characters. */
+/**
+ * Trims, normalizes line breaks and spaces, and removes control characters.
+ * Straight double quotes become typographic quotes, because sentences are later used inside
+ * double-quoted HTML attributes (recordings and practices lists).
+ */
 export function cleanSentence(input: string): string {
     return input
         .normalize('NFC')
         .replace(/\r\n?/g, '\n')
         .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, '')
+        .replace(/"/g, (_m, offset: number, whole: string) =>
+            offset === 0 || /[\s(\[{]/.test(whole[offset - 1]) ? '\u201C' : '\u201D')
         .replace(/[ \t]+/g, ' ')
         .replace(/ ?\n ?/g, '\n')
         .replace(/\n{3,}/g, '\n\n')
@@ -53,7 +59,10 @@ function isValidItem(x: unknown): x is MySentence {
         && typeof o.lang === 'string' && typeof o.createdAt === 'number';
 }
 
-/** Reads the list; corrupted or foreign data yields an empty list instead of an error. */
+/**
+ * Reads the list; corrupted or foreign data yields an empty list instead of an error.
+ * Invalid entries are dropped here, so the next save rewrites the list without them.
+ */
 export function loadSentences(storage: StorageLike = localStorage): MySentence[] {
     try {
         const raw = storage.getItem(MY_SENTENCES_KEY);

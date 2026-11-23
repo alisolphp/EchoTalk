@@ -67,9 +67,8 @@ export class MySentencesService {
     private async practice(item: MySentence): Promise<void> {
         const modalEl = $('#mySentencesModal')[0];
         if (modalEl) Modal.getOrCreateInstance(modalEl).hide();
-        // Reuse the same path as "Practice this sentence" in My Practices (handles language and starting).
-        const $btn = $('<button type="button"></button>').data('sentence', item.text).data('lang', item.lang);
-        await this.app.handlePracticeThis($btn[0]);
+        // Same path as "Practice this sentence" in My Practices (language switch, then start).
+        await this.app.startPracticeFrom(item.text, item.lang || this.app.lang);
     }
 
     private remove(item: MySentence): void {
@@ -78,6 +77,7 @@ export class MySentencesService {
         removeSentence(item.id);
         this.setMessage('Sentence deleted.', 'success');
         this.render();
+        $('#mySentenceText').trigger('focus');
     }
 
     /** Rebuilds the list from storage. */

@@ -76,16 +76,43 @@ describe('MySentencesService', () => {
         expect($('#mySentencesList').text()).toContain('Nothing saved yet');
     });
 
-    it('Practice hands the sentence and its language to the existing practice-this flow', async () => {
+    it('Practice switches language and starts practice with the saved sentence (real hand-off)', async () => {
         addSentence('Practice this one', 'de-DE');
         app.mySentencesService.show();
-        const spy = vi.spyOn(app, 'handlePracticeThis').mockResolvedValue();
+        vi.spyOn(app.uiService, 'showPracticeSetup').mockImplementation(() => {});
+        vi.spyOn(app.uiService, 'updateLanguageUI').mockImplementation(() => {});
+        vi.spyOn(app.uiService, 'setupSampleOptions').mockImplementation(() => {});
+        vi.spyOn(app.dataService, 'fetchSamples').mockResolvedValue({ levels: [] } as any);
+        const start = vi.spyOn(app.practiceService, 'startPractice').mockResolvedValue();
         $('#mySentencesList .btn-primary').first().trigger('click');
         await new Promise(r => setTimeout(r, 5));
-        expect(spy).toHaveBeenCalledTimes(1);
-        const el = spy.mock.calls[0][0] as HTMLElement;
-        expect($(el).data('sentence')).toBe('Practice this one');
-        expect($(el).data('lang')).toBe('de-DE');
+        expect(app.lang).toBe('de-DE');
+        expect(app.sentence).toBe('Practice this one');
+        expect(app.words).toEqual(['Practice', 'this', 'one']);
+        expect($('#sentenceInput').attr('data-val')).toBe('Practice this one');
+        expect(start).toHaveBeenCalledTimes(1);
+    });
+
+    it('Practice works for an entry with an empty language by using the current one', async () => {
+        localStorage.setItem(MY_SENTENCES_KEY, JSON.stringify([{ id: 'a', text: 'No lang', lang: '', createdAt: 1 }]));
+        app.mySentencesService.show();
+        vi.spyOn(app.uiService, 'showPracticeSetup').mockImplementation(() => {});
+        const start = vi.spyOn(app.practiceService, 'startPractice').mockResolvedValue();
+        const lang = app.lang;
+        $('#mySentencesList .btn-primary').first().trigger('click');
+        await new Promise(r => setTimeout(r, 5));
+        expect(app.lang).toBe(lang);
+        expect(start).toHaveBeenCalled();
+    });
+
+    it('focus moves to the text box after deleting', () => {
+        addSentence('Delete me', 'en-US');
+        app.mySentencesService.show();
+        vi.spyOn(window, 'confirm').mockReturnValue(true);
+        const focus = vi.fn();
+        $('#mySentenceText').on('focus', focus);
+        $('#mySentencesList .btn-outline-danger').first().trigger('click');
+        expect(focus).toHaveBeenCalled();
     });
 
     it('renders saved text as text, never as HTML', () => {

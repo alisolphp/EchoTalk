@@ -19,6 +19,14 @@ describe('cleanSentence', () => {
     });
 });
 
+describe('quotes', () => {
+    it('straight double quotes become typographic so they cannot break out of HTML attributes', () => {
+        const out = cleanSentence('He said "hi" to me');
+        expect(out).not.toContain('"');
+        expect(out).toBe('He said \u201Chi\u201D to me');
+    });
+});
+
 describe('my sentences storage', () => {
     let st: ReturnType<typeof memStorage>;
     beforeEach(() => { st = memStorage(); });
