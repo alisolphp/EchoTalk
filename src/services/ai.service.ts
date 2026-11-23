@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import { escapeHtml } from '../utils/html';
 import { Modal } from 'bootstrap';
 import { EchoTalkApp } from '../app';
 import {
@@ -238,7 +239,7 @@ export class AiService {
             <ul class="list-group list-group-flush mb-3">
                 <li class="list-group-item bg-transparent">
                     <i class="bi bi-check-circle-fill text-success"></i> <strong>Your voice recording</strong> for the sentence below was successfully <strong>downloaded</strong>:
-                    <br><small class="text-muted"><em>"${sentence}"</em></small>
+                    <br><small class="text-muted"><em>"${escapeHtml(sentence)}"</em></small>
                 </li>
                 <li class="list-group-item bg-transparent">
                     <i class="bi bi-check-circle-fill text-success"></i> The analysis prompt for <strong>your recording</strong> was copied to your <strong>clipboard</strong>.

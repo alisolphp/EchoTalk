@@ -89,8 +89,8 @@
 
 <div id="areaPrePractice" class="container my-4 d-none area">
     <div id="importStatus" class="alert d-none alert-dismissible" role="status" aria-live="polite">
-        <span id="importStatusText"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <span id="importStatusText" dir="auto"></span>
+        <button type="button" id="importStatusClose" class="btn-close" aria-label="Close"></button>
     </div>
     <div class="d-flex justify-content-center align-items-center gap-2">
         <button class="btn btn-outline-warning px-2 ps-1 position-fixed top-0 end-0 m-2" data-bs-toggle="modal" data-bs-target="#myStreakModal" title="My Streak">🔥 <span class="day-streak-number">&nbsp;&nbsp;</span></button>
@@ -132,7 +132,7 @@
     <div id="practiceArea" class="d-none">
         <div id="collectionBanner" class="alert alert-secondary d-none" role="region" aria-label="Current question">
             <div id="collectionProgress" class="small text-muted" dir="auto"></div>
-            <div id="collectionQuestion" class="fs-5 fw-semibold" dir="auto"></div>
+            <div id="collectionQuestion" class="fs-5 fw-semibold" dir="auto" aria-live="polite"></div>
         </div>
         <div id="practice-ui-container">
             <div class="mb-3">

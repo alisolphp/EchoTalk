@@ -156,4 +156,63 @@ describe('CollectionService flow', () => {
         await new Promise(r => setTimeout(r, 10));
         expect(store.data.size).toBe(0);
     });
+
+    it('auto-skip: the countdown after a question goes to the next question and animates the Next button', async () => {
+        vi.useFakeTimers();
+        try {
+            vi.spyOn(app.practiceService as any, 'recordPracticeCompletion').mockResolvedValue({ newStreak: 1, oldStreak: 1 });
+            vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
+            vi.spyOn(app.audioService, 'playSound').mockImplementation(() => {});
+            vi.spyOn(app.audioService, 'speak').mockImplementation(() => {});
+            const restartSpy = vi.spyOn(app.practiceService, 'restartCurrentPractice').mockResolvedValue();
+            await app.collectionService.importWithToken(TOKEN);
+            app.practiceMode = 'auto-skip';
+            app.area = 'Practice';
+            await app.practiceService.finishSession();
+            expect($('#collectionNextBtn').hasClass('loading')).toBe(true);
+            await vi.advanceTimersByTimeAsync(5000);
+            expect(restartSpy).not.toHaveBeenCalled();
+            expect($('#collectionQuestion').text()).toBe('Q two?');
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it('the status box can be closed and shown again by a later import', async () => {
+        await app.collectionService.importWithToken(TOKEN);
+        $('#importStatusClose').trigger('click');
+        expect($('#importStatus').hasClass('d-none')).toBe(true);
+        (fetch as any).mockImplementation(async () => new Response('gone', { status: 410 }));
+        await app.collectionService.importWithToken(TOKEN);
+        expect($('#importStatus').length).toBe(1);
+        expect($('#importStatus').hasClass('d-none')).toBe(false);
+        expect($('#importStatusText').text()).toContain('expired');
+    });
+
+    it('switches the app language to a supported collection language', async () => {
+        (fetch as any).mockImplementation(async () => okRes({ ...payload, lang: 'de-DE' }));
+        await app.collectionService.importWithToken(TOKEN);
+        expect(app.lang).toBe('de-DE');
+        expect($('.current-language-general-name').first().text()).toBe('German (DE)');
+    });
+});
+
+describe('IndexedDB upgrade to version 4', () => {
+    it('opens version 4 and creates the collections store when it is missing', async () => {
+        const created: Array<[string, unknown]> = [];
+        const request: any = {};
+        const openSpy = vi.fn(() => request);
+        (window.indexedDB as any).open = openSpy;
+        const app = new EchoTalkApp();
+        const p = app.dataService.initDB();
+        const existing = new Set(['recordings', 'practices']);
+        request.onupgradeneeded({ target: { result: {
+            objectStoreNames: { contains: (n: string) => existing.has(n) },
+            createObjectStore: (n: string, o: unknown) => { created.push([n, o]); return { createIndex: vi.fn() }; },
+        } } });
+        request.onsuccess({ target: { result: { ok: true } } });
+        await p;
+        expect(openSpy).toHaveBeenCalledWith('EchoTalkDB', 4);
+        expect(created).toEqual([['collections', { keyPath: 'key' }]]);
+    });
 });

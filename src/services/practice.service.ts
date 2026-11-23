@@ -429,7 +429,8 @@ export class PracticeService {
 
         if (this.app.practiceMode === 'auto-skip' && this.app.area === 'Practice' && !willShowStreakModal) {
             const waitTime = 5;
-            const $restartBtn = $('#restartPracticeBtn');
+            // In collection mode the countdown leads to the next question, so animate that button.
+            const $restartBtn = this.app.collectionService.isActive() ? $('#collectionNextBtn') : $('#restartPracticeBtn');
             $restartBtn.addClass('auto-skip-progress').removeClass('loading');
             void ($restartBtn[0] as HTMLElement).offsetHeight;
             $restartBtn.css('animation-duration', `${waitTime}s`).addClass('loading');

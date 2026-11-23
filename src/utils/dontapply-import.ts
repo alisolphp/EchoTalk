@@ -80,7 +80,7 @@ export function sanitizeText(input: unknown): string {
     let s = input.normalize('NFC');
     s = s.replace(/\r\n?/g, '\n');
     // C0/C1 controls except newline, zero-width and bidi override/isolate characters.
-    s = s.replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F​-‏‪-‮⁦-⁩﻿]/g, '');
+    s = s.replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F\u00AD\u061C\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2069\uFEFF]/g, '');
     s = s.replace(/[<>]/g, '');
     s = s.replace(/"/g, (_m, offset: number, whole: string) =>
         offset === 0 || /[\s(\[{]/.test(whole[offset - 1]) ? '“' : '”');

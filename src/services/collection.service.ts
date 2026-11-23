@@ -133,7 +133,7 @@ export class CollectionService {
 
         if (c.lang !== this.app.lang && this.app.languageMap[c.lang]) {
             this.app.lang = c.lang;
-            this.app.updateLanguageGeneral();
+            this.app.uiService.updateLanguageUI();
         }
 
         $('#sentenceInput').val(item.answer).attr('data-val', item.answer);
@@ -198,6 +198,7 @@ export class CollectionService {
     public clear(): void {
         this.active = null;
         $('#collectionBanner').addClass('d-none');
+        $('#importStatus').addClass('d-none');
     }
 
     private async saveProgress(progress: number): Promise<void> {
@@ -226,6 +227,11 @@ export class CollectionService {
         }
         all.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).forEach(c => {
             const resume = c.progress > 0 && c.progress < c.items.length;
+            const launch = async (from: number) => {
+                Modal.getOrCreateInstance($('#collectionsModal')[0]).hide();
+                this.app.uiService.showPracticeSetup();
+                await this.start(c, from);
+            };
             const $row = $('<div class="list-group-item d-flex flex-wrap align-items-center gap-2"></div>');
             $row.append($('<div class="flex-grow-1"></div>')
                 .append($('<div class="fw-bold" dir="auto"></div>').text(c.title))
@@ -233,18 +239,10 @@ export class CollectionService {
                     `${c.items.length} questions${resume ? ` - next: ${c.progress + 1}` : ''}`)));
             $row.append($('<button type="button" class="btn btn-sm btn-primary"></button>')
                 .text(resume ? 'Continue' : 'Start')
-                .on('click', async () => {
-                    Modal.getOrCreateInstance($('#collectionsModal')[0]).hide();
-                    this.app.uiService.showPracticeSetup();
-                    await this.start(c, resume ? c.progress : 0);
-                }));
+                .on('click', () => launch(resume ? c.progress : 0)));
             if (resume) {
                 $row.append($('<button type="button" class="btn btn-sm btn-outline-secondary"></button>')
-                    .text('From the start').on('click', async () => {
-                        Modal.getOrCreateInstance($('#collectionsModal')[0]).hide();
-                        this.app.uiService.showPracticeSetup();
-                        await this.start(c, 0);
-                    }));
+                    .text('From the start').on('click', () => launch(0)));
             }
             $row.append($('<button type="button" class="btn btn-sm btn-outline-danger"></button>')
                 .attr('aria-label', `Delete ${c.title}`).text('Delete')
@@ -261,6 +259,7 @@ export class CollectionService {
     /** Shows a dismissible status line near the top of the page (plain text only). */
     public showStatus(message: string, kind: 'info' | 'success' | 'danger'): void {
         const $box = $('#importStatus');
+        $('#importStatusClose').off('click').on('click', () => $box.addClass('d-none'));
         $box.removeClass('d-none alert-info alert-success alert-danger').addClass(`alert-${kind}`);
         $('#importStatusText').text(message);
     }

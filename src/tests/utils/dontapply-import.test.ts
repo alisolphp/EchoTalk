@@ -28,6 +28,9 @@ describe('sanitizeText', () => {
     it('drops control, zero-width and bidi override characters but keeps newlines', () => {
         expect(sanitizeText('a\u0000b​c‮d\u0007e\nf')).toBe('abcde\nf');
     });
+    it('drops more invisible characters (soft hyphen, ALM, line/paragraph separators, word joiner)', () => {
+        expect(sanitizeText('a­b؜c d e⁠f')).toBe('abcdef');
+    });
     it('normalizes whitespace and CRLF, and non-strings become empty', () => {
         expect(sanitizeText('  a   b \r\n\r\n\r\n\r\n c ')).toBe('a b\n\nc');
         expect(sanitizeText(42)).toBe('');
