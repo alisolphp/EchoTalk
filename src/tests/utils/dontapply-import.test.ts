@@ -84,6 +84,14 @@ describe('parseImportPayload', () => {
     });
 });
 
+describe('computeCollectionKey with Web Crypto available', () => {
+    it('uses SHA-256 (64 hex characters), not the weak fallback', async () => {
+        expect((globalThis as any).crypto?.subtle).toBeTruthy();
+        const key = await computeCollectionKey(parseImportPayload(valid()));
+        expect(key).toMatch(/^[0-9a-f]{64}$/);
+    });
+});
+
 describe('computeCollectionKey', () => {
     it('is stable for equal content and changes when content changes', async () => {
         const a = parseImportPayload(valid());
