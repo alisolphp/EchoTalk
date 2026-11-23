@@ -1,15 +1,15 @@
 # EchoTalk roadmap review
 
 Status: 2026-11-23. Source: README "Next Up" and "Planned Enhancements", plus a read of the code
-(`src/app.ts`, `src/services/*`, `src/index.html`). Tracking issue: #4.
+(`src/app.ts`, `src/services/*`, `src/index.html`). Tracking issue: issue 4.
 
 ## Constraints that shape the ranking
 
 - **Privacy-first and offline-first**: no server, recordings stay in IndexedDB. Anything needing a backend or
   paid API conflicts with the product promise.
-- **Small codebase** (about 4,000 lines of TypeScript, jQuery plus Bootstrap, vitest). Cheap features fit well;
+- **Small codebase** (about 3,300 lines of non-test TypeScript, jQuery plus Bootstrap, vitest). Cheap features fit well;
   features needing media sync or accounts are large.
-- **Data already in place**: sample sentences live in `public/data/sentences/sentences-<lang>.json` as
+- **Data already in place**: sample sentences live in `public/data/sentences/sentences-<locale>.json` as
   level -> category -> sentences, recordings and practice history are in IndexedDB (`recordings`, `practices`).
 
 ## Ranking
@@ -18,7 +18,7 @@ Value = benefit for a typical learner. Effort: S (days), M (about a week), L (we
 
 | # | Item | Value | Effort | Notes from the code |
 |---|------|-------|--------|---------------------|
-| 0 | DontApply import (interview Q and A) | High (user-requested, feeds the main audience) | M | New content source; contract in `docs/dontapply-import.md`, issue 5. Done first. |
+| 0 | DontApply import (interview Q and A) | High (user-requested, feeds the main audience) | M | New content source; contract is defined in issue 5. Done first. |
 | 1 | Explore and browse sentences by level and category | High | S | Data and level/category selects already exist in Options; today the user only gets a random sample. A browse list with "practice this" reuses `startPractice`. No new storage. |
 | 2 | Export tools for recordings | High | S | Recordings are `Blob`s in IndexedDB; a per-sentence or all-recordings download (single file, later zip) needs no backend and strengthens the privacy story. |
 | 3 | Custom video and subtitle upload | High | L | Biggest differentiator. Needs SRT/VTT parsing (easy, testable), a local `<video>` player synced to cue times, storage decisions for large files (do not persist the video; keep only cues), and a new practice flow. Local-only, so it fits the privacy promise. |
