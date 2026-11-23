@@ -18,6 +18,7 @@ import { DataService } from './services/data.service';
 import { PracticeService } from './services/practice.service';
 import { AiService } from './services/ai.service';
 import { UtilService } from './services/util.service';
+import { CollectionService } from './services/collection.service';
 import { MySentencesService } from './services/my-sentences.service';
 
 /**
@@ -188,6 +189,8 @@ export class EchoTalkApp {
 
     /** Handles interactions with external AI services (e.g., generating prompts). */
     public aiService: AiService;
+    /** Imported Q and A collections (DontApply import). */
+    public collectionService: CollectionService;
     /** The user's own saved sentences. */
     public mySentencesService: MySentencesService;
 
@@ -209,6 +212,7 @@ export class EchoTalkApp {
         this.dataService = new DataService(this);
         this.practiceService = new PracticeService(this);
         this.aiService = new AiService(this);
+        this.collectionService = new CollectionService(this);
         this.mySentencesService = new MySentencesService(this);
 
         window.modalRecordings = {};
@@ -221,6 +225,8 @@ export class EchoTalkApp {
      * binds UI events, and prepares the application for user interaction.
      */
     public async init(): Promise<void> {
+        // Remove an import token from the address bar before anything that can fail or wait (database, network).
+        this.collectionService.captureLaunchToken();
         try {
             const shadowSentence = localStorage.getItem(this.STORAGE_KEYS.sentence) || '';
             if (shadowSentence !== '') {
@@ -252,6 +258,8 @@ export class EchoTalkApp {
             await this.aiService.checkSpellApiKey();
             this.uiService.updateOnlineStatusClass();
             this.dataService.updateStreakCounters();
+            // Not awaited: a slow import must not hold back the rest of the app.
+            void this.collectionService.runPendingImport();
         } catch (error) {
             console.error("Initialization failed:", error);
             $('#configArea').html('<div class="alert alert-danger">Failed to initialize the application. Please refresh the page.</div>');
@@ -264,6 +272,8 @@ export class EchoTalkApp {
      * clears timers, resets state variables, and restores the UI to the setup screen.
      */
     public async resetWithoutReload(): Promise<void> {
+        // Synchronous on purpose: callers do not await this, and a collection started right after must not be cleared later.
+        this.collectionService.clear();
         this.audioService.stopAllPlayback();
         this.utilService.clearAutoSkipTimer();
         await this.audioService.stopRecording();
@@ -454,6 +464,10 @@ export class EchoTalkApp {
         $('#navPrePractice').on('click', () => this.uiService.showPracticeSetup());
         $('#navOptions').on('click', () => this.uiService.showOptionsPage());
         $('#navForYou').on('click', () => this.uiService.showForYouPage());
+        $('#showCollectionsBtn').on('click', (e) => {
+            e.preventDefault();
+            this.collectionService.showList();
+        });
         $('#showMySentencesBtn').on('click', (e) => {
             e.preventDefault();
             this.mySentencesService.show();
