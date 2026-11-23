@@ -387,13 +387,23 @@ export class EchoTalkApp {
             if (!rec || rec.id === undefined) return;
             if (!window.confirm('Delete this recording? This cannot be undone.')) return;
             this.audioService.stopAllPlayback();
-            await this.dataService.deleteRecording(rec.id);
-            await this.dataService.displayRecordings();
+            try {
+                await this.dataService.deleteRecording(rec.id);
+            } catch (err) {
+                console.error('Could not delete the recording:', err);
+                window.alert('Could not delete the recording. Please try again.');
+            }
+            await this.dataService.displayRecordings(sentence);
         });
         $('#deleteAllRecordingsBtn').on('click', async () => {
             if (!window.confirm('Delete ALL recordings? Your practice history and streak are kept. This cannot be undone.')) return;
             this.audioService.stopAllPlayback();
-            await this.dataService.deleteAllRecordings();
+            try {
+                await this.dataService.deleteAllRecordings();
+            } catch (err) {
+                console.error('Could not delete the recordings:', err);
+                window.alert('Could not delete the recordings. Please try again.');
+            }
             await this.dataService.displayRecordings();
         });
         $('#recordingsModal').on('hidden.bs.modal', () => this.audioService.stopAllPlayback());

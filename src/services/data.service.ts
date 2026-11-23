@@ -72,23 +72,22 @@ export class DataService {
      * Fetches all recordings from IndexedDB, groups them by sentence, sorts them,
      * and renders them into the recordings modal.
      */
-    public async displayRecordings(): Promise<void> {
+    public async displayRecordings(keepOpenSentence?: string): Promise<void> {
         if (!this.app.db) return;
         const transaction = this.app.db.transaction(['recordings'], 'readonly');
         const store = transaction.objectStore('recordings');
-        const allRecords: Recording[] = await new Promise((resolve, reject) => {
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result as Recording[]);
+        // Keys are needed to delete single recordings (autoIncrement keys are not part of the value).
+        // Both requests are issued in the same tick on one transaction, so they see the same snapshot.
+        const valuesRequest = store.getAll();
+        const keysRequest = typeof store.getAllKeys === 'function' ? store.getAllKeys() : null;
+        const asPromise = <T>(request: IDBRequest): Promise<T> => new Promise((resolve, reject) => {
+            request.onsuccess = () => resolve(request.result as T);
             request.onerror = err => reject(err);
         });
-        // Keys are needed to delete single recordings (autoIncrement keys are not part of the value).
-        const keys: IDBValidKey[] = typeof store.getAllKeys === 'function'
-            ? await new Promise((resolve, reject) => {
-                const request = store.getAllKeys();
-                request.onsuccess = () => resolve(request.result as IDBValidKey[]);
-                request.onerror = err => reject(err);
-            })
-            : [];
+        const [allRecords, keys] = await Promise.all([
+            asPromise<Recording[]>(valuesRequest),
+            keysRequest ? asPromise<IDBValidKey[]>(keysRequest) : Promise.resolve<IDBValidKey[]>([]),
+        ]);
         if (keys.length === allRecords.length) {
             allRecords.forEach((rec, i) => { rec.id = keys[i]; });
         }
@@ -140,7 +139,7 @@ export class DataService {
                                ${recordings.map((rec, index) => `
                                     <li class="list-group-item">
                                         <div class="d-flex justify-content-between align-items-center flex-wrap">
-                                            <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}${rec.id !== undefined ? ` <button type="button" class="btn btn-sm btn-outline-danger py-0 ms-2 delete-recording" data-index="${index}" aria-label="Delete this recording"><i class="bi bi-trash"></i> Delete</button>` : ''}</span>
+                                            <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}${rec.id !== undefined ? ` <button type="button" class="btn btn-sm btn-outline-danger py-0 ms-2 delete-recording" data-index="${index}" aria-label="Delete the recording from ${rec.timestamp?.toLocaleString() || 'an old date'}"><i class="bi bi-trash"></i> Delete</button>` : ''}</span>
                                             <div class="row g-2 justify-content-center">
                                                 <div class="col-6 col-md-auto">
                                                     <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}" data-lang="${rec.lang}">
@@ -186,25 +185,41 @@ export class DataService {
             }
         }
 
+        // After a delete, keep the group the user was in open and put focus back on its header.
+        if (keepOpenSentence !== undefined) {
+            const $group = $list.find('.accordion-collapse').filter((_i, el) => $(el).attr('data-sentence') === keepOpenSentence);
+            if ($group.length) {
+                $group.addClass('show');
+                const $header = $group.closest('.accordion-item').find('.accordion-button').first();
+                $header.removeClass('collapsed').attr('aria-expanded', 'true').trigger('focus');
+            } else {
+                $list.find('.accordion-button').first().trigger('focus');
+            }
+        }
+
         const recordingsModal = Modal.getOrCreateInstance($('#recordingsModal')[0]);
         recordingsModal.show();
     }
 
     /** Deletes one recording by its IndexedDB key. Practice history and streaks are untouched. */
     public deleteRecording(id: IDBValidKey): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const request = this.app.db.transaction(['recordings'], 'readwrite').objectStore('recordings').delete(id);
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        });
+        return this.writeRecordings(store => store.delete(id));
     }
 
     /** Deletes all recordings only (practice history and streaks are kept). */
     public deleteAllRecordings(): Promise<void> {
+        return this.writeRecordings(store => store.clear());
+    }
+
+    private writeRecordings(op: (store: IDBObjectStore) => IDBRequest): Promise<void> {
         return new Promise((resolve, reject) => {
-            const request = this.app.db.transaction(['recordings'], 'readwrite').objectStore('recordings').clear();
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
+            try {
+                const request = op(this.app.db.transaction(['recordings'], 'readwrite').objectStore('recordings'));
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            } catch (e) {
+                reject(e);
+            }
         });
     }
 

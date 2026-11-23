@@ -106,4 +106,58 @@ describe('Deleting recordings', () => {
         await app.dataService.displayRecordings();
         expect($('#recordingsList .delete-recording').length).toBe(0);
     });
+
+    it('keeps the group open and focuses its header after deleting one recording', async () => {
+        const { db } = fakeDb([{ sentence: 'Hello world today friend', ts: 1000 }, { sentence: 'Hello world today friend', ts: 2000 }]);
+        app.db = db as any;
+        await app.dataService.displayRecordings();
+        vi.spyOn(window, 'confirm').mockReturnValue(true);
+        $('#recordingsList .delete-recording').first().trigger('click');
+        await new Promise(r => setTimeout(r, 100));
+        const $group = $('#recordingsList .accordion-collapse');
+        expect($group.hasClass('show')).toBe(true);
+        expect($group.closest('.accordion-item').find('.accordion-button').attr('aria-expanded')).toBe('true');
+    });
+
+    it('a failing delete shows an error, logs it and still refreshes the list', async () => {
+        const { db, rows } = fakeDb([{ sentence: 'Hello world today friend' }]);
+        app.db = db as any;
+        await app.dataService.displayRecordings();
+        vi.spyOn(window, 'confirm').mockReturnValue(true);
+        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+        vi.spyOn(app.dataService, 'deleteRecording').mockRejectedValue(new Error('quota'));
+        const refresh = vi.spyOn(app.dataService, 'displayRecordings');
+        $('#recordingsList .delete-recording').first().trigger('click');
+        await new Promise(r => setTimeout(r, 50));
+        expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Could not delete'));
+        expect(refresh).toHaveBeenCalled();
+        expect(rows.size).toBe(1);
+    });
+
+    it('a failing delete-all shows an error and still refreshes', async () => {
+        const { db } = fakeDb([{ sentence: 'One two three four' }]);
+        app.db = db as any;
+        await app.dataService.displayRecordings();
+        vi.spyOn(window, 'confirm').mockReturnValue(true);
+        const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+        vi.spyOn(app.dataService, 'deleteAllRecordings').mockRejectedValue(new Error('closed'));
+        const refresh = vi.spyOn(app.dataService, 'displayRecordings');
+        $('#deleteAllRecordingsBtn').trigger('click');
+        await new Promise(r => setTimeout(r, 50));
+        expect(alertSpy).toHaveBeenCalled();
+        expect(refresh).toHaveBeenCalled();
+    });
+
+    it('deleteRecording rejects when the transaction throws', async () => {
+        app.db = { transaction: () => { throw new Error('closed'); } } as any;
+        await expect(app.dataService.deleteRecording(1)).rejects.toThrow('closed');
+    });
+
+    it('each Delete button names its recording', async () => {
+        const { db } = fakeDb([{ sentence: 'Hello world today friend', ts: 1000 }, { sentence: 'Hello world today friend', ts: 2000 }]);
+        app.db = db as any;
+        await app.dataService.displayRecordings();
+        const labels = $('#recordingsList .delete-recording').map((_i, el) => $(el).attr('aria-label')).get();
+        expect(new Set(labels).size).toBe(2);
+    });
 });
