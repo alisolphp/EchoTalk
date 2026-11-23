@@ -46,8 +46,20 @@ export class DataService {
                     db.createObjectStore('collections', { keyPath: 'key' });
                 }
             };
+            // Another tab still holds an older database version open and has not closed it: the upgrade waits
+            // (and the app would silently never start). Tell the user what to do; it continues by itself once they do.
+            request.onblocked = () => {
+                $('#dbBlockedNotice').removeClass('d-none');
+            };
             request.onsuccess = (event) => {
-                resolve((event.target as IDBOpenDBRequest).result);
+                const db = (event.target as IDBOpenDBRequest).result;
+                // Let a newer version of the app, opened in another tab, upgrade the database instead of being blocked by this one.
+                db.onversionchange = () => {
+                    db.close();
+                    $('#dbBlockedNotice').text('EchoTalk was updated in another tab. Please reload this page.').removeClass('d-none');
+                };
+                $('#dbBlockedNotice').addClass('d-none');
+                resolve(db);
             };
             request.onerror = (event) => {
                 console.error("Database error:", (event.target as IDBOpenDBRequest).error);
