@@ -636,4 +636,24 @@ describe('Practice Logic', () => {
         expect(restartSpy).toHaveBeenCalled();
     });
 
+    it('finishSession: renders the promo block in the session-complete container', async () => {
+        vi.spyOn(app.practiceService as any, 'recordPracticeCompletion')
+            .mockResolvedValue({ newStreak: 3, oldStreak: 3 });
+        vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
+        vi.spyOn(app.audioService, 'playSound').mockImplementation(() => {});
+        vi.spyOn(app.audioService, 'speak').mockImplementation(() => {});
+        app.practiceMode = 'skip';
+        sessionStorage.clear();
+
+        await app.practiceService.finishSession();
+
+        expect($('#session-complete-container .promo-block[data-promo="end"]').length).toBe(1);
+    });
+
+    it('showPracticeSetup: renders the promo block on the setup page', () => {
+        sessionStorage.clear();
+        app.uiService.showPracticeSetup();
+        expect($('#promoPre .promo-block[data-promo="pre"]').length).toBe(1);
+    });
+
 });
