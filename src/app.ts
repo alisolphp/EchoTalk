@@ -101,6 +101,8 @@ export class EchoTalkApp {
     public autoSkipWaitTime: number = 0;
     public autoSkipRemainingTime: number = 0;
     public autoSkipIsPaused: boolean = false;
+    /** True while the user has paused auto-skip with the Pause button (modals and tab visibility must not resume it). */
+    public autoSkipUserPaused: boolean = false;
 
     /** An estimated words-per-second rate for TTS on mobile to simulate word highlighting. */
     public estimatedWordsPerSecond: number = 2.5;
@@ -267,6 +269,7 @@ export class EchoTalkApp {
         this.autoSkipWaitTime = 0;
         this.autoSkipRemainingTime = 0;
         this.autoSkipIsPaused = false;
+        this.autoSkipUserPaused = false;
 
         this.sentence = '';
         this.words = [];
@@ -364,6 +367,7 @@ export class EchoTalkApp {
         $('#startBtn').on('click', () => this.practiceService.startPractice());
         $('#resetBtn').on('click', () => this.resetApp());
         $('#checkBtn').on('click', () => this.practiceService.handleCheckOrNext());
+        $('#pauseResumeBtn').on('click', () => this.toggleUserPause());
         $('#userInput').on('keypress', (e: JQuery.KeyPressEvent) => {
             if (e.key === 'Enter' && this.practiceMode === 'check') {
                 this.practiceService.checkAnswer();
@@ -711,6 +715,21 @@ export class EchoTalkApp {
         }
     }
 
+    /** Pause/Resume button: a manual pause that modals and tab visibility changes must not undo. */
+    public toggleUserPause(): void {
+        if (this.practiceMode !== 'auto-skip' || this.area !== 'Practice') {
+            return;
+        }
+        if (this.autoSkipUserPaused) {
+            this.autoSkipUserPaused = false;
+            this.resumeAutoSkip();
+        } else {
+            this.autoSkipUserPaused = true;
+            this.pauseAutoSkip();
+        }
+        this.uiService.updatePauseButton();
+    }
+
     /**
      * Pauses the auto-skip timer, progress animation, and active speech synthesis.
      * This is typically triggered when a modal opens during practice.
@@ -745,7 +764,7 @@ export class EchoTalkApp {
      * This is triggered when a modal is closed after being paused.
      */
     public resumeAutoSkip(): void {
-        if (!this.autoSkipIsPaused) {
+        if (!this.autoSkipIsPaused || this.autoSkipUserPaused) {
             return;
         }
 
