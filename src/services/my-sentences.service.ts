@@ -65,10 +65,11 @@ export class MySentencesService {
     }
 
     private async practice(item: MySentence): Promise<void> {
+        // Same path as "Practice this sentence" in My Practices (language switch, then start).
+        const started = await this.app.startPracticeFrom(item.text, item.lang || this.app.lang);
+        if (!started) return; // keep the list open when the language data failed to load
         const modalEl = $('#mySentencesModal')[0];
         if (modalEl) Modal.getOrCreateInstance(modalEl).hide();
-        // Same path as "Practice this sentence" in My Practices (language switch, then start).
-        await this.app.startPracticeFrom(item.text, item.lang || this.app.lang);
     }
 
     private remove(item: MySentence): void {

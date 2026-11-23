@@ -176,4 +176,22 @@ describe('MySentencesService', () => {
         expect(await app.startPracticeFrom('Fine sentence', app.lang)).toBe(true);
         expect(start).toHaveBeenCalledTimes(1);
     });
+
+    it('the My Sentences dialog closes only when practice actually started', async () => {
+        addSentence('Practice me', 'en-US');
+        app.mySentencesService.show();
+        const { Modal } = await import('bootstrap');
+        const hide = vi.fn();
+        (Modal.getOrCreateInstance as any).mockReturnValue({ show: vi.fn(), hide });
+
+        const startFrom = vi.spyOn(app, 'startPracticeFrom').mockResolvedValue(false);
+        $('#mySentencesList .btn-primary').first().trigger('click');
+        await new Promise(r => setTimeout(r, 5));
+        expect(hide).not.toHaveBeenCalled();
+
+        startFrom.mockResolvedValue(true);
+        $('#mySentencesList .btn-primary').first().trigger('click');
+        await new Promise(r => setTimeout(r, 5));
+        expect(hide).toHaveBeenCalledTimes(1);
+    });
 });
