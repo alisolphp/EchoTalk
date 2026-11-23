@@ -1,0 +1,105 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import $ from 'jquery';
+import { EchoTalkApp } from '../../app';
+import { loadSentences, addSentence, MY_SENTENCES_KEY } from '../../utils/my-sentences';
+
+describe('MySentencesService', () => {
+    let app: EchoTalkApp;
+
+    beforeEach(() => {
+        localStorage.clear();
+        app = new EchoTalkApp();
+        (app as any).bindEvents();
+    });
+
+    it('saves the sentence from the setup page and shows a message', () => {
+        $('#sentenceInput').val('  I would like a coffee, please.  ');
+        $('#saveSentenceBtn').trigger('click');
+        expect(loadSentences().map(s => s.text)).toEqual(['I would like a coffee, please.']);
+        expect(loadSentences()[0].lang).toBe(app.lang);
+        expect($('#saveSentenceMessage').text()).toBe('Saved to My Sentences.');
+    });
+
+    it('explains why saving failed (empty, duplicate)', () => {
+        $('#sentenceInput').val('   ');
+        $('#saveSentenceBtn').trigger('click');
+        expect($('#saveSentenceMessage').text()).toBe('Type a sentence first.');
+        $('#sentenceInput').val('Same one');
+        $('#saveSentenceBtn').trigger('click');
+        $('#saveSentenceBtn').trigger('click');
+        expect($('#saveSentenceMessage').text()).toContain('already in your list');
+        expect(loadSentences()).toHaveLength(1);
+    });
+
+    it('adds from the modal form, lists newest first, and the data survives a new app instance', () => {
+        app.mySentencesService.show();
+        $('#mySentenceText').val('First sentence');
+        $('#mySentenceForm').trigger('submit');
+        $('#mySentenceText').val('Second sentence');
+        $('#mySentenceForm').trigger('submit');
+        expect($('#mySentencesList li').map((_i, el) => $(el).find('div').first().text()).get()).toEqual(['Second sentence', 'First sentence']);
+        expect($('#mySentencesCount').text()).toBe('2 saved');
+
+        const reopened = new EchoTalkApp();
+        reopened.mySentencesService.render();
+        expect($('#mySentencesList li').length).toBe(2);
+        expect(localStorage.getItem(MY_SENTENCES_KEY)).toContain('Second sentence');
+    });
+
+    it('edits a sentence in place and can cancel', () => {
+        addSentence('Old text', 'en-US');
+        app.mySentencesService.show();
+        $('#mySentencesList .btn-outline-light').first().trigger('click');
+        expect($('#mySentenceText').val()).toBe('Old text');
+        expect($('#mySentenceSubmit').text()).toBe('Save changes');
+        expect($('#mySentenceCancel').hasClass('d-none')).toBe(false);
+        $('#mySentenceText').val('New text');
+        $('#mySentenceForm').trigger('submit');
+        expect(loadSentences().map(s => s.text)).toEqual(['New text']);
+        expect($('#mySentenceSubmit').text()).toBe('Add sentence');
+
+        $('#mySentencesList .btn-outline-light').first().trigger('click');
+        $('#mySentenceCancel').trigger('click');
+        expect($('#mySentenceText').val()).toBe('');
+        expect($('#mySentenceCancel').hasClass('d-none')).toBe(true);
+    });
+
+    it('deletes only after confirmation', () => {
+        addSentence('Keep me', 'en-US');
+        app.mySentencesService.show();
+        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+        $('#mySentencesList .btn-outline-danger').first().trigger('click');
+        expect(loadSentences()).toHaveLength(1);
+        confirmSpy.mockReturnValue(true);
+        $('#mySentencesList .btn-outline-danger').first().trigger('click');
+        expect(loadSentences()).toHaveLength(0);
+        expect($('#mySentencesList').text()).toContain('Nothing saved yet');
+    });
+
+    it('Practice hands the sentence and its language to the existing practice-this flow', async () => {
+        addSentence('Practice this one', 'de-DE');
+        app.mySentencesService.show();
+        const spy = vi.spyOn(app, 'handlePracticeThis').mockResolvedValue();
+        $('#mySentencesList .btn-primary').first().trigger('click');
+        await new Promise(r => setTimeout(r, 5));
+        expect(spy).toHaveBeenCalledTimes(1);
+        const el = spy.mock.calls[0][0] as HTMLElement;
+        expect($(el).data('sentence')).toBe('Practice this one');
+        expect($(el).data('lang')).toBe('de-DE');
+    });
+
+    it('renders saved text as text, never as HTML', () => {
+        addSentence('<img src=x onerror=window.pwned=1> "quoted"', 'en-US');
+        app.mySentencesService.show();
+        expect($('#mySentencesList img').length).toBe(0);
+        expect($('#mySentencesList').text()).toContain('<img src=x onerror=window.pwned=1>');
+        expect((window as any).pwned).toBeUndefined();
+    });
+
+    it('buttons have accessible names that include the sentence', () => {
+        addSentence('Hello there', 'en-US');
+        app.mySentencesService.show();
+        expect($('#mySentencesList .btn-primary').attr('aria-label')).toBe('Practice: Hello there');
+        expect($('#mySentencesList .btn-outline-danger').attr('aria-label')).toBe('Delete: Hello there');
+    });
+});

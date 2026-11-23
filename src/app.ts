@@ -18,6 +18,7 @@ import { DataService } from './services/data.service';
 import { PracticeService } from './services/practice.service';
 import { AiService } from './services/ai.service';
 import { UtilService } from './services/util.service';
+import { MySentencesService } from './services/my-sentences.service';
 
 /**
  * The main class for the EchoTalk application.
@@ -183,6 +184,8 @@ export class EchoTalkApp {
 
     /** Handles interactions with external AI services (e.g., generating prompts). */
     public aiService: AiService;
+    /** The user's own saved sentences. */
+    public mySentencesService: MySentencesService;
 
     /** Provides utility functions used across the application. */
     public utilService: UtilService;
@@ -202,6 +205,7 @@ export class EchoTalkApp {
         this.dataService = new DataService(this);
         this.practiceService = new PracticeService(this);
         this.aiService = new AiService(this);
+        this.mySentencesService = new MySentencesService(this);
 
         window.modalRecordings = {};
         window.app = this;
@@ -411,6 +415,16 @@ export class EchoTalkApp {
         $('#navPrePractice').on('click', () => this.uiService.showPracticeSetup());
         $('#navOptions').on('click', () => this.uiService.showOptionsPage());
         $('#navForYou').on('click', () => this.uiService.showForYouPage());
+        $('#showMySentencesBtn').on('click', (e) => {
+            e.preventDefault();
+            this.mySentencesService.show();
+        });
+        $('#saveSentenceBtn').on('click', () => this.mySentencesService.saveFromInput());
+        $('#mySentenceForm').on('submit', (e) => {
+            e.preventDefault();
+            this.mySentencesService.submitForm();
+        });
+        $('#mySentenceCancel').on('click', () => this.mySentencesService.cancelEdit());
         $('.backHomeButton').on('click', () => this.uiService.showPracticeSetup());
         $('#speechRateSelect').on('change', (e) => {
             const val = parseFloat($(e.currentTarget).val() as string);
