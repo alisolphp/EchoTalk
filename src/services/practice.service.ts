@@ -190,8 +190,12 @@ export class PracticeService {
 
         const startRecordingCallback = () => {
             if (this.app.isRecordingEnabled) {
-                setTimeout(() => {
-                    this.app.audioService.startRecording();
+                setTimeout(async () => {
+                    await this.app.audioService.startRecording();
+                    // Paused during the short gap (or the browser ignored the speech pause): keep the break out of the take.
+                    if (this.app.autoSkipUserPaused) {
+                        this.app.audioService.pauseRecording();
+                    }
                 }, 50);
             }
         };
@@ -365,6 +369,7 @@ export class PracticeService {
         const { newStreak, oldStreak } = await this.recordPracticeCompletion();
         const willShowStreakModal = newStreak > oldStreak;
 
+        this.app.clearPauseState();
         this.app.utilService.clearAutoSkipTimer();
         this.app.audioService.terminateMicrophoneStream();
         if (this.app.practiceMode === 'auto-skip') {

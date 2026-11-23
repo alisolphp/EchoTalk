@@ -95,12 +95,16 @@ export class EchoTalkApp {
     public autoRestartTimer: number | null = null;
 
     public wakeLockSentinel: WakeLockSentinel | null = null;
+    /** Serializes wake-lock calls from the pause button so a quick Pause/Resume cannot leak a lock. */
+    private wakeLockChain: Promise<void> = Promise.resolve();
 
     public autoSkipTimerCallback: (() => void) | null = null;
     public autoSkipStartTime: number = 0;
     public autoSkipWaitTime: number = 0;
     public autoSkipRemainingTime: number = 0;
     public autoSkipIsPaused: boolean = false;
+    /** True while the user has paused auto-skip with the Pause button (modals and tab visibility must not resume it). */
+    public autoSkipUserPaused: boolean = false;
 
     /** An estimated words-per-second rate for TTS on mobile to simulate word highlighting. */
     public estimatedWordsPerSecond: number = 2.5;
@@ -266,7 +270,7 @@ export class EchoTalkApp {
         this.autoSkipStartTime = 0;
         this.autoSkipWaitTime = 0;
         this.autoSkipRemainingTime = 0;
-        this.autoSkipIsPaused = false;
+        this.clearPauseState();
 
         this.sentence = '';
         this.words = [];
@@ -364,6 +368,7 @@ export class EchoTalkApp {
         $('#startBtn').on('click', () => this.practiceService.startPractice());
         $('#resetBtn').on('click', () => this.resetApp());
         $('#checkBtn').on('click', () => this.practiceService.handleCheckOrNext());
+        $('#pauseResumeBtn').on('click', () => this.toggleUserPause());
         $('#userInput').on('keypress', (e: JQuery.KeyPressEvent) => {
             if (e.key === 'Enter' && this.practiceMode === 'check') {
                 this.practiceService.checkAnswer();
@@ -530,7 +535,9 @@ export class EchoTalkApp {
             }
         } else {
             if (isPracticingWithAutoSkip) {
-                this.requestWakeLock();
+                if (!this.autoSkipUserPaused) {
+                    this.queueWakeLock(() => this.requestWakeLock());
+                }
                 if(!$('#wordActionsModal').hasClass('show')){
                     this.resumeAutoSkip();
                 }
@@ -712,6 +719,46 @@ export class EchoTalkApp {
     }
 
     /**
+     * Drops any pause (manual or automatic) and undoes its side effects:
+     * the frozen progress animation and a paused speech synthesis (Chrome keeps it paused across cancel()).
+     */
+    public clearPauseState(): void {
+        this.autoSkipIsPaused = false;
+        this.autoSkipUserPaused = false;
+        $('#checkBtn').css('animation-play-state', 'running');
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.paused) {
+            speechSynthesis.resume();
+        }
+        // A recorder left paused would not stop (and save) normally later.
+        this.audioService?.resumeRecording();
+        this.uiService.updatePauseButton();
+    }
+
+    private queueWakeLock(op: () => Promise<void>): void {
+        this.wakeLockChain = this.wakeLockChain.then(op).catch(() => { /* a denied or failed lock request is not fatal */ });
+    }
+
+    /** Pause/Resume button: a manual pause that modals and tab visibility changes must not undo. */
+    public toggleUserPause(): void {
+        if (this.practiceMode !== 'auto-skip' || this.area !== 'Practice') {
+            return;
+        }
+        if (this.autoSkipUserPaused) {
+            this.autoSkipUserPaused = false;
+            this.resumeAutoSkip();
+            this.audioService.resumeRecording();
+            this.queueWakeLock(() => this.requestWakeLock());
+        } else {
+            this.autoSkipUserPaused = true;
+            this.pauseAutoSkip();
+            // The break must not end up inside a saved recording, and the screen may sleep.
+            this.audioService.pauseRecording();
+            this.queueWakeLock(() => this.releaseWakeLock());
+        }
+        this.uiService.updatePauseButton();
+    }
+
+    /**
      * Pauses the auto-skip timer, progress animation, and active speech synthesis.
      * This is typically triggered when a modal opens during practice.
      */
@@ -723,7 +770,7 @@ export class EchoTalkApp {
         this.autoSkipIsPaused = true;
 
         // Pause speech synthesis if it's currently speaking
-        if (speechSynthesis.speaking) {
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.speaking) {
             speechSynthesis.pause();
         }
 
@@ -745,14 +792,14 @@ export class EchoTalkApp {
      * This is triggered when a modal is closed after being paused.
      */
     public resumeAutoSkip(): void {
-        if (!this.autoSkipIsPaused) {
+        if (!this.autoSkipIsPaused || this.autoSkipUserPaused) {
             return;
         }
 
         this.autoSkipIsPaused = false;
 
         // Resume speech synthesis if it was paused
-        if (speechSynthesis.paused) {
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.paused) {
             speechSynthesis.resume();
         }
 
