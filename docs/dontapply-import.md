@@ -11,7 +11,7 @@ from the first question to the last.
 1. DontApply opens `https://alisolphp.github.io/EchoTalk/#import=<token>` in a new tab
    (the mirror `https://alisol.ir/EchoTalk/` works the same).
    The token is in the URL **fragment**, so it is not sent to the EchoTalk web server and not in its logs.
-2. EchoTalk reads the token and **removes it from the address bar immediately** (before any network call).
+2. EchoTalk reads the token and **removes it from the address bar immediately**: it is the first thing `init()` does, before the database or any network call, so even a failed start-up does not leave it in the URL or history. The import itself then runs in the background without holding back the rest of start-up; if the user already started their own practice by the time it finishes, the collection is only saved and a message points to "My Q&A Collections".
 3. EchoTalk sends `POST https://dontapply.club/api/echotalk/import` with the token as the raw request body.
 4. DontApply returns the collection as JSON and **expires the token on the first request**, whether or not
    EchoTalk can parse the answer.
@@ -95,7 +95,8 @@ EchoTalk does not log the token or the payload.
   settings (mode, repetitions, speed) are the user's own. After each question the user chooses "Next question";
   in auto-skip mode EchoTalk advances by itself. The resume point is saved; "My Q&A Collections" in For You lists
   collections with Start, Continue, From the start and Delete.
-- If `lang` is supported, the app language switches to it for the practice (saved like any language change).
+- If `lang` is supported, the app language switches to it for the practice (saved like any language change, and the sample sentences for that language are loaded).
+- Reloading the page in the middle of a collection restores the last answer as the plain setup sentence (the question banner is not restored); continue through "My Q&A Collections".
 
 ## Not in v1
 

@@ -76,24 +76,39 @@ export class CollectionService {
         return this.active !== null;
     }
 
+    private pending: { token: string | null } | null = null;
+
     /**
-     * Called once at startup. If the URL hash carries an import token, it is removed from the
-     * address bar at once (before any network call) and the import runs.
+     * First thing at startup, synchronous: if the URL hash carries an import token, remember it and
+     * remove it from the address bar at once (before the database, any network call or anything that can fail).
      */
-    public async handleLaunchHash(): Promise<void> {
+    public captureLaunchToken(): void {
         const hash = window.location.hash;
         if (!isImportHash(hash)) return;
-        const token = extractTokenFromHash(hash);
+        this.pending = { token: extractTokenFromHash(hash) };
         try {
             history.replaceState(null, '', window.location.pathname + window.location.search);
         } catch {
             // Not fatal: the token is single-use anyway.
         }
-        if (!token) {
+    }
+
+    /** Runs the import captured by captureLaunchToken(), once. */
+    public async runPendingImport(): Promise<void> {
+        const pending = this.pending;
+        this.pending = null;
+        if (!pending) return;
+        if (!pending.token) {
             this.showStatus(IMPORT_ERROR_MESSAGES.bad_token, 'danger');
             return;
         }
-        await this.importWithToken(token);
+        await this.importWithToken(pending.token);
+    }
+
+    /** Capture and run in one step (used by tests and callers that do not need the early capture). */
+    public async handleLaunchHash(): Promise<void> {
+        this.captureLaunchToken();
+        await this.runPendingImport();
     }
 
     /** Fetches the collection with a one-time token, stores it if new, and starts practice from question 1. */
@@ -108,15 +123,26 @@ export class CollectionService {
             this.showStatus(IMPORT_ERROR_MESSAGES[code], 'danger');
             return;
         }
+        let collection: StoredCollection;
+        let added: boolean;
         try {
-            const { collection, added } = await addOrFind(this.store, incoming);
-            this.showStatus(
-                added ? `Added "${collection.title}" to your collections.` : `"${collection.title}" is already in your collections.`,
-                'success',
-            );
-            await this.start(collection, 0);
+            ({ collection, added } = await addOrFind(this.store, incoming));
         } catch {
             this.showStatus('Could not save the notes on this device.', 'danger');
+            return;
+        }
+        const label = added ? `Added "${collection.title}" to your collections.` : `"${collection.title}" is already in your collections.`;
+        if (this.app.area === 'Practice') {
+            // The user started their own practice while the import was running: do not take it over.
+            this.showStatus(`${label} Open "My Q&A Collections" in For You to practice it.`, 'success');
+            return;
+        }
+        this.showStatus(label, 'success');
+        try {
+            await this.start(collection, 0);
+        } catch (e) {
+            console.error('Could not start the collection:', e);
+            this.showStatus('The notes were saved, but practice could not start. Open "My Q&A Collections" in For You.', 'warning');
         }
     }
 
@@ -132,13 +158,24 @@ export class CollectionService {
         const item = c.items[index];
 
         if (c.lang !== this.app.lang && this.app.languageMap[c.lang]) {
-            this.app.lang = c.lang;
-            this.app.uiService.updateLanguageUI();
+            await this.switchLanguage(c.lang);
         }
 
         $('#sentenceInput').val(item.answer).attr('data-val', item.answer);
         this.renderBanner();
         await this.app.practiceService.startPractice();
+    }
+
+    /** Switches the app language the way the language selector does, including the sample sentences. */
+    private async switchLanguage(lang: string): Promise<void> {
+        this.app.lang = lang;
+        this.app.uiService.updateLanguageUI();
+        try {
+            this.app.samples = await this.app.dataService.fetchSamples();
+            this.app.uiService.setupSampleOptions();
+        } catch (e) {
+            console.error('Could not load sample sentences for the new language:', e);
+        }
     }
 
     private renderBanner(): void {
@@ -206,6 +243,8 @@ export class CollectionService {
         if (!c) return;
         c.progress = progress;
         try {
+            // Do not bring back a collection the user deleted while it was open.
+            if (!(await this.store.get(c.key))) return;
             await this.store.put(c);
         } catch {
             // Progress is a convenience; ignore storage errors.
@@ -248,7 +287,13 @@ export class CollectionService {
                 .attr('aria-label', `Delete ${c.title}`).text('Delete')
                 .on('click', async () => {
                     if (!window.confirm(`Delete "${c.title}" from this device?`)) return;
-                    await this.store.remove(c.key);
+                    try {
+                        if (this.active?.key === c.key) this.clear();
+                        await this.store.remove(c.key);
+                    } catch (e) {
+                        console.error('Could not delete the collection:', e);
+                        window.alert('Could not delete the collection. Please try again.');
+                    }
                     await this.showList();
                 }));
             $body.append($row);
@@ -257,10 +302,10 @@ export class CollectionService {
     }
 
     /** Shows a dismissible status line near the top of the page (plain text only). */
-    public showStatus(message: string, kind: 'info' | 'success' | 'danger'): void {
+    public showStatus(message: string, kind: 'info' | 'success' | 'warning' | 'danger'): void {
         const $box = $('#importStatus');
         $('#importStatusClose').off('click').on('click', () => $box.addClass('d-none'));
-        $box.removeClass('d-none alert-info alert-success alert-danger').addClass(`alert-${kind}`);
+        $box.removeClass('d-none alert-info alert-success alert-warning alert-danger').addClass(`alert-${kind}`);
         $('#importStatusText').text(message);
     }
 }

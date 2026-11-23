@@ -160,6 +160,40 @@ describe('CollectionService flow', () => {
         expect($('#collectionQuestion').text()).toBe('Listed Q1?');
     });
 
+    it('init() removes the token from the address bar before the database is opened, even if start-up fails', async () => {
+        setHash(`#import=${TOKEN}`);
+        vi.spyOn(app.dataService, 'initDB').mockRejectedValue(new Error('no db'));
+        await app.init();
+        expect(window.location.hash).toBe('');
+        expect(fetch).not.toHaveBeenCalled(); // the import never ran, and the token is not left behind
+    });
+
+    it('a late import result is saved but does not take over a practice the user already started', async () => {
+        app.area = 'Practice';
+        await app.collectionService.importWithToken(TOKEN);
+        expect(store.data.size).toBe(1);
+        expect(startSpy).not.toHaveBeenCalled();
+        expect(app.collectionService.isActive()).toBe(false);
+        expect($('#importStatusText').text()).toContain('My Q&A Collections');
+    });
+
+    it('progress is not written back for a collection that was deleted while open', async () => {
+        await app.collectionService.importWithToken(TOKEN);
+        store.data.clear();
+        $('#session-complete-container').html('<h2>Done</h2><button id="restartPracticeBtn"></button><button class="btn btn-secondary">New</button>');
+        app.collectionService.decorateCompletion();
+        await new Promise(r => setTimeout(r, 10));
+        expect(store.data.size).toBe(0);
+    });
+
+    it('a failed start after a successful save says so, not "could not save"', async () => {
+        startSpy.mockRejectedValue(new Error('boom'));
+        await app.collectionService.importWithToken(TOKEN);
+        expect(store.data.size).toBe(1);
+        expect($('#importStatusText').text()).toContain('saved');
+        expect($('#importStatusText').text()).not.toContain('Could not save');
+    });
+
     it('lists collections as text and deletes on confirm', async () => {
         await addOrFind(store, { key: 'k', title: '<b>Evil</b>', lang: 'en-US', items: [{ question: 'Q', answer: 'A' }] });
         await app.collectionService.showList();
@@ -205,7 +239,11 @@ describe('CollectionService flow', () => {
 
     it('switches the app language to a supported collection language', async () => {
         (fetch as any).mockImplementation(async () => okRes({ ...payload, lang: 'de-DE' }));
+        const samples = vi.spyOn(app.dataService, 'fetchSamples').mockResolvedValue({ levels: [] } as any);
+        const setup = vi.spyOn(app.uiService, 'setupSampleOptions').mockImplementation(() => {});
         await app.collectionService.importWithToken(TOKEN);
+        expect(samples).toHaveBeenCalled();
+        expect(setup).toHaveBeenCalled();
         expect(app.lang).toBe('de-DE');
         expect($('.current-language-general-name').first().text()).toBe('German (DE)');
     });
