@@ -2,6 +2,7 @@ import $ from 'jquery';
 import { Modal } from 'bootstrap';
 import { EchoTalkApp } from '../app';
 import { Practice } from '../types';
+import { renderPromo } from './promo.service';
 
 /**
  * Encapsulates the core logic for the practice session flow, including starting,
@@ -417,6 +418,7 @@ export class PracticeService {
         </div>`;
         $('#practice-ui-container').addClass('d-none');
         $('#session-complete-container').html(completionHtml).removeClass('d-none');
+        renderPromo(document.getElementById('session-complete-container'), 'end');
         $('#restartPracticeBtn').focus();
 
         localStorage.removeItem(this.app.STORAGE_KEYS.index);

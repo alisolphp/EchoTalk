@@ -2,6 +2,7 @@ import $ from 'jquery';
 import { Modal } from 'bootstrap';
 import confetti from 'canvas-confetti';
 import { EchoTalkApp } from '../app';
+import { renderPromo } from './promo.service';
 
 /**
  * Manages all User Interface (UI) related operations, such as showing pages,
@@ -47,6 +48,10 @@ export class UiService {
 
         $(`#area${key}`).removeClass('d-none');
         $(`#nav${key}`).addClass('active');
+
+        if (key === 'PrePractice') {
+            renderPromo(document.getElementById('promoPre'), 'pre');
+        }
 
         this.app.area = key;
         this.app.resetWithoutReload();
