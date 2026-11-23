@@ -2,6 +2,7 @@ import $ from 'jquery';
 import { Modal } from 'bootstrap';
 import { EchoTalkApp } from '../app';
 import { Recording, Practice, SampleData } from '../types';
+import { escapeHtml } from '../utils/html';
 
 /**
  * Service for managing all data-related operations, including fetching
@@ -30,7 +31,7 @@ export class DataService {
      */
     public initDB(): Promise<IDBDatabase> {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open('EchoTalkDB', 3);
+            const request = indexedDB.open('EchoTalkDB', 4);
             request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
                 if (!db.objectStoreNames.contains('recordings')) {
@@ -40,6 +41,9 @@ export class DataService {
                 if (!db.objectStoreNames.contains('practices')) {
                     const store =
                         db.createObjectStore('practices', { keyPath: 'sentence' });
+                }
+                if (!db.objectStoreNames.contains('collections')) {
+                    db.createObjectStore('collections', { keyPath: 'key' });
                 }
             };
             request.onsuccess = (event) => {
@@ -72,15 +76,25 @@ export class DataService {
      * Fetches all recordings from IndexedDB, groups them by sentence, sorts them,
      * and renders them into the recordings modal.
      */
-    public async displayRecordings(): Promise<void> {
+    public async displayRecordings(keepOpenSentence?: string): Promise<void> {
         if (!this.app.db) return;
         const transaction = this.app.db.transaction(['recordings'], 'readonly');
         const store = transaction.objectStore('recordings');
-        const allRecords: Recording[] = await new Promise((resolve, reject) => {
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result as Recording[]);
+        // Keys are needed to delete single recordings (autoIncrement keys are not part of the value).
+        // Both requests are issued in the same tick on one transaction, so they see the same snapshot.
+        const valuesRequest = store.getAll();
+        const keysRequest = typeof store.getAllKeys === 'function' ? store.getAllKeys() : null;
+        const asPromise = <T>(request: IDBRequest): Promise<T> => new Promise((resolve, reject) => {
+            request.onsuccess = () => resolve(request.result as T);
             request.onerror = err => reject(err);
         });
+        const [allRecords, keys] = await Promise.all([
+            asPromise<Recording[]>(valuesRequest),
+            keysRequest ? asPromise<IDBValidKey[]>(keysRequest) : Promise.resolve<IDBValidKey[]>([]),
+        ]);
+        if (keys.length === allRecords.length) {
+            allRecords.forEach((rec, i) => { rec.id = keys[i]; });
+        }
         const grouped: Record<string, Recording[]> = {};
         allRecords.forEach(rec => {
             if (!grouped[rec.sentence]) {
@@ -92,6 +106,8 @@ export class DataService {
 
         const $list = $('#recordingsList');
         $list.empty();
+
+        $('#deleteAllRecordingsBtn, #recordingsFooterNote').toggleClass('d-none', allRecords.length === 0);
 
         if (Object.keys(grouped).length === 0) {
             $list.html('<p class="text-center text-muted">No recordings found yet. Enable "Record my voice" and start practicing!</p>');
@@ -113,7 +129,7 @@ export class DataService {
                     <h2 class="accordion-header" id="heading-${uniqueId}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${uniqueId}" aria-expanded="false">
                             <div class="w-100 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center">
-                               <span class="fw-bold mb-1 mb-sm-0">${truncated}</span>
+                               <span class="fw-bold mb-1 mb-sm-0">${escapeHtml(truncated)}</span>
                                 <div class="d-flex align-items-center">
                                     <span class="badge bg-secondary me-2">${count} recording${count > 1 ? 's' : ''}</span>
                                     <small class="text-muted">${lastRecTime.toLocaleString()}</small>
@@ -121,7 +137,7 @@ export class DataService {
                             </div>
                      </button>
                     </h2>
-                    <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#recordingsList" data-sentence="${sentence.replace(/"/g, '&quot;')}">
+                    <div id="collapse-${uniqueId}" class="accordion-collapse collapse" data-bs-parent="#recordingsList" data-sentence="${escapeHtml(sentence)}">
                         <div class="accordion-body">
                             <ul class="list-group">
                                ${recordings.map((rec, index) => `
@@ -130,31 +146,37 @@ export class DataService {
                                             <span class="mb-2 mb-md-0">Recording from ${rec.timestamp?.toLocaleString() || 'an old date'}</span>
                                             <div class="row g-2 justify-content-center">
                                                 <div class="col-6 col-md-auto">
-                                                    <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${sentence}" data-lang="${rec.lang}">
+                                                    <button class="btn btn-sm btn-success play-bot-audio w-100" data-sentence="${escapeHtml(sentence)}" data-lang="${rec.lang}">
                                                         <i class="bi bi-robot"></i> Play Bot
                                                     </button>
                                                 </div>
                                                 <div class="col-6 col-md-auto">
-                                                    <button class="btn btn-sm btn-primary play-user-audio w-100" data-sentence="${sentence}" data-index="${index}">
+                                                    <button class="btn btn-sm btn-primary play-user-audio w-100" data-sentence="${escapeHtml(sentence)}" data-index="${index}">
                                                         <i class="bi bi-person-fill"></i> Play Mine
                                                     </button>
                                                 </div>
+                                                ${rec.id !== undefined ? `
+                                                <div class="col-6 col-md-auto">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-recording w-100" data-index="${index}" aria-label="Delete the recording from ${rec.timestamp?.toLocaleString() || 'an old date'}">
+                                                        <i class="bi bi-trash"></i> Delete
+                                                    </button>
+                                                </div>` : ''}
                                                 ${rec.lang === 'en-US' && this.app.spellCheckerIsAvailable ?
                                                 `
                                                     <div class="col-6 col-md-auto">
-                                                        <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${sentence}" data-index="${index}" title="Check pronunciation accuracy">
+                                                        <button class="btn btn-sm btn-info check-accuracy-btn w-100" data-sentence="${escapeHtml(sentence)}" data-index="${index}" title="Check pronunciation accuracy">
                                                             <i class="bi bi-magic"></i> Fast <span class="text-nowrap">AI Analyze</span>
                                                         </button>
                                                     </div>
                                                     <div class="col-6 col-md-auto">
-                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${escapeHtml(sentence)}" data-index="${index}">
                                                             <i class="bi bi-magic"></i> Full <span class="text-nowrap">AI Analyze</span>
                                                         </button>
                                                     </div>
                                                 ` : 
                                                 `
                                                     <div class="col-12 col-md-auto">
-                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${sentence}" data-index="${index}">
+                                                        <button class="btn btn-sm btn-warning prepare-for-ai w-100" title="Prepare file and prompt for analysis by AI" data-sentence="${escapeHtml(sentence)}" data-index="${index}">
                                                             <i class="bi bi-magic"></i> Comprehensive <span class="text-nowrap">AI Analyze</span>
                                                         </button>
                                                     </div>
@@ -173,8 +195,48 @@ export class DataService {
             }
         }
 
+        // After a delete, keep the group the user was in open and put focus back on its header.
+        if (keepOpenSentence !== undefined) {
+            const $group = $list.find('.accordion-collapse').filter((_i, el) => $(el).attr('data-sentence') === keepOpenSentence);
+            if ($group.length) {
+                $group.addClass('show');
+                const $header = $group.closest('.accordion-item').find('.accordion-button').first();
+                $header.removeClass('collapsed').attr('aria-expanded', 'true').trigger('focus');
+            } else {
+                $list.find('.accordion-button').first().trigger('focus');
+            }
+        }
+        // Nothing left to focus in the list (for example after "Delete all"): keep keyboard focus inside the dialog.
+        if (keepOpenSentence !== undefined || allRecords.length === 0) {
+            if ($list.find('.accordion-button').length === 0) {
+                $('#recordingsModal .btn-close').trigger('focus');
+            }
+        }
+
         const recordingsModal = Modal.getOrCreateInstance($('#recordingsModal')[0]);
         recordingsModal.show();
+    }
+
+    /** Deletes one recording by its IndexedDB key. Practice history and streaks are untouched. */
+    public deleteRecording(id: IDBValidKey): Promise<void> {
+        return this.writeRecordings(store => store.delete(id));
+    }
+
+    /** Deletes all recordings only (practice history and streaks are kept). */
+    public deleteAllRecordings(): Promise<void> {
+        return this.writeRecordings(store => store.clear());
+    }
+
+    private writeRecordings(op: (store: IDBObjectStore) => IDBRequest): Promise<void> {
+        return new Promise((resolve, reject) => {
+            try {
+                const request = op(this.app.db.transaction(['recordings'], 'readwrite').objectStore('recordings'));
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            } catch (e) {
+                reject(e);
+            }
+        });
     }
 
     /**
@@ -228,13 +290,13 @@ export class DataService {
                             const lastPracticedDate = p.practiceHistory && p.practiceHistory.length > 0 ? p.practiceHistory[p.practiceHistory.length - 1] : 'Never';
                             const formattedDate = lastPracticedDate !== 'Never' ? lastPracticedDate.toLocaleString() : lastPracticedDate;
                             const truncatedSentence = this.app.utilService.truncateSentence(p.sentence);
-                            const sentenceAttr = p.sentence.replace(/"/g, '&quot;');
+                            const sentenceAttr = escapeHtml(p.sentence);
                             accordionHtml += `
                                 <div class="card mb-3">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="flex-grow-1 me-3">
-                                                <p class="card-title fw-bold mb-1">"${truncatedSentence}"</p>
+                                                <p class="card-title fw-bold mb-1">"${escapeHtml(truncatedSentence)}"</p>
                                                 <p class="card-text mb-1">
                                                     <span class="badge bg-info">Practiced: <strong>${p.count}</strong> time(s)</span>
                                                 </p>
@@ -268,13 +330,13 @@ export class DataService {
                         const lastPracticedDate = p.practiceHistory && p.practiceHistory.length > 0 ? p.practiceHistory[p.practiceHistory.length - 1] : 'Never';
                         const formattedDate = lastPracticedDate !== 'Never' ? lastPracticedDate.toLocaleString() : lastPracticedDate;
                         const truncatedSentence = this.app.utilService.truncateSentence(p.sentence);
-                        const sentenceAttr = p.sentence.replace(/"/g, '&quot;');
+                        const sentenceAttr = escapeHtml(p.sentence);
                         const practiceHTML = `
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="flex-grow-1 me-3">
-                                            <p class="card-title fw-bold mb-1">"${truncatedSentence}"</p>
+                                            <p class="card-title fw-bold mb-1">"${escapeHtml(truncatedSentence)}"</p>
                                             <p class="card-text mb-1">
                                                 <span class="badge bg-info">Practiced: <strong>${p.count}</strong> time(s)</span>
                                             </p>

@@ -2,6 +2,8 @@ import $ from 'jquery';
 import { Modal } from 'bootstrap';
 import confetti from 'canvas-confetti';
 import { EchoTalkApp } from '../app';
+import { escapeHtml } from '../utils/html';
+import { renderPromo } from './promo.service';
 
 /**
  * Manages all User Interface (UI) related operations, such as showing pages,
@@ -47,6 +49,10 @@ export class UiService {
 
         $(`#area${key}`).removeClass('d-none');
         $(`#nav${key}`).addClass('active');
+
+        if (key === 'PrePractice') {
+            renderPromo(document.getElementById('promoPre'), 'pre');
+        }
 
         this.app.area = key;
         this.app.resetWithoutReload();
@@ -173,7 +179,7 @@ export class UiService {
         $('#sampleSentence').empty();
         this.app.words.forEach((w, i) => {
             const cls = i === this.app.currentIndex ? 'current-word' : '';
-            $('#sampleSentence').append(`<span data-index="${i}" class="${cls}">${w}</span> `);
+            $('#sampleSentence').append(`<span data-index="${i}" class="${cls}">${escapeHtml(w)}</span> `);
         });
     }
 
@@ -195,7 +201,7 @@ export class UiService {
             let cls = '';
             if (i < startIndex) cls = 'text-muted';
             else if (i === this.app.currentIndex) cls = 'current-word';
-            $('#fullSentence').append(`<span class="${cls}">${w}</span> `);
+            $('#fullSentence').append(`<span class="${cls}">${escapeHtml(w)}</span> `);
         });
     }
 
@@ -206,6 +212,10 @@ export class UiService {
     public setupPracticeUI(): void {
         const userInputGroup = $('#userInput').parent();
         const checkBtn = $('#checkBtn');
+
+        // A fresh practice screen always starts un-paused; the button exists only in auto-skip mode.
+        this.app.clearPauseState();
+        $('#pauseResumeBtn').toggleClass('d-none', this.app.practiceMode !== 'auto-skip');
 
         if (this.app.practiceMode === 'check') {
             $('#instructionText').text('Now it’s your turn. Tap the mic icon on your keyboard and speak the word.').show();
@@ -224,6 +234,14 @@ export class UiService {
             userInputGroup.hide();
             checkBtn.html('<i class="bi bi-skip-forward-fill"></i> Next Step').show();
         }
+    }
+
+    /** Syncs the Pause/Resume button label and state with the manual pause flag. */
+    public updatePauseButton(): void {
+        const paused = this.app.autoSkipUserPaused;
+        $('#pauseResumeBtn')
+            .html(paused ? '<i class="bi bi-play-fill"></i> Resume' : '<i class="bi bi-pause-fill"></i> Pause');
+        $('#pauseStatus').text(paused ? 'Paused' : '');
     }
 
     /**

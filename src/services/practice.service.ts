@@ -2,6 +2,7 @@ import $ from 'jquery';
 import { Modal } from 'bootstrap';
 import { EchoTalkApp } from '../app';
 import { Practice } from '../types';
+import { renderPromo } from './promo.service';
 
 /**
  * Encapsulates the core logic for the practice session flow, including starting,
@@ -189,8 +190,12 @@ export class PracticeService {
 
         const startRecordingCallback = () => {
             if (this.app.isRecordingEnabled) {
-                setTimeout(() => {
-                    this.app.audioService.startRecording();
+                setTimeout(async () => {
+                    await this.app.audioService.startRecording();
+                    // Paused during the short gap (or the browser ignored the speech pause): keep the break out of the take.
+                    if (this.app.autoSkipUserPaused) {
+                        this.app.audioService.pauseRecording();
+                    }
                 }, 50);
             }
         };
@@ -364,6 +369,7 @@ export class PracticeService {
         const { newStreak, oldStreak } = await this.recordPracticeCompletion();
         const willShowStreakModal = newStreak > oldStreak;
 
+        this.app.clearPauseState();
         this.app.utilService.clearAutoSkipTimer();
         this.app.audioService.terminateMicrophoneStream();
         if (this.app.practiceMode === 'auto-skip') {
@@ -417,7 +423,9 @@ export class PracticeService {
         </div>`;
         $('#practice-ui-container').addClass('d-none');
         $('#session-complete-container').html(completionHtml).removeClass('d-none');
+        renderPromo(document.getElementById('session-complete-container'), 'end');
         $('#restartPracticeBtn').focus();
+        this.app.collectionService.decorateCompletion();
 
         localStorage.removeItem(this.app.STORAGE_KEYS.index);
         localStorage.removeItem(this.app.STORAGE_KEYS.count);
@@ -428,13 +436,18 @@ export class PracticeService {
 
         if (this.app.practiceMode === 'auto-skip' && this.app.area === 'Practice' && !willShowStreakModal) {
             const waitTime = 5;
-            const $restartBtn = $('#restartPracticeBtn');
+            // In collection mode the countdown leads to the next question, so animate that button.
+            const $restartBtn = this.app.collectionService.isActive() ? $('#collectionNextBtn') : $('#restartPracticeBtn');
             $restartBtn.addClass('auto-skip-progress').removeClass('loading');
             void ($restartBtn[0] as HTMLElement).offsetHeight;
             $restartBtn.css('animation-duration', `${waitTime}s`).addClass('loading');
             this.app.autoRestartTimer = setTimeout(() => {
                 if (!$('#session-complete-container').hasClass('d-none')) {
-                    this.restartCurrentPractice();
+                    if (this.app.collectionService.isActive()) {
+                        this.app.collectionService.next().catch(err => console.error('Could not advance to the next question:', err));
+                    } else {
+                        this.restartCurrentPractice();
+                    }
                 }
             }, waitTime * 1000);
         }
