@@ -533,7 +533,9 @@ export class EchoTalkApp {
             }
         } else {
             if (isPracticingWithAutoSkip) {
-                this.requestWakeLock();
+                if (!this.autoSkipUserPaused) {
+                    this.requestWakeLock();
+                }
                 if(!$('#wordActionsModal').hasClass('show')){
                     this.resumeAutoSkip();
                 }

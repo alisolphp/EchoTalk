@@ -187,4 +187,52 @@ describe('Auto-skip pause and resume button', () => {
     it('the pause button has no stale aria-pressed attribute', () => {
         expect(document.getElementById('pauseResumeBtn')!.hasAttribute('aria-pressed')).toBe(false);
     });
+
+    it('stopRecording stops a recorder that the manual pause left paused (so it is saved, not left half-open)', async () => {
+        const rec: any = {
+            state: 'paused',
+            addEventListener: vi.fn((_e: string, cb: () => void) => { rec.onStopCb = cb; }),
+            stop: vi.fn(() => { rec.state = 'inactive'; rec.onStopCb(); }),
+        };
+        (app.audioService as any).mediaRecorder = rec;
+        await app.audioService.stopRecording();
+        expect(rec.stop).toHaveBeenCalledTimes(1);
+        expect(rec.state).toBe('inactive');
+    });
+
+    it('reset while manually paused leaves the recorder stopped', async () => {
+        vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
+        const rec: any = {
+            state: 'recording',
+            pause: vi.fn(() => { rec.state = 'paused'; }),
+            resume: vi.fn(() => { rec.state = 'recording'; }),
+            addEventListener: vi.fn((_e: string, cb: () => void) => { rec.onStopCb = cb; }),
+            stop: vi.fn(() => { rec.state = 'inactive'; rec.onStopCb(); }),
+        };
+        (app.audioService as any).mediaRecorder = rec;
+        app.uiService.setupPracticeUI();
+        app.toggleUserPause();
+        expect(rec.state).toBe('paused');
+        await app.resetWithoutReload();
+        expect(rec.state).toBe('inactive');
+    });
+
+    it('returning to the tab during a manual pause does not re-request the wake lock', () => {
+        (app as any).bindEvents();
+        const release = vi.spyOn(app, 'releaseWakeLock').mockResolvedValue();
+        const request = vi.spyOn(app, 'requestWakeLock').mockResolvedValue();
+        app.uiService.setupPracticeUI();
+        app.toggleUserPause();
+        request.mockClear();
+        const original = Object.getOwnPropertyDescriptor(Document.prototype, 'visibilityState');
+        Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
+        try {
+            document.dispatchEvent(new Event('visibilitychange'));
+        } finally {
+            delete (document as any).visibilityState;
+            if (original) Object.defineProperty(Document.prototype, 'visibilityState', original);
+        }
+        expect(request).not.toHaveBeenCalled();
+        expect(release).toHaveBeenCalled();
+    });
 });

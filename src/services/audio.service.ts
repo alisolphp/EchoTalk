@@ -166,7 +166,8 @@ export class AudioService {
         this.visualizerActive = false;
         $('#feedback-text').html('').removeClass('recording-text-indicator');
         return new Promise(resolve => {
-            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+            // A recorder paused by the manual pause button must also be stopped (and saved) normally.
+            if (this.mediaRecorder && (this.mediaRecorder.state === 'recording' || this.mediaRecorder.state === 'paused')) {
                 this.mediaRecorder.addEventListener('stop', () => resolve(), { once: true });
                 this.mediaRecorder.stop();
             } else {
