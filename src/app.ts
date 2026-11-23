@@ -386,6 +386,31 @@ export class EchoTalkApp {
         $('#recordingsList').on('click', '.play-bot-audio', (e) => this.audioService.playBotAudio(e.currentTarget));
         $('#recordingsList').on('click', '.prepare-for-ai', (e) => this.aiService.prepareForAIAnalysis(e.currentTarget));
         $('#recordingsList').on('click', '.check-accuracy-btn', (e) => this.aiService.getPronunciationAccuracy(e.currentTarget));
+        $('#recordingsList').on('click', '.delete-recording', async (e) => {
+            const sentence = $(e.currentTarget).closest('.accordion-collapse').attr('data-sentence') as string;
+            const rec = window.modalRecordings[sentence]?.[Number($(e.currentTarget).attr('data-index'))];
+            if (!rec || rec.id === undefined) return;
+            if (!window.confirm('Delete this recording? This cannot be undone.')) return;
+            this.audioService.stopAllPlayback();
+            try {
+                await this.dataService.deleteRecording(rec.id);
+            } catch (err) {
+                console.error('Could not delete the recording:', err);
+                window.alert('Could not delete the recording. Please try again.');
+            }
+            await this.dataService.displayRecordings(sentence);
+        });
+        $('#deleteAllRecordingsBtn').on('click', async () => {
+            if (!window.confirm('Delete ALL recordings? Your practice history and streak are kept. This cannot be undone.')) return;
+            this.audioService.stopAllPlayback();
+            try {
+                await this.dataService.deleteAllRecordings();
+            } catch (err) {
+                console.error('Could not delete the recordings:', err);
+                window.alert('Could not delete the recordings. Please try again.');
+            }
+            await this.dataService.displayRecordings('');
+        });
         $('#recordingsModal').on('hidden.bs.modal', () => this.audioService.stopAllPlayback());
 
         $('#languageSelect, #headerLanguageSelect').on('change', (e) => {
